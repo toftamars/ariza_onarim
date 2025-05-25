@@ -74,6 +74,7 @@ class ArizaKayit(models.Model):
         domain="[('product_tmpl_id.brand_id', '=', marka_id)]",
         tracking=True
     )
+    transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -236,7 +237,30 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        if self.ariza_tipi in ['magaza', 'teknik'] and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
+        # Tedarikçiye gönderim ve mağaza ürünü ise transfer oluştur
+        if self.ariza_tipi == 'magaza' and self.magaza_ariza_tipi == 'tedarikci' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
+            ], limit=1)
+            if not picking_type:
+                raise UserError("Transfer tipi bulunamadı.")
+            picking_vals = {
+                'location_id': self.kaynak_konum_id.id,
+                'location_dest_id': self.tedarikci_id.property_stock_supplier.id if self.tedarikci_id.property_stock_supplier else False,
+                'picking_type_id': picking_type.id,
+                'move_type': 'direct',
+                'immediate_transfer': True,
+                'company_id': self.env.company.id,
+                'origin': self.name,
+                'note': self.aciklama or '',
+            }
+            picking = self.env['stock.picking'].create(picking_vals)
+            self.transfer_id = picking.id
+            self.transferler_ids = [(4, picking.id)]
+            # Otomatik doğrulama
+            picking.button_validate()
+        elif self.ariza_tipi in ['magaza', 'teknik'] and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
             self._create_stock_transfer()
 
     def action_tamamla(self):

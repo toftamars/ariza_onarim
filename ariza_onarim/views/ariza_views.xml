@@ -60,6 +60,7 @@
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', 'in', ['magaza', 'teknik']), ('partner_id', '=', False)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" readonly="1"/>
+                            <field name="transferler_ids" widget="many2many_tags" readonly="1"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
