@@ -93,6 +93,11 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_ariza_gunluk_report"/>
         <field name="context">{'search_default_bugun': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi yok
+            </p>
+        </field>
     </record>
 
     <!-- Aylık Rapor Görünümü -->
@@ -124,5 +129,10 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_ariza_aylik_report"/>
         <field name="context">{'search_default_bu_ay': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi yok
+            </p>
+        </field>
     </record>
 </odoo> 
