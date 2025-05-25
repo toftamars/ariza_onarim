@@ -5,14 +5,14 @@
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-muted="state == 'iptal'">
                 <field name="name"/>
                 <field name="islem_tipi"/>
                 <field name="ariza_tipi"/>
                 <field name="partner_id"/>
-                <field name="magaza_ariza_tipi"/>
                 <field name="analitik_hesap_id"/>
                 <field name="tedarikci_id"/>
+                <field name="sorumlu_id"/>
                 <field name="tarih"/>
                 <field name="state"/>
             </tree>
@@ -24,53 +24,66 @@
         <field name="name">ariza.kayit.form</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <form string="Arıza Kayıt">
+            <form string="Arıza Kaydı">
+                <header>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
+                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi"/>
+                    <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
+                </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
-                        <field name="name" readonly="1"/>
-                        <field name="islem_tipi" required="1"/>
-                        <field name="ariza_tipi" required="1"/>
+                        <group>
+                            <field name="islem_tipi"/>
+                            <field name="ariza_tipi"/>
+                            <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="tarih"/>
+                            <field name="sorumlu_id"/>
+                        </group>
+                        <group>
+                            <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                            <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="transfer_id" readonly="1"/>
+                            <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
+                        </group>
                     </group>
-                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}">
-                        <field name="partner_id"/>
-                        <field name="marka"/>
-                        <field name="model"/>
-                        <field name="sale_order_id"/>
-                        <field name="pos_order_id"/>
-                        <field name="siparis_yok"/>
-                        <field name="urun"/>
-                        <field name="fatura_tarihi"/>
-                        <field name="garanti_durumu"/>
-                    </group>
-                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
-                        <field name="magaza_ariza_tipi"/>
-                        <field name="analitik_hesap_id"/>
-                        <field name="transfer_metodu"/>
-                    </group>
-                    <group attrs="{'invisible': [('islem_tipi', '!=', 'teknik_servis')]}">
-                        <field name="tedarikci_id"/>
-                        <field name="analitik_hesap_id"/>
-                        <field name="transfer_metodu"/>
-                    </group>
-                    <group>
-                        <field name="tarih" required="1"/>
-                        <field name="sorumlu_id" required="1"/>
-                        <field name="state" readonly="1"/>
-                    </group>
-                    <group>
-                        <field name="aciklama" required="1" colspan="2"/>
-                        <field name="notlar" colspan="2"/>
-                    </group>
-                    <group>
-                        <field name="transfer_id" readonly="1"/>
-                        <field name="transfer_irsaliye"/>
-                    </group>
+                    <notebook>
+                        <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
+                            <group>
+                                <field name="siparis_yok"/>
+                                <field name="sale_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                                <field name="pos_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                                <field name="fatura_tarihi"/>
+                            </group>
+                        </page>
+                        <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
+                            <group>
+                                <field name="urun"/>
+                                <field name="marka"/>
+                                <field name="model"/>
+                                <field name="garanti_durumu"/>
+                            </group>
+                        </page>
+                        <page string="Notlar">
+                            <group>
+                                <field name="aciklama"/>
+                                <field name="notlar"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
-                <footer>
-                    <button name="action_onayla" string="Onayla" type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
-                    <button name="action_tamamla" string="Tamamla" type="object" class="btn-success" attrs="{'invisible': [('state', '!=', 'onaylandi')]}"/>
-                    <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', 'in', ('iptal','tamamlandi'))]}"/>
-                </footer>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -80,16 +93,23 @@
         <field name="name">ariza.kayit.search</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <search string="Arıza Kayıtları Ara">
+            <search string="Arıza Kayıtları">
                 <field name="name"/>
-                <field name="islem_tipi"/>
-                <field name="ariza_tipi"/>
                 <field name="partner_id"/>
-                <field name="magaza_ariza_tipi"/>
                 <field name="analitik_hesap_id"/>
                 <field name="tedarikci_id"/>
-                <field name="tarih"/>
-                <field name="state"/>
+                <field name="sorumlu_id"/>
+                <separator/>
+                <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
+                <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
+                <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="İşlem Tipi" name="islem_tipi" context="{'group_by': 'islem_tipi'}"/>
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by': 'sorumlu_id'}"/>
+                    <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -100,6 +120,11 @@
         <field name="res_model">ariza.kayit</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_ariza_kayit_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Yeni bir arıza kaydı oluşturun
+            </p>
+        </field>
     </record>
 
     <!-- Günlük Rapor Görünümü -->

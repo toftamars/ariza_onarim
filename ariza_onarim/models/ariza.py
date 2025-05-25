@@ -13,20 +13,22 @@ class ArizaKayit(models.Model):
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
         ('teslim', 'Ürün Teslim'),
-        ('teknik_servis', 'Teknik Servis'),
     ], string='İşlem Tipi', required=True, tracking=True)
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü'),
+        ('teknik', 'Teknik Servis'),
     ], string='Arıza Tipi', required=True, tracking=True)
     magaza_ariza_tipi = fields.Selection([
         ('tedarikci', 'Tedarikçiye Gönderim'),
         ('teknik_servis', 'Teknik Servis'),
     ], string='Mağaza Arıza Tipi', tracking=True)
     transfer_metodu = fields.Selection([
-        ('matbuu', 'Matbuu'),
-        ('e_irsaliye', 'E-İrsaliye'),
-    ], string='Transfer Metodu', tracking=True, default='matbuu')
+        ('arac', 'Araç'),
+        ('ucretsiz_kargo', 'Ücretsiz Kargo'),
+        ('ucretli_kargo', 'Ücretli Kargo'),
+        ('magaza', 'Mağaza'),
+    ], string='Transfer Metodu', tracking=True, default='arac')
     partner_id = fields.Many2one('res.partner', string='Müşteri', tracking=True)
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True)
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
@@ -87,6 +89,16 @@ class ArizaKayit(models.Model):
             self.marka = False
             self.model = False
             self.garanti_durumu = False
+        elif self.ariza_tipi == 'teknik':
+            self.partner_id = False
+            self.siparis_yok = False
+            self.sale_order_id = False
+            self.pos_order_id = False
+            self.urun = False
+            self.marka = False
+            self.model = False
+            self.garanti_durumu = False
+            self.magaza_ariza_tipi = False
 
     @api.onchange('magaza_ariza_tipi')
     def _onchange_magaza_ariza_tipi(self):
@@ -97,28 +109,39 @@ class ArizaKayit(models.Model):
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
-        if self.analitik_hesap_id and self.ariza_tipi == 'magaza':
+        if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             self._create_stock_transfer()
 
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id:
             return
 
-        # Kaynak ve hedef konumları belirle
-        source_location = self.env['stock.location'].search([
-            ('name', '=', f"{self.analitik_hesap_id.name}/Stok")
+        # Analitik hesabın bağlı olduğu stok konumunu bul
+        warehouse = self.env['stock.warehouse'].search([
+            ('company_id', '=', self.env.company.id),
+            ('analytic_account_id', '=', self.analitik_hesap_id.id)
         ], limit=1)
-        
-        if not source_location:
-            raise UserError(_(f"{self.analitik_hesap_id.name} için stok konumu bulunamadı."))
 
-        if self.magaza_ariza_tipi == 'tedarikci':
+        if not warehouse:
+            raise UserError(_(f"{self.analitik_hesap_id.name} için depo bulunamadı."))
+
+        # Kaynak ve hedef konumları belirle
+        source_location = warehouse.lot_stock_id
+        
+        if self.ariza_tipi == 'teknik':
             dest_location = self.env['stock.location'].search([
-                ('name', '=', 'Tedarikçi/Stok')
+                ('name', '=', 'Teknik Servis/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+        elif self.magaza_ariza_tipi == 'tedarikci':
+            dest_location = self.env['stock.location'].search([
+                ('name', '=', 'Tedarikçi/Stok'),
+                ('company_id', '=', self.env.company.id)
             ], limit=1)
         else:
             dest_location = self.env['stock.location'].search([
-                ('name', '=', 'Arıza/Stok')
+                ('name', '=', 'Arıza/Stok'),
+                ('company_id', '=', self.env.company.id)
             ], limit=1)
 
         if not dest_location:
@@ -127,7 +150,7 @@ class ArizaKayit(models.Model):
         # Transfer oluştur
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
-            ('warehouse_id', '=', source_location.warehouse_id.id)
+            ('warehouse_id', '=', warehouse.id)
         ], limit=1)
 
         if not picking_type:
@@ -149,7 +172,7 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id:
+        if self.ariza_tipi in ['magaza', 'teknik'] and self.analitik_hesap_id:
             self._create_stock_transfer()
 
     def action_tamamla(self):
