@@ -71,7 +71,6 @@ class ArizaKayit(models.Model):
     marka_urunleri_ids = fields.Many2many(
         'product.product',
         string='Marka Ürünleri',
-        domain="[('product_tmpl_id.brand_id', '=', marka_id)]",
         tracking=True
     )
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
