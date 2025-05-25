@@ -18,8 +18,12 @@ class ArizaKayit(models.Model):
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü'),
-        ('teknik', 'Teknik Servis'),
     ], string='Arıza Tipi', required=True, tracking=True)
+    teknik_servis = fields.Selection([
+        ('tedarikci', 'Tedarikçi'),
+        ('dtl', 'DTL'),
+        ('zuhal', 'Zuhal'),
+    ], string='Teknik Servis', tracking=True)
     magaza_ariza_tipi = fields.Selection([
         ('tedarikci', 'Tedarikçiye Gönderim'),
         ('teknik_servis', 'Teknik Servis'),
@@ -117,22 +121,27 @@ class ArizaKayit(models.Model):
             self.model = False
             self.magaza_ariza_tipi = False
 
-    @api.onchange('magaza_ariza_tipi')
-    def _onchange_magaza_ariza_tipi(self):
-        if self.magaza_ariza_tipi == 'tedarikci':
-            self.tedarikci_id = False
-        elif self.magaza_ariza_tipi == 'teknik_servis':
-            self.analitik_hesap_id = False
-            self.kaynak_konum_id = False
-            # DTL/Stok konumunu bul
+    @api.onchange('teknik_servis')
+    def _onchange_teknik_servis(self):
+        if self.teknik_servis == 'tedarikci':
+            # Tedarikçi seçildiğinde mevcut tedarikçi kurgusu çalışacak
+            pass
+        elif self.teknik_servis == 'dtl':
+            # DTL seçildiğinde kaynak ve hedef konum seçenekleri gelecek
             dtl_konum = self.env['stock.location'].search([
                 ('name', '=', 'DTL/Stok'),
                 ('company_id', '=', self.env.company.id)
             ], limit=1)
             if dtl_konum:
                 self.hedef_konum_id = dtl_konum
-            else:
-                self.hedef_konum_id = False
+        elif self.teknik_servis == 'zuhal':
+            # Zuhal seçildiğinde kaynak ve hedef konum seçenekleri gelecek
+            zuhal_konum = self.env['stock.location'].search([
+                ('name', '=', 'Zuhal/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if zuhal_konum:
+                self.hedef_konum_id = zuhal_konum
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):

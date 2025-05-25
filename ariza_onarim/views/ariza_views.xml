@@ -42,6 +42,7 @@
                             <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
+                            <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])]}"/>
                             <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="tarih"/>
@@ -52,24 +53,24 @@
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="marka_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
-                            <field name="tedarikci_adresi" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
-                            <field name="tedarikci_telefon" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
-                            <field name="tedarikci_email" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
+                            <field name="tedarikci_adresi" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
+                            <field name="tedarikci_telefon" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
+                            <field name="tedarikci_email" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="invoice_line_id" attrs="{'invisible': ['|', '|', ('ariza_tipi', '=', 'magaza'), ('partner_id', '=', False), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" readonly="1"/>
-                            <field name="transferler_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
                         <group>
-                            <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
+                            <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('teknik_servis', '=', 'tedarikci')]}"/>
                         </group>
                         <group>
-                            <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
+                            <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('teknik_servis', '=', 'tedarikci')]}"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
