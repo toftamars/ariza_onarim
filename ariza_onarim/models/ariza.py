@@ -34,6 +34,10 @@ class ArizaKayit(models.Model):
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
+    marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
+    tedarikci_adresi = fields.Text(string='Teslim Adresi', tracking=True)
+    tedarikci_telefon = fields.Char(string='Tedarikçi Telefon', tracking=True)
+    tedarikci_email = fields.Char(string='Tedarikçi E-posta', tracking=True)
     sorumlu_id = fields.Many2one('res.users', string='Sorumlu', default=lambda self: self.env.user, tracking=True)
     tarih = fields.Date(string='Tarih', default=fields.Date.context_today, tracking=True)
     state = fields.Selection([
@@ -47,7 +51,6 @@ class ArizaKayit(models.Model):
         domain="[('move_id.move_type', 'in', ['out_invoice', 'out_refund']), ('move_id.state', '=', 'posted'), ('move_id.partner_id', '=', partner_id)]")
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=True)
-    marka = fields.Char(string='Marka', required=True)
     model = fields.Char(string='Model', required=True)
     garanti_durumu = fields.Selection([
         ('garanti_kapsaminda', 'Garanti Kapsamında'),
@@ -83,7 +86,6 @@ class ArizaKayit(models.Model):
             self.hedef_konum_id = False
             if not self.siparis_yok:
                 self.urun = False
-                self.marka = False
                 self.model = False
                 self.garanti_durumu = False
         elif self.ariza_tipi == 'magaza':
@@ -91,7 +93,6 @@ class ArizaKayit(models.Model):
             self.siparis_yok = False
             self.invoice_line_id = False
             self.urun = False
-            self.marka = False
             self.model = False
             self.garanti_durumu = False
         elif self.ariza_tipi == 'teknik':
@@ -99,7 +100,6 @@ class ArizaKayit(models.Model):
             self.siparis_yok = False
             self.invoice_line_id = False
             self.urun = False
-            self.marka = False
             self.model = False
             self.garanti_durumu = False
             self.magaza_ariza_tipi = False
@@ -124,7 +124,6 @@ class ArizaKayit(models.Model):
             product = self.invoice_line_id.product_id
             if product:
                 self.urun = product.name
-                self.marka = product.brand_id.name if product.brand_id else ''
                 self.model = product.default_code or ''
                 self.garanti_durumu = 'garanti_kapsaminda' if product.warranty else 'garanti_disinda'
 
@@ -134,9 +133,21 @@ class ArizaKayit(models.Model):
             self.invoice_line_id = False
             self.siparis_yok = False
             self.urun = False
-            self.marka = False
             self.model = False
             self.garanti_durumu = False
+
+    @api.onchange('marka_id')
+    def _onchange_marka_id(self):
+        if self.marka_id and self.marka_id.partner_id:
+            self.tedarikci_id = self.marka_id.partner_id
+            self._onchange_tedarikci_id()
+
+    @api.onchange('tedarikci_id')
+    def _onchange_tedarikci_id(self):
+        if self.tedarikci_id:
+            self.tedarikci_adresi = self.tedarikci_id.street
+            self.tedarikci_telefon = self.tedarikci_id.phone
+            self.tedarikci_email = self.tedarikci_id.email
 
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
