@@ -274,7 +274,7 @@ class ArizaKayit(models.Model):
             fields_to_copy = [
                 'partner_id', 'analitik_hesap_id', 'kaynak_konum_id', 'hedef_konum_id', 'tedarikci_id',
                 'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
-                'fatura_tarihi', 'aciklama', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
+                'fatura_tarihi', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
                 'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'magaza_ariza_tipi', 'transfer_metodu'
             ]
             for field in fields_to_copy:
