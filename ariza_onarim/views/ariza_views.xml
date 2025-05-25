@@ -49,7 +49,7 @@
                         <group>
                             <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                             <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                         </group>
@@ -58,22 +58,21 @@
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
                                 <field name="siparis_yok"/>
-                                <field name="sale_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
-                                <field name="pos_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                                <field name="invoice_line_id" attrs="{'invisible': [('siparis_yok', '=', True)], 'required': [('siparis_yok', '=', False)]}"/>
                                 <field name="fatura_tarihi"/>
                             </group>
                         </page>
                         <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
-                                <field name="urun"/>
-                                <field name="marka"/>
-                                <field name="model"/>
-                                <field name="garanti_durumu"/>
+                                <field name="urun" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                                <field name="marka" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                                <field name="model" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                                <field name="garanti_durumu" attrs="{'required': [('siparis_yok', '=', True)]}"/>
                             </group>
                         </page>
                         <page string="Notlar">
                             <group>
-                                <field name="aciklama"/>
+                                <field name="aciklama" required="1"/>
                                 <field name="notlar"/>
                             </group>
                         </page>

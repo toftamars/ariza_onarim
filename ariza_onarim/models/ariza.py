@@ -41,17 +41,16 @@ class ArizaKayit(models.Model):
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
-    sale_order_id = fields.Many2one('sale.order', string='Satış Siparişi')
-    pos_order_id = fields.Many2one('pos.order', string='POS Siparişi')
+    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', domain="[('move_id.partner_id', '=', partner_id), ('move_id.move_type', 'in', ['out_invoice', 'out_refund']), ('move_id.state', '=', 'posted')]")
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
-    urun = fields.Char(string='Ürün')
-    marka = fields.Char(string='Marka')
-    model = fields.Char(string='Model')
+    urun = fields.Char(string='Ürün', required=True)
+    marka = fields.Char(string='Marka', required=True)
+    model = fields.Char(string='Model', required=True)
     garanti_durumu = fields.Selection([
         ('garanti_kapsaminda', 'Garanti Kapsamında'),
         ('garanti_disinda', 'Garanti Dışında'),
-    ], string='Garanti Durumu')
-    aciklama = fields.Text(string='Açıklama')
+    ], string='Garanti Durumu', required=True)
+    aciklama = fields.Text(string='Açıklama', required=True)
     notlar = fields.Text(string='Notlar')
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
@@ -63,13 +62,11 @@ class ArizaKayit(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit') or _('New')
         return super().create(vals_list)
 
-    @api.depends('sale_order_id', 'pos_order_id')
+    @api.depends('invoice_line_id')
     def _compute_fatura_tarihi(self):
         for record in self:
-            if record.sale_order_id and record.sale_order_id.invoice_ids:
-                record.fatura_tarihi = record.sale_order_id.invoice_ids[0].invoice_date
-            elif record.pos_order_id and record.pos_order_id.account_move:
-                record.fatura_tarihi = record.pos_order_id.account_move.invoice_date
+            if record.invoice_line_id:
+                record.fatura_tarihi = record.invoice_line_id.move_id.invoice_date
             else:
                 record.fatura_tarihi = False
 
@@ -78,13 +75,15 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == 'musteri':
             self.magaza_ariza_tipi = False
             self.analitik_hesap_id = False
-            self.tedarikci_id = False
-            self.transfer_metodu = False
+            if not self.siparis_yok:
+                self.urun = False
+                self.marka = False
+                self.model = False
+                self.garanti_durumu = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
             self.siparis_yok = False
-            self.sale_order_id = False
-            self.pos_order_id = False
+            self.invoice_line_id = False
             self.urun = False
             self.marka = False
             self.model = False
@@ -92,8 +91,7 @@ class ArizaKayit(models.Model):
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.siparis_yok = False
-            self.sale_order_id = False
-            self.pos_order_id = False
+            self.invoice_line_id = False
             self.urun = False
             self.marka = False
             self.model = False
@@ -111,6 +109,16 @@ class ArizaKayit(models.Model):
     def _onchange_analitik_hesap_id(self):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             self._create_stock_transfer()
+
+    @api.onchange('invoice_line_id')
+    def _onchange_invoice_line_id(self):
+        if self.invoice_line_id:
+            product = self.invoice_line_id.product_id
+            if product:
+                self.urun = product.name
+                self.marka = product.brand_id.name if product.brand_id else ''
+                self.model = product.default_code or ''
+                self.garanti_durumu = 'garanti_kapsaminda' if product.warranty else 'garanti_disinda'
 
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id:
