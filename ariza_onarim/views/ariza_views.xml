@@ -54,6 +54,14 @@
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                         </group>
                     </group>
+                    <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
+                        <group>
+                            <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                        </group>
+                        <group>
+                            <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                        </group>
+                    </group>
                     <notebook>
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
