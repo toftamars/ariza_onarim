@@ -126,8 +126,16 @@ class ArizaKayit(models.Model):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             # Analitik hesabın adından kaynak konumu belirle
             hesap_adi = self.analitik_hesap_id.name.lower()
-            # İlk 4 harfi al ve /stok ekle
-            konum_adi = f"{hesap_adi[:4]}/stok"
+            
+            # Özel durumlar için konum adı belirleme
+            konum_adi = None
+            if 'tünel' in hesap_adi:
+                konum_adi = 'tunl/stok'
+            elif 'akasya' in hesap_adi:
+                konum_adi = 'aksy/stok'
+            else:
+                # Genel durum için ilk 4 harfi al ve /stok ekle
+                konum_adi = f"{hesap_adi[:4]}/stok"
             
             # Kaynak konumu bul
             kaynak_konum = self.env['stock.location'].search([
