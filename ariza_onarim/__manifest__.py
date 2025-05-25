@@ -22,6 +22,7 @@
         'account',
     ],
     'data': [
+        'data/ir_sequence_ariza_kayit.xml',
         'security/ir.model.access.csv',
         'views/ariza_views.xml',
     ],
