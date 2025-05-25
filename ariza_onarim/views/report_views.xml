@@ -63,11 +63,4 @@
             </p>
         </field>
     </record>
-
-    <!-- Rapor Menüsü -->
-    <menuitem id="menu_ariza_kayit_report"
-              name="Arıza Kayıtları Raporu"
-              parent="menu_ariza_reporting"
-              action="action_ariza_kayit_report"
-              sequence="1"/>
 </odoo> 

@@ -17,4 +17,11 @@
               name="Raporlar"
               parent="menu_ariza_root"
               sequence="99"/>
+
+    <!-- Arıza Kayıtları Raporu Menüsü -->
+    <menuitem id="menu_ariza_kayit_report"
+              name="Arıza Kayıtları Raporu"
+              parent="menu_ariza_reporting"
+              action="action_ariza_kayit_report"
+              sequence="1"/>
 </odoo> 
