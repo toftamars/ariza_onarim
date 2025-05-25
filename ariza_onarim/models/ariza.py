@@ -74,6 +74,7 @@ class ArizaKayit(models.Model):
     )
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
+    onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
