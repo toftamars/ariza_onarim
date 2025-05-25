@@ -51,10 +51,10 @@
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                             <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="marka_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_adresi" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_telefon" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_email" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="tedarikci_adresi" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="tedarikci_telefon" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="tedarikci_email" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
@@ -72,7 +72,7 @@
                         </group>
                     </group>
                     <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
-                        <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}"/>
+                        <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                     </group>
                     <notebook>
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">

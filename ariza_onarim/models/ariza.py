@@ -237,8 +237,8 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        # Tedarikçiye gönderim ve mağaza ürünü ise transfer oluştur
-        if self.ariza_tipi == 'magaza' and self.magaza_ariza_tipi == 'tedarikci' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
+        # Tedarikçiye gönderim ve mağaza veya müşteri ürünü ise transfer oluştur
+        if self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi in ['magaza', 'musteri'] and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
                 ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
