@@ -74,11 +74,4 @@
             </p>
         </field>
     </record>
-
-    <!-- Dashboard Menüsü -->
-    <menuitem id="menu_ariza_dashboard"
-              name="Dashboard"
-              parent="menu_ariza_root"
-              action="action_ariza_dashboard"
-              sequence="1"/>
 </odoo> 
