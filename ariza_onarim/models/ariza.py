@@ -82,7 +82,7 @@ class ArizaKayit(models.Model):
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
     magaza_urun_id = fields.Many2one(
         'product.product',
-        string='Ürün (Mağaza)',
+        string='Ürün',
         tracking=True
     )
 
