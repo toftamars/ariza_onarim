@@ -52,6 +52,7 @@
                         <group>
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
+                            <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="tedarikci_id" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': [('teknik_servis', '!=', 'tedarikci')]}"/>
