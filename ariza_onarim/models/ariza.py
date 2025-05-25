@@ -80,6 +80,12 @@ class ArizaKayit(models.Model):
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
+    magaza_urun_id = fields.Many2one(
+        'product.product',
+        string='Ürün (Mağaza)',
+        domain="[('product_tmpl_id.brand_id', '=', marka_id)]",
+        tracking=True
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
