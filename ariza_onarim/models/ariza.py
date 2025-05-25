@@ -60,14 +60,13 @@ class ArizaKayit(models.Model):
         ('evet', 'Evet'),
         ('hayir', 'Hayır'),
     ], string='Garanti Kapsamında mı?', tracking=True)
-    aciklama = fields.Text(string='Açıklama', required=True)
+    ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     notlar = fields.Text(string='Notlar')
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
     yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
-    ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     marka_urunleri_ids = fields.Many2many(
         'product.product',
         string='Marka Ürünleri',

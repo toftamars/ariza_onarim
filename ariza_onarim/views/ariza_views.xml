@@ -95,7 +95,7 @@
                         </page>
                         <page string="Notlar">
                             <group>
-                                <field name="aciklama" required="1"/>
+                                <field name="ariza_tanimi" required="1"/>
                                 <field name="notlar"/>
                             </group>
                         </page>
@@ -234,7 +234,7 @@
                     <p><strong>Marka:</strong> <span t-esc="o.marka_id.name"/></p>
                     <p><strong>Fatura Tarihi:</strong> <span t-esc="o.fatura_tarihi"/></p>
                     <p><strong>Garanti Süresi:</strong> <span t-esc="o.garanti_suresi"/></p>
-                    <p><strong>Açıklama:</strong> <span t-esc="o.aciklama"/></p>
+                    <p><strong>Açıklama:</strong> <span t-esc="o.ariza_tanimi"/></p>
                 </div>
             </t>
         </t>
