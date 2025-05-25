@@ -8,24 +8,46 @@ class ArizaKayit(models.Model):
     _order = 'id desc'
 
     name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
-    partner_id = fields.Many2one('res.partner', string='Müşteri', required=True, tracking=True)
-    tarih = fields.Date(string='İşlem Tarihi', required=True, default=fields.Date.context_today, tracking=True)
+    islem_tipi = fields.Selection([
+        ('kabul', 'Arıza Kabulü'),
+        ('teslim', 'Arıza Teslimi')
+    ], string='İşlem Tipi', required=True, default='kabul', tracking=True)
+    
     ariza_tipi = fields.Selection([
-        ('teknik', 'Teknik Arıza'),
-        ('magaza', 'Mağaza Arıza'),
-        ('diger', 'Diğer')
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü'),
+        ('teknik', 'Teknik Servis')
     ], string='Arıza Tipi', required=True, tracking=True)
-    magaza_ariza_tipi = fields.Selection([
-        ('ekran', 'Ekran Arızası'),
-        ('klavye', 'Klavye Arızası'),
-        ('batarya', 'Batarya Arızası'),
-        ('diger', 'Diğer')
-    ], string='Mağaza Arıza Tipi', tracking=True)
+    
+    # Müşteri Ürünü Alanları
+    partner_id = fields.Many2one('res.partner', string='Müşteri', tracking=True)
+    marka = fields.Char(string='Marka', tracking=True)
+    model = fields.Char(string='Model', tracking=True)
+    sale_order_id = fields.Many2one('sale.order', string='Sipariş', tracking=True)
+    pos_order_id = fields.Many2one('pos.order', string='POS Siparişi', tracking=True)
+    siparis_yok = fields.Boolean(string='Sipariş Yok', default=False, tracking=True)
+    urun = fields.Char(string='Ürün', tracking=True)
+    fatura_tarihi = fields.Date(string='Fatura Tarihi', tracking=True)
+    aciklama = fields.Text(string='Arıza ve Onarım Tanımı', required=True, tracking=True)
     garanti_durumu = fields.Selection([
         ('var', 'Garantisi Var'),
         ('yok', 'Garantisi Yok')
     ], string='Garanti Durumu', tracking=True)
-    aciklama = fields.Text(string='Açıklama', required=True, tracking=True)
+    notlar = fields.Text(string='Notlar', tracking=True)
+    
+    # Mağaza Ürünü Alanları
+    magaza_ariza_tipi = fields.Selection([
+        ('depo', 'Depo Arıza'),
+        ('tedarikci', 'Tedarikçiler'),
+        ('nefesli', 'Nefesli Arıza')
+    ], string='Mağaza Arıza Tipi', tracking=True)
+    analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True)
+    tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', domain="[('supplier_rank', '>', 0)]", tracking=True)
+    transfer_irsaliye = fields.Boolean(string='İrsaliye Oluştur', default=False, tracking=True)
+    transfer_id = fields.Many2one('stock.picking', string='Transfer', tracking=True)
+    
+    # Ortak Alanlar
+    tarih = fields.Date(string='İşlem Tarihi', required=True, default=fields.Date.context_today, tracking=True)
     sorumlu_id = fields.Many2one('res.users', string='Sorumlu', required=True, default=lambda self: self.env.user, tracking=True)
     state = fields.Selection([
         ('draft', 'Taslak'),
@@ -46,6 +68,28 @@ class ArizaKayit(models.Model):
             record.iptal_ariza_sayisi = self.search_count([('state', '=', 'iptal')])
             record.toplam_ariza_sayisi = self.search_count([])
 
+    @api.onchange('ariza_tipi')
+    def _onchange_ariza_tipi(self):
+        if self.ariza_tipi != 'musteri':
+            self.siparis_yok = False
+            self.sale_order_id = False
+            self.pos_order_id = False
+            self.fatura_tarihi = False
+        if self.ariza_tipi != 'magaza':
+            self.magaza_ariza_tipi = False
+            self.analitik_hesap_id = False
+            self.tedarikci_id = False
+            self.transfer_irsaliye = False
+
+    @api.onchange('sale_order_id', 'pos_order_id')
+    def _onchange_order(self):
+        if self.sale_order_id:
+            self.partner_id = self.sale_order_id.partner_id
+            self.fatura_tarihi = self.sale_order_id.invoice_ids and self.sale_order_id.invoice_ids[0].invoice_date or False
+        elif self.pos_order_id:
+            self.partner_id = self.pos_order_id.partner_id
+            self.fatura_tarihi = self.pos_order_id.invoice_id and self.pos_order_id.invoice_id.invoice_date or False
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -54,6 +98,8 @@ class ArizaKayit(models.Model):
         return super().create(vals_list)
     
     def action_onayla(self):
+        if self.ariza_tipi == 'magaza' and self.magaza_ariza_tipi:
+            self._create_stock_transfer()
         self.state = 'onaylandi'
     
     def action_tamamla(self):
@@ -74,8 +120,6 @@ class ArizaKayit(models.Model):
             self._create_nefesli_transfer()
     
     def _create_depo_transfer(self):
-        # Kaynak konum: analitik_hesap/stok
-        # Hedef konum: arıza/stok
         source_location = self.env['stock.location'].search([
             ('name', '=', f"{self.analitik_hesap_id.code}/stok")
         ], limit=1)
