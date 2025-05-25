@@ -83,7 +83,6 @@ class ArizaKayit(models.Model):
     magaza_urun_id = fields.Many2one(
         'product.product',
         string='Ürün (Mağaza)',
-        domain="[('product_tmpl_id.brand_id', '=', marka_id)]",
         tracking=True
     )
 
