@@ -124,29 +124,9 @@ class ArizaKayit(models.Model):
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
-            # Analitik hesabın adından kaynak konumu belirle
-            hesap_adi = self.analitik_hesap_id.name.lower()
-            
-            # Özel durumlar için konum adı belirleme
-            konum_adi = None
-            if 'tünel' in hesap_adi:
-                konum_adi = 'tunl/stok'
-            elif 'akasya' in hesap_adi:
-                konum_adi = 'aksy/stok'
-            elif 'nefesli' in hesap_adi:
-                konum_adi = 'nfsl/stok'
-            else:
-                # Genel durum için ilk 4 harfi al ve /stok ekle
-                konum_adi = f"{hesap_adi[:4]}/stok"
-            
-            # Kaynak konumu bul
-            kaynak_konum = self.env['stock.location'].search([
-                ('name', '=', konum_adi),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            
-            if kaynak_konum:
-                self.kaynak_konum_id = kaynak_konum
+            # Analitik hesaptan kaynak konumu al
+            if hasattr(self.analitik_hesap_id, 'konum_id') and self.analitik_hesap_id.konum_id:
+                self.kaynak_konum_id = self.analitik_hesap_id.konum_id
             
             # Eğer mağaza arıza tipi teknik servis ise hedef konumu da ayarla
             if self.magaza_ariza_tipi == 'teknik_servis':
