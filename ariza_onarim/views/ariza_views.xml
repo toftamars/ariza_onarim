@@ -133,4 +133,107 @@
             </p>
         </field>
     </record>
+
+    <!-- Günlük Rapor Görünümü -->
+    <record id="view_ariza_gunluk_report" model="ir.ui.view">
+        <field name="name">ariza.kayit.gunluk.report</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Günlük Arıza Raporu">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ariza_tipi"/>
+                <field name="magaza_ariza_tipi"/>
+                <field name="sorumlu_id"/>
+                <filter string="Bugün" name="bugun" domain="[('tarih','=',context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Bu Hafta" name="bu_hafta" domain="[('tarih','&gt;=',(context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Günlük Rapor Action -->
+    <record id="action_ariza_gunluk_report" model="ir.actions.act_window">
+        <field name="name">Günlük Arıza Raporu</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_gunluk_report"/>
+        <field name="context">{'search_default_bugun': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi yok
+            </p>
+        </field>
+    </record>
+
+    <!-- Aylık Rapor Görünümü -->
+    <record id="view_ariza_aylik_report" model="ir.ui.view">
+        <field name="name">ariza.kayit.aylik.report</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Aylık Arıza Raporu">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ariza_tipi"/>
+                <field name="magaza_ariza_tipi"/>
+                <field name="sorumlu_id"/>
+                <filter string="Bu Ay" name="bu_ay" domain="[('tarih','&gt;=',(context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Geçen Ay" name="gecen_ay" domain="[('tarih','&gt;=',(context_today().replace(day=1) - relativedelta(months=1)).strftime('%Y-%m-%d')),('tarih','&lt;',(context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Aylık Rapor Action -->
+    <record id="action_ariza_aylik_report" model="ir.actions.act_window">
+        <field name="name">Aylık Arıza Raporu</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_aylik_report"/>
+        <field name="context">{'search_default_bu_ay': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi yok
+            </p>
+        </field>
+    </record>
+
+    <!-- Ana Menü -->
+    <menuitem id="menu_ariza_root" 
+              name="Arıza Takip" 
+              sequence="10"/>
+
+    <!-- Arıza Kayıtları Menüsü -->
+    <menuitem id="menu_ariza_kayit" 
+              name="Arıza Kayıtları" 
+              parent="menu_ariza_root" 
+              action="action_ariza_kayit" 
+              sequence="10"/>
+
+    <!-- Raporlar Menüsü -->
+    <menuitem id="menu_ariza_report" 
+              name="Raporlar" 
+              parent="menu_ariza_root" 
+              sequence="20"/>
+
+    <!-- Rapor Alt Menüleri -->
+    <menuitem id="menu_ariza_report_gunluk" 
+              name="Günlük Rapor" 
+              parent="menu_ariza_report" 
+              action="action_ariza_gunluk_report" 
+              sequence="10"/>
+
+    <menuitem id="menu_ariza_report_aylik" 
+              name="Aylık Rapor" 
+              parent="menu_ariza_report" 
+              action="action_ariza_aylik_report" 
+              sequence="20"/>
 </odoo> 
