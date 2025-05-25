@@ -45,6 +45,7 @@
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="tarih"/>
                             <field name="sorumlu_id"/>
+                            <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                         </group>
                         <group>
                             <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
