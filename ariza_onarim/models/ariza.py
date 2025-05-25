@@ -75,11 +75,12 @@ class ArizaKayit(models.Model):
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
+    ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get('name', _('New')) == _('New'):
+            if not vals.get('name') or vals.get('name') == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit') or _('New')
         return super().create(vals_list)
 

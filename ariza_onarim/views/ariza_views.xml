@@ -97,6 +97,7 @@
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="onarim_bilgisi"/>
+                                <field name="ucret_bilgisi"/>
                                 <field name="notlar"/>
                             </group>
                         </page>
