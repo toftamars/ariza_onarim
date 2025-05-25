@@ -74,8 +74,7 @@ class ArizaKayit(models.Model):
     marka_urunleri_ids = fields.Many2many(
         'product.product',
         string='Marka Ürünleri',
-        tracking=True,
-        domain="[('product_tmpl_id.brand_id', '=', marka_id)]"
+        tracking=True
     )
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
@@ -214,6 +213,16 @@ class ArizaKayit(models.Model):
         if self.marka_id and self.marka_id.partner_id:
             self.tedarikci_id = self.marka_id.partner_id
             self._onchange_tedarikci_id()
+            # Marka ürünlerini filtrele
+            if self.ariza_tipi in ['magaza', 'teknik', 'musteri']:
+                domain = [('product_tmpl_id.brand_id', '=', self.marka_id.id)]
+                return {'domain': {'marka_urunleri_ids': domain}}
+        else:
+            self.tedarikci_id = False
+            self.tedarikci_adresi = False
+            self.tedarikci_telefon = False
+            self.tedarikci_email = False
+            self.marka_urunleri_ids = False
 
     @api.onchange('tedarikci_id')
     def _onchange_tedarikci_id(self):
