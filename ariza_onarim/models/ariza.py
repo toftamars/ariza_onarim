@@ -166,7 +166,7 @@ class ArizaKayit(models.Model):
             if product:
                 self.urun = product.name
                 self.model = product.default_code or ''
-                self.garanti_durumu = 'garanti_kapsaminda' if product.warranty else 'garanti_disinda'
+                self.garanti_durumu = 'garanti_kapsaminda' if getattr(product.product_tmpl_id, 'warranty', False) else 'garanti_disinda'
                 self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
 
     @api.onchange('partner_id')
