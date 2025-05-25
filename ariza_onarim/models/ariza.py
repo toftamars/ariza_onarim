@@ -176,12 +176,16 @@ class ArizaKayit(models.Model):
                 if self.islem_tipi == 'kabul' and self.ariza_tipi == 'musteri' and not self.siparis_yok:
                     self.urun = product.name
                     self.model = product.default_code or ''
-                    self.marka_id = product.product_tmpl_id.brand_id.id if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else False
+                    # Marka bilgisini ürün şablonundan al
+                    if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
+                        self.marka_id = product.product_tmpl_id.brand_id.id
                     # Garanti süresi otomatik hesaplanacak, garanti_suresi compute ile zaten otomatik
                 else:
                     self.urun = product.name
                     self.model = product.default_code or ''
-                    self.marka_id = product.product_tmpl_id.brand_id.id if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else False
+                    # Marka bilgisini ürün şablonundan al
+                    if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
+                        self.marka_id = product.product_tmpl_id.brand_id.id
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
