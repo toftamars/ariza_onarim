@@ -111,7 +111,15 @@ class ArizaKayit(models.Model):
         elif self.magaza_ariza_tipi == 'teknik_servis':
             self.analitik_hesap_id = False
             self.kaynak_konum_id = False
-            self.hedef_konum_id = False
+            # DTL/Stok konumunu bul
+            dtl_konum = self.env['stock.location'].search([
+                ('name', '=', 'DTL/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
+            else:
+                self.hedef_konum_id = False
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
