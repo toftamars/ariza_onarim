@@ -7,10 +7,9 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
+                <field name="ariza_tipi"/>
                 <field name="partner_id"/>
                 <field name="tarih"/>
-                <field name="ariza_tipi"/>
-                <field name="garanti_durumu"/>
                 <field name="sorumlu_id"/>
                 <field name="state"/>
             </tree>
@@ -37,17 +36,49 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id"/>
-                            <field name="tarih"/>
                             <field name="ariza_tipi"/>
-                            <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
-                            <field name="garanti_durumu"/>
+                            <field name="tarih"/>
                             <field name="sorumlu_id"/>
                         </group>
                         <group>
                             <field name="state"/>
-                            <field name="aciklama"/>
                         </group>
+                    </group>
+
+                    <!-- Müşteri Ürünü Alanları -->
+                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}">
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="siparis_yok"/>
+                            <field name="sale_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                            <field name="pos_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                            <field name="fatura_tarihi" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="urun" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                            <field name="marka" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                            <field name="model" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                            <field name="garanti_durumu"/>
+                        </group>
+                    </group>
+
+                    <!-- Mağaza Ürünü Alanları -->
+                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
+                        <group>
+                            <field name="magaza_ariza_tipi"/>
+                            <field name="analitik_hesap_id" attrs="{'required': [('magaza_ariza_tipi', '!=', False)]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('magaza_ariza_tipi', '!=', 'tedarikci')], 'required': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
+                            <field name="transfer_irsaliye" attrs="{'invisible': [('magaza_ariza_tipi', '!=', 'tedarikci')]}"/>
+                        </group>
+                        <group>
+                            <field name="transfer_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Ortak Alanlar -->
+                    <group>
+                        <field name="aciklama"/>
+                        <field name="notlar"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
@@ -68,6 +99,7 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="ariza_tipi"/>
+                <field name="magaza_ariza_tipi"/>
                 <field name="garanti_durumu"/>
                 <field name="sorumlu_id"/>
                 <filter string="Taslak" name="draft" domain="[('state','=','draft')]"/>
@@ -76,6 +108,7 @@
                 <filter string="İptal" name="iptal" domain="[('state','=','iptal')]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
                     <filter string="Garanti Durumu" name="garanti_durumu" context="{'group_by':'garanti_durumu'}"/>
                     <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
                     <filter string="Durum" name="state" context="{'group_by':'state'}"/>
