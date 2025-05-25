@@ -30,7 +30,6 @@
                         <field name="name" readonly="1"/>
                         <field name="islem_tipi" required="1"/>
                         <field name="ariza_tipi" required="1"/>
-                        <field name="transfer_metodu" required="1"/>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}">
                         <field name="partner_id"/>
@@ -46,10 +45,12 @@
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="magaza_ariza_tipi"/>
                         <field name="analitik_hesap_id"/>
+                        <field name="transfer_metodu"/>
                     </group>
                     <group attrs="{'invisible': [('islem_tipi', '!=', 'teknik_servis')]}">
                         <field name="tedarikci_id"/>
                         <field name="analitik_hesap_id"/>
+                        <field name="transfer_metodu"/>
                     </group>
                     <group>
                         <field name="tarih" required="1"/>
