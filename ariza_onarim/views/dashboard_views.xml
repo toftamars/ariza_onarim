@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Kanvas -->
+    <record id="view_ariza_dashboard_kanban" model="ir.ui.view">
+        <field name="name">ariza.dashboard.kanban</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" create="0">
+                <field name="id"/>
+                <field name="ariza_tipi"/>
+                <field name="state"/>
+                <field name="tarih"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-6 col-lg-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h2 class="mb-0">
+                                                <field name="id" widget="statinfo" string="Toplam Arıza"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h2 class="mb-0">
+                                                <field name="id" widget="statinfo" string="Açık Arızalar" 
+                                                       domain="[('state', 'in', ['draft', 'onaylandi'])]"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h2 class="mb-0">
+                                                <field name="id" widget="statinfo" string="Tamamlanan Arızalar" 
+                                                       domain="[('state', '=', 'tamamlandi')]"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h2 class="mb-0">
+                                                <field name="id" widget="statinfo" string="İptal Edilen Arızalar" 
+                                                       domain="[('state', '=', 'iptal')]"/>
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Aksiyonu -->
+    <record id="action_ariza_dashboard" model="ir.actions.act_window">
+        <field name="name">Arıza Dashboard</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_ariza_dashboard_kanban"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz arıza kaydı yok
+            </p>
+        </field>
+    </record>
+
+    <!-- Dashboard Menüsü -->
+    <menuitem id="menu_ariza_dashboard"
+              name="Dashboard"
+              parent="menu_ariza_root"
+              action="action_ariza_dashboard"
+              sequence="1"/>
+</odoo> 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Arıza Kayıtları Raporu -->
+    <record id="view_ariza_kayit_report_pivot" model="ir.ui.view">
+        <field name="name">ariza.kayit.report.pivot</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <pivot string="Arıza Kayıtları Raporu" display_quantity="true">
+                <field name="ariza_tipi" type="row"/>
+                <field name="magaza_ariza_tipi" type="row"/>
+                <field name="garanti_durumu" type="row"/>
+                <field name="sorumlu_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="id" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_ariza_kayit_report_graph" model="ir.ui.view">
+        <field name="name">ariza.kayit.report.graph</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <graph string="Arıza Kayıtları Grafiği" type="bar">
+                <field name="ariza_tipi"/>
+                <field name="id" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_ariza_kayit_report_search" model="ir.ui.view">
+        <field name="name">ariza.kayit.report.search</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Arıza Kayıtları Raporu">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="sorumlu_id"/>
+                <field name="ariza_tipi"/>
+                <field name="magaza_ariza_tipi"/>
+                <field name="garanti_durumu"/>
+                <filter string="Bu Ay" name="this_month" domain="[('tarih','&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),('tarih','&lt;=', (context_today() + relativedelta(months=1, day=1, days=-1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Bu Yıl" name="this_year" domain="[('tarih','&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')),('tarih','&lt;=', (context_today() + relativedelta(month=12, day=31)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
+                    <filter string="Garanti Durumu" name="garanti_durumu" context="{'group_by':'garanti_durumu'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                    <filter string="Durum" name="state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Rapor Aksiyonu -->
+    <record id="action_ariza_kayit_report" model="ir.actions.act_window">
+        <field name="name">Arıza Kayıtları Raporu</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_ariza_kayit_report_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi yok
+            </p>
+        </field>
+    </record>
+
+    <!-- Rapor Menüsü -->
+    <menuitem id="menu_ariza_kayit_report"
+              name="Arıza Kayıtları Raporu"
+              parent="menu_ariza_reporting"
+              action="action_ariza_kayit_report"
+              sequence="1"/>
+</odoo> 
