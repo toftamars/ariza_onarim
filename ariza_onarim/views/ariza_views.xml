@@ -50,7 +50,7 @@
                         <group>
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                             <field name="analitik_hesap_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
