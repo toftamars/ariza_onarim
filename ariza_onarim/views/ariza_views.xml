@@ -64,10 +64,10 @@
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
                         <group>
-                            <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                            <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
                         </group>
                         <group>
-                            <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                            <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
                         </group>
                     </group>
                     <notebook>
