@@ -77,7 +77,7 @@
                         <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('marka_id', '=', False)]}">
-                        <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}" domain="[('product_tmpl_id.brand_id', '=', marka_id)]"/>
+                        <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                     </group>
                     <notebook>
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
