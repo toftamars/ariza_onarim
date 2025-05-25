@@ -10,24 +10,24 @@
               name="Arıza Kayıtları" 
               parent="menu_ariza_root" 
               action="action_ariza_kayit" 
-              sequence="1"/>
+              sequence="10"/>
 
     <!-- Raporlar Menüsü -->
     <menuitem id="menu_ariza_report" 
               name="Raporlar" 
               parent="menu_ariza_root" 
-              sequence="2"/>
+              sequence="20"/>
 
     <!-- Rapor Alt Menüleri -->
     <menuitem id="menu_ariza_report_gunluk" 
               name="Günlük Rapor" 
               parent="menu_ariza_report" 
               action="action_ariza_gunluk_report" 
-              sequence="1"/>
+              sequence="10"/>
 
     <menuitem id="menu_ariza_report_aylik" 
               name="Aylık Rapor" 
               parent="menu_ariza_report" 
               action="action_ariza_aylik_report" 
-              sequence="2"/>
+              sequence="20"/>
 </odoo> 
