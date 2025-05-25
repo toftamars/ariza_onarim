@@ -67,6 +67,7 @@ class ArizaKayit(models.Model):
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
     yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
+    ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -159,14 +160,20 @@ class ArizaKayit(models.Model):
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
 
-    @api.onchange('invoice_line_id')
+    @api.onchange('invoice_line_id', 'islem_tipi', 'siparis_yok')
     def _onchange_invoice_line_id(self):
         if self.invoice_line_id:
             product = self.invoice_line_id.product_id
             if product:
-                self.urun = product.name
-                self.model = product.default_code or ''
-                self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
+                if self.islem_tipi == 'kabul' and self.ariza_tipi == 'musteri' and not self.siparis_yok:
+                    self.urun = product.name
+                    self.model = product.default_code or ''
+                    self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
+                    # Garanti süresi otomatik hesaplanacak, garanti_suresi compute ile zaten otomatik
+                else:
+                    self.urun = product.name
+                    self.model = product.default_code or ''
+                    self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
