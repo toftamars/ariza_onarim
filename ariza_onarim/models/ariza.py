@@ -75,6 +75,7 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
+    ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -221,6 +222,18 @@ class ArizaKayit(models.Model):
             ], limit=1)
             if dtl_konum:
                 self.hedef_konum_id = dtl_konum
+
+    @api.onchange('ariza_kabul_id')
+    def _onchange_ariza_kabul_id(self):
+        if self.ariza_kabul_id:
+            fields_to_copy = [
+                'partner_id', 'analitik_hesap_id', 'kaynak_konum_id', 'hedef_konum_id', 'tedarikci_id',
+                'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
+                'fatura_tarihi', 'aciklama', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
+                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'magaza_ariza_tipi', 'transfer_metodu'
+            ]
+            for field in fields_to_copy:
+                setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:

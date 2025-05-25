@@ -39,6 +39,7 @@
                     </div>
                     <group>
                         <group>
+                            <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
                             <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
