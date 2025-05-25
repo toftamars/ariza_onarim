@@ -1,37 +1,35 @@
 {
-    'name': 'Arıza ve Onarım Yönetimi',
+    'name': 'Arıza Takip',
     'version': '1.0',
-    'category': 'Services/Repair',
-    'summary': 'Arıza ve Onarım İşlemlerinin Yönetimi',
+    'category': 'Services',
+    'summary': 'Arıza takip ve onarım yönetimi',
     'description': """
-        Bu modül, şirketlerin arıza ve onarım süreçlerini yönetmelerine yardımcı olur.
+        Arıza takip ve onarım yönetimi için geliştirilmiş modül.
         Özellikler:
-        * Arıza kayıtları
-        * Onarım takibi
-        * Teknik servis yönetimi
-        * Müşteri iletişimi
-        * Stok transfer yönetimi
-        * Detaylı raporlama
-        * Dashboard görünümü
-        * QR kod desteği
+        - Arıza kayıtları
+        - Müşteri ürünleri takibi
+        - Mağaza ürünleri takibi
+        - Teknik servis işlemleri
     """,
-    'author': 'Your Company',
-    'website': 'https://www.yourcompany.com',
-    'depends': ['base', 'mail', 'stock', 'sale', 'point_of_sale', 'account'],
+    'author': 'Tofta Mars',
+    'website': 'https://www.toftamars.com',
+    'depends': [
+        'base',
+        'mail',
+        'sale',
+        'point_of_sale',
+        'stock',
+        'account',
+    ],
     'data': [
         'security/ir.model.access.csv',
-        'data/sequence.xml',
         'views/ariza_views.xml',
-        'views/report_views.xml',
-        'views/dashboard_views.xml',
         'views/menu_views.xml',
+        'views/report_views.xml',
     ],
     'demo': [],
     'installable': True,
     'application': True,
     'auto_install': False,
     'license': 'LGPL-3',
-    'external_dependencies': {
-        'python': ['qrcode'],
-    },
 }
