@@ -68,6 +68,12 @@ class ArizaKayit(models.Model):
     onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
     yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
+    marka_urunleri_ids = fields.Many2many(
+        'product.product',
+        string='Marka Ürünleri',
+        domain="[('product_tmpl_id.brand_id', '=', marka_id)]",
+        tracking=True
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

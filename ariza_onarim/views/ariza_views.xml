@@ -70,6 +70,9 @@
                             <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'invisible': [('magaza_ariza_tipi', '=', 'tedarikci')]}"/>
                         </group>
                     </group>
+                    <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
+                        <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}"/>
+                    </group>
                     <notebook>
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
