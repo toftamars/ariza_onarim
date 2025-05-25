@@ -208,6 +208,20 @@ class ArizaKayit(models.Model):
         if self.islem_tipi != 'teslim':
             self.garanti_kapsaminda_mi = False
 
+    @api.onchange('ariza_tipi', 'analitik_hesap_id')
+    def _onchange_ariza_tipi_teknik(self):
+        if self.ariza_tipi == 'teknik' and self.analitik_hesap_id:
+            # Analitik hesaptan kaynak konumu al
+            if hasattr(self.analitik_hesap_id, 'konum_id') and self.analitik_hesap_id.konum_id:
+                self.kaynak_konum_id = self.analitik_hesap_id.konum_id
+            # Hedef konumu DTL/Stok olarak ayarla
+            dtl_konum = self.env['stock.location'].search([
+                ('name', '=', 'DTL/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
+
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
             return
