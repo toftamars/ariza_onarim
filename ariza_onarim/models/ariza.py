@@ -133,6 +133,8 @@ class ArizaKayit(models.Model):
                 konum_adi = 'tunl/stok'
             elif 'akasya' in hesap_adi:
                 konum_adi = 'aksy/stok'
+            elif 'nefesli' in hesap_adi:
+                konum_adi = 'nfsl/stok'
             else:
                 # Genel durum için ilk 4 harfi al ve /stok ekle
                 konum_adi = f"{hesap_adi[:4]}/stok"
