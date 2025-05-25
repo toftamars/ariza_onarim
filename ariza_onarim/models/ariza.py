@@ -160,8 +160,12 @@ class ArizaKayit(models.Model):
                 if konum:
                     self.kaynak_konum_id = konum
 
-            # Teknik servis ise hedef konum
-            if self.magaza_ariza_tipi == 'teknik_servis':
+            # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
+            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id:
+                if self.tedarikci_id.property_stock_supplier:
+                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+            # Teknik servis ise hedef konum DTL/Stok
+            elif self.magaza_ariza_tipi == 'teknik_servis':
                 dtl_konum = self.env['stock.location'].search([
                     ('name', '=', 'DTL/Stok'),
                     ('company_id', '=', self.env.company.id)
@@ -208,6 +212,9 @@ class ArizaKayit(models.Model):
             self.tedarikci_adresi = self.tedarikci_id.street
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
+            # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
+            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id.property_stock_supplier:
+                self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('islem_tipi')
     def _onchange_islem_tipi(self):
@@ -269,8 +276,8 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        # Tedarikçiye gönderim ve mağaza veya müşteri ürünü ise transfer oluştur
-        if self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi in ['magaza', 'musteri'] and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
+        # Tedarikçiye gönderim ve mağaza ürünü ise transfer oluştur
+        if self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
                 ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
