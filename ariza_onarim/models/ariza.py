@@ -8,60 +8,48 @@ class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
     _description = 'Arıza Kayıt'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'create_date desc'
+    _order = 'id desc'
 
-    name = fields.Char(string='Arıza Numarası', required=True, copy=False, 
-                      readonly=True, default=lambda self: _('New'))
+    name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
+    partner_id = fields.Many2one('res.partner', string='Müşteri', required=True, tracking=True)
+    tarih = fields.Date(string='Tarih', required=True, default=fields.Date.context_today, tracking=True)
+    ariza_tipi = fields.Selection([
+        ('teknik', 'Teknik Arıza'),
+        ('magaza', 'Mağaza Arıza'),
+        ('diger', 'Diğer')
+    ], string='Arıza Tipi', required=True, tracking=True)
+    magaza_ariza_tipi = fields.Selection([
+        ('ekran', 'Ekran Arızası'),
+        ('klavye', 'Klavye Arızası'),
+        ('batarya', 'Batarya Arızası'),
+        ('diger', 'Diğer')
+    ], string='Mağaza Arıza Tipi', tracking=True)
+    garanti_durumu = fields.Selection([
+        ('var', 'Garantisi Var'),
+        ('yok', 'Garantisi Yok')
+    ], string='Garanti Durumu', required=True, tracking=True)
+    aciklama = fields.Text(string='Açıklama', required=True, tracking=True)
+    sorumlu_id = fields.Many2one('res.users', string='Sorumlu', required=True, default=lambda self: self.env.user, tracking=True)
     state = fields.Selection([
         ('draft', 'Taslak'),
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
         ('iptal', 'İptal')
     ], string='Durum', default='draft', tracking=True)
-    
-    # QR Kod Alanı
-    qr_code = fields.Binary(string='QR Kod', compute='_generate_qr_code', store=True)
+    qr_code = fields.Binary(string='QR Kod', attachment=True)
     qr_code_url = fields.Char(string='QR Kod URL', compute='_compute_qr_code_url')
-    
-    # Temel Bilgiler
-    ariza_tipi = fields.Selection([
-        ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü'),
-        ('teknik_servis', 'Teknik Servis')
-    ], string='Arıza Tipi', required=True)
-    
-    # Müşteri Ürünü Alanları
-    partner_id = fields.Many2one('res.partner', string='Müşteri', required=True)
-    sale_order_id = fields.Many2one('sale.order', string='Sipariş')
-    siparis_yok = fields.Boolean(string='Sipariş Yok')
-    urun = fields.Char(string='Ürün')
-    marka = fields.Char(string='Marka')
-    model = fields.Char(string='Model')
-    fatura_tarihi = fields.Date(string='Fatura Tarihi')
-    garanti_durumu = fields.Selection([
-        ('garanti_kapsaminda', 'Garanti Kapsamında'),
-        ('garanti_disinda', 'Garanti Dışında')
-    ], string='Garanti Durumu')
-    notlar = fields.Text(string='Notlar')
-    sorumlu_id = fields.Many2one('res.users', string='Sorumlu', required=True)
-    tarih = fields.Date(string='Tarih', required=True, default=fields.Date.context_today)
-    
-    # Mağaza Ürünü Alanları
-    magaza_ariza_tipi = fields.Selection([
-        ('depo', 'Depo Arıza'),
-        ('tedarikci', 'Tedarikçiler'),
-        ('nefesli', 'Nefesli Arıza')
-    ], string='Mağaza Arıza Tipi')
-    analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap')
-    tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', 
-                                  domain="[('supplier_rank', '>', 0)]")
-    transfer_irsaliye = fields.Boolean(string='E-İrsaliye Oluştur')
-    
-    # Arıza Detayları
-    ariza_tanimi = fields.Text(string='Arıza ve Onarım Tanımı', required=True)
-    
-    # Stok Transfer Bilgileri
-    transfer_id = fields.Many2one('stock.picking', string='Transfer Belgesi', readonly=True)
+    acik_ariza_sayisi = fields.Integer(string='Açık Arıza Sayısı', compute='_compute_ariza_istatistikleri')
+    tamamlanan_ariza_sayisi = fields.Integer(string='Tamamlanan Arıza Sayısı', compute='_compute_ariza_istatistikleri')
+    iptal_ariza_sayisi = fields.Integer(string='İptal Edilen Arıza Sayısı', compute='_compute_ariza_istatistikleri')
+    toplam_ariza_sayisi = fields.Integer(string='Toplam Arıza Sayısı', compute='_compute_ariza_istatistikleri')
+
+    @api.depends('state')
+    def _compute_ariza_istatistikleri(self):
+        for record in self:
+            record.acik_ariza_sayisi = self.search_count([('state', 'in', ['draft', 'onaylandi'])])
+            record.tamamlanan_ariza_sayisi = self.search_count([('state', '=', 'tamamlandi')])
+            record.iptal_ariza_sayisi = self.search_count([('state', '=', 'iptal')])
+            record.toplam_ariza_sayisi = self.search_count([])
 
     @api.depends('name')
     def _generate_qr_code(self):

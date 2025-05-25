@@ -6,10 +6,10 @@
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_dashboard" create="0">
-                <field name="id"/>
-                <field name="ariza_tipi"/>
-                <field name="state"/>
-                <field name="tarih"/>
+                <field name="acik_ariza_sayisi"/>
+                <field name="tamamlanan_ariza_sayisi"/>
+                <field name="iptal_ariza_sayisi"/>
+                <field name="toplam_ariza_sayisi"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
@@ -18,7 +18,7 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="id" widget="statinfo" string="Toplam Arıza"/>
+                                                <field name="toplam_ariza_sayisi" widget="statinfo" string="Toplam Arıza"/>
                                             </h2>
                                         </div>
                                     </div>
@@ -27,8 +27,7 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="id" widget="statinfo" string="Açık Arızalar" 
-                                                       domain="[('state', 'in', ['draft', 'onaylandi'])]"/>
+                                                <field name="acik_ariza_sayisi" widget="statinfo" string="Açık Arızalar"/>
                                             </h2>
                                         </div>
                                     </div>
@@ -37,8 +36,7 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="id" widget="statinfo" string="Tamamlanan Arızalar" 
-                                                       domain="[('state', '=', 'tamamlandi')]"/>
+                                                <field name="tamamlanan_ariza_sayisi" widget="statinfo" string="Tamamlanan Arızalar"/>
                                             </h2>
                                         </div>
                                     </div>
@@ -47,8 +45,7 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="id" widget="statinfo" string="İptal Edilen Arızalar" 
-                                                       domain="[('state', '=', 'iptal')]"/>
+                                                <field name="iptal_ariza_sayisi" widget="statinfo" string="İptal Edilen Arızalar"/>
                                             </h2>
                                         </div>
                                     </div>
@@ -63,7 +60,7 @@
 
     <!-- Dashboard Aksiyonu -->
     <record id="action_ariza_dashboard" model="ir.actions.act_window">
-        <field name="name">Arıza Dashboard</field>
+        <field name="name">Dashboard</field>
         <field name="res_model">ariza.kayit</field>
         <field name="view_mode">kanban</field>
         <field name="view_id" ref="view_ariza_dashboard_kanban"/>
