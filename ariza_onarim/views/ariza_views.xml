@@ -83,7 +83,9 @@
                                 <field name="urun" attrs="{'required': [('siparis_yok', '=', True)]}"/>
                                 <field name="marka_id" attrs="{'required': [('siparis_yok', '=', True)]}"/>
                                 <field name="model" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                                <field name="garanti_durumu" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                                <field name="garanti_suresi" readonly="1"/>
+                                <field name="garanti_bitis_tarihi" readonly="1"/>
+                                <field name="kalan_garanti" readonly="1"/>
                             </group>
                         </page>
                         <page string="Notlar">
