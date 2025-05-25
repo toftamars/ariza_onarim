@@ -158,12 +158,35 @@ class ArizaKayit(models.Model):
                     if konum:
                         self.kaynak_konum_id = konum
         elif self.teknik_servis == 'zuhal':
-            zuhal_konum = self.env['stock.location'].search([
-                ('name', '=', 'Zuhal/Stok'),
+            # Hedef konum arıza/stok
+            ariza_konum = self.env['stock.location'].search([
+                ('name', '=', 'arıza/stok'),
                 ('company_id', '=', self.env.company.id)
             ], limit=1)
-            if zuhal_konum:
-                self.hedef_konum_id = zuhal_konum
+            if ariza_konum:
+                self.hedef_konum_id = ariza_konum
+            # Kaynak konum analitik hesaba ait stok konumu
+            if self.analitik_hesap_id:
+                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+                hesap_adi = self.analitik_hesap_id.name.strip().lower()
+                konum_kodu = None
+                try:
+                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                        for satir in f:
+                            if hesap_adi in satir.lower():
+                                parcalar = satir.strip().split('\t')
+                                if len(parcalar) == 2:
+                                    konum_kodu = parcalar[1]
+                                    break
+                except Exception as e:
+                    pass
+                if konum_kodu:
+                    konum = self.env['stock.location'].search([
+                        ('name', '=', konum_kodu),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    if konum:
+                        self.kaynak_konum_id = konum
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
