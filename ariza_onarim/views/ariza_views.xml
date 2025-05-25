@@ -30,11 +30,6 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button type="object" name="action_print_qr" icon="fa-print">
-                            <field name="qr_code" filename="name" widget="image" class="oe_avatar"/>
-                        </button>
-                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
@@ -52,7 +47,6 @@
                         <group>
                             <field name="state"/>
                             <field name="aciklama"/>
-                            <field name="qr_code_url" readonly="1"/>
                         </group>
                     </group>
                 </sheet>

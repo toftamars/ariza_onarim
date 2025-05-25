@@ -1,8 +1,5 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-import qrcode
-import base64
-from io import BytesIO
 
 class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
@@ -36,8 +33,6 @@ class ArizaKayit(models.Model):
         ('tamamlandi', 'Tamamlandı'),
         ('iptal', 'İptal')
     ], string='Durum', default='draft', tracking=True)
-    qr_code = fields.Binary(string='QR Kod', attachment=True)
-    qr_code_url = fields.Char(string='QR Kod URL', compute='_compute_qr_code_url')
     acik_ariza_sayisi = fields.Integer(string='Açık Arıza Sayısı', compute='_compute_ariza_istatistikleri')
     tamamlanan_ariza_sayisi = fields.Integer(string='Tamamlanan Arıza Sayısı', compute='_compute_ariza_istatistikleri')
     iptal_ariza_sayisi = fields.Integer(string='İptal Edilen Arıza Sayısı', compute='_compute_ariza_istatistikleri')
@@ -51,35 +46,6 @@ class ArizaKayit(models.Model):
             record.iptal_ariza_sayisi = self.search_count([('state', '=', 'iptal')])
             record.toplam_ariza_sayisi = self.search_count([])
 
-    @api.depends('name')
-    def _generate_qr_code(self):
-        for record in self:
-            if record.name:
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=4,
-                )
-                qr.add_data(record.name)
-                qr.make(fit=True)
-                img = qr.make_image()
-                temp = BytesIO()
-                img.save(temp, format="PNG")
-                qr_image = base64.b64encode(temp.getvalue())
-                record.qr_code = qr_image
-            else:
-                record.qr_code = False
-
-    @api.depends('name')
-    def _compute_qr_code_url(self):
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        for record in self:
-            if record.name:
-                record.qr_code_url = f"{base_url}/ariza/{record.name}"
-            else:
-                record.qr_code_url = False
-
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -89,8 +55,6 @@ class ArizaKayit(models.Model):
     
     def action_onayla(self):
         self.state = 'onaylandi'
-        if self.ariza_tipi == 'magaza':
-            self._create_stock_transfer()
     
     def action_tamamla(self):
         self.state = 'tamamlandi'
