@@ -75,7 +75,7 @@ class ArizaKayit(models.Model):
         'product.product',
         string='Marka Ürünleri',
         tracking=True,
-        domain="[('brand_id', '=', marka_id)]"
+        domain="[('product_tmpl_id.x_studio_brand', '=', marka_id)]"
     )
     transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
