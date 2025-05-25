@@ -61,7 +61,7 @@
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('islem_tipi', '=', 'teslim'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
+                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" readonly="1"/>
                             <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
