@@ -62,6 +62,8 @@ class ArizaKayit(models.Model):
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
+    onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
+    yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -165,6 +167,7 @@ class ArizaKayit(models.Model):
                 self.urun = product.name
                 self.model = product.default_code or ''
                 self.garanti_durumu = 'garanti_kapsaminda' if product.warranty else 'garanti_disinda'
+                self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
