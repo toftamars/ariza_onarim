@@ -5,25 +5,18 @@
               name="Arıza Takip" 
               sequence="10"/>
 
-    <!-- Dashboard Menüsü -->
-    <menuitem id="menu_ariza_dashboard" 
-              name="Dashboard" 
-              parent="menu_ariza_root" 
-              action="action_ariza_dashboard" 
-              sequence="1"/>
-
     <!-- Arıza Kayıtları Menüsü -->
     <menuitem id="menu_ariza_kayit" 
               name="Arıza Kayıtları" 
               parent="menu_ariza_root" 
               action="action_ariza_kayit" 
-              sequence="2"/>
+              sequence="1"/>
 
     <!-- Raporlar Menüsü -->
     <menuitem id="menu_ariza_report" 
               name="Raporlar" 
               parent="menu_ariza_root" 
-              sequence="3"/>
+              sequence="2"/>
 
     <!-- Rapor Alt Menüleri -->
     <menuitem id="menu_ariza_report_gunluk" 

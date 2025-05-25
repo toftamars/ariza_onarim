@@ -9,7 +9,7 @@ class ArizaKayit(models.Model):
 
     name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
     partner_id = fields.Many2one('res.partner', string='Müşteri', required=True, tracking=True)
-    tarih = fields.Date(string='Tarih', required=True, default=fields.Date.context_today, tracking=True)
+    tarih = fields.Date(string='İşlem Tarihi', required=True, default=fields.Date.context_today, tracking=True)
     ariza_tipi = fields.Selection([
         ('teknik', 'Teknik Arıza'),
         ('magaza', 'Mağaza Arıza'),
@@ -24,7 +24,7 @@ class ArizaKayit(models.Model):
     garanti_durumu = fields.Selection([
         ('var', 'Garantisi Var'),
         ('yok', 'Garantisi Yok')
-    ], string='Garanti Durumu', required=True, tracking=True)
+    ], string='Garanti Durumu', tracking=True)
     aciklama = fields.Text(string='Açıklama', required=True, tracking=True)
     sorumlu_id = fields.Many2one('res.users', string='Sorumlu', required=True, default=lambda self: self.env.user, tracking=True)
     state = fields.Selection([
