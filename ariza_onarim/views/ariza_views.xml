@@ -5,12 +5,13 @@
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'tamamlandi'">
+            <tree>
                 <field name="name"/>
-                <field name="ariza_tipi"/>
                 <field name="partner_id"/>
-                <field name="sorumlu_id"/>
                 <field name="tarih"/>
+                <field name="ariza_tipi"/>
+                <field name="garanti_durumu"/>
+                <field name="sorumlu_id"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -21,64 +22,37 @@
         <field name="name">ariza.kayit.form</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <form string="Arıza Kaydı">
+            <form>
                 <header>
-                    <button name="action_onayla" string="Onayla" type="object" 
-                            class="oe_highlight" states="draft"/>
-                    <button name="action_tamamla" string="Tamamla" type="object" 
-                            class="oe_highlight" states="onaylandi"/>
-                    <button name="action_iptal" string="İptal" type="object" 
-                            states="draft,onaylandi"/>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
+                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi"/>
+                    <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_print_qr" icon="fa-print">
+                            <field name="qr_code" filename="name" widget="image" class="oe_avatar"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
-                    <div class="oe_right oe_button_box" name="button_box">
-                        <div class="oe_stat_button" type="object" name="action_print_qr" icon="fa-print">
-                            <field name="qr_code" filename="name" widget="image" class="oe_avatar"/>
-                        </div>
-                    </div>
                     <group>
                         <group>
-                            <field name="ariza_tipi"/>
                             <field name="partner_id"/>
-                            <field name="sorumlu_id"/>
                             <field name="tarih"/>
+                            <field name="ariza_tipi"/>
+                            <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="garanti_durumu"/>
+                            <field name="sorumlu_id"/>
                         </group>
                         <group>
                             <field name="state"/>
-                            <field name="ariza_tanimi"/>
+                            <field name="aciklama"/>
                             <field name="qr_code_url" readonly="1"/>
-                        </group>
-                    </group>
-                    
-                    <!-- Müşteri Ürünü Alanları -->
-                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}">
-                        <group>
-                            <field name="sale_order_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
-                            <field name="siparis_yok"/>
-                            <field name="urun" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                            <field name="marka" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                            <field name="model" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                        </group>
-                        <group>
-                            <field name="fatura_tarihi"/>
-                            <field name="garanti_durumu"/>
-                            <field name="notlar"/>
-                        </group>
-                    </group>
-
-                    <!-- Mağaza Ürünü Alanları -->
-                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
-                        <group>
-                            <field name="magaza_ariza_tipi"/>
-                            <field name="analitik_hesap_id"/>
-                            <field name="tedarikci_id" attrs="{'invisible': [('magaza_ariza_tipi', '!=', 'tedarikci')]}"/>
-                            <field name="transfer_irsaliye" attrs="{'invisible': [('magaza_ariza_tipi', '!=', 'tedarikci')]}"/>
                         </group>
                     </group>
                 </sheet>
@@ -96,18 +70,21 @@
         <field name="name">ariza.kayit.search</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <search string="Arıza Kayıtları">
+            <search>
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="ariza_tipi"/>
+                <field name="garanti_durumu"/>
                 <field name="sorumlu_id"/>
-                <separator/>
                 <filter string="Taslak" name="draft" domain="[('state','=','draft')]"/>
                 <filter string="Onaylandı" name="onaylandi" domain="[('state','=','onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state','=','tamamlandi')]"/>
+                <filter string="İptal" name="iptal" domain="[('state','=','iptal')]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
-                    <filter string="Durum" name="state" context="{'group_by':'state'}"/>
+                    <filter string="Garanti Durumu" name="garanti_durumu" context="{'group_by':'garanti_durumu'}"/>
                     <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                    <filter string="Durum" name="state" context="{'group_by':'state'}"/>
                 </group>
             </search>
         </field>
@@ -121,7 +98,7 @@
         <field name="search_view_id" ref="view_ariza_kayit_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Yeni bir arıza kaydı oluşturun
+                Henüz arıza kaydı yok
             </p>
         </field>
     </record>
