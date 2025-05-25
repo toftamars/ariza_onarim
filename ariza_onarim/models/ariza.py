@@ -53,10 +53,13 @@ class ArizaKayit(models.Model):
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=True)
     model = fields.Char(string='Model', required=True)
-    garanti_durumu = fields.Selection([
-        ('garanti_kapsaminda', 'Garanti Kapsamında'),
-        ('garanti_disinda', 'Garanti Dışında'),
-    ], string='Garanti Durumu', required=True)
+    garanti_suresi = fields.Char(string='Garanti Süresi', compute='_compute_garanti_suresi', store=True, tracking=True)
+    garanti_bitis_tarihi = fields.Date(string='Garanti Bitiş Tarihi', compute='_compute_garanti_suresi', store=True)
+    kalan_garanti = fields.Char(string='Kalan Garanti', compute='_compute_garanti_suresi', store=True)
+    garanti_kapsaminda_mi = fields.Selection([
+        ('evet', 'Evet'),
+        ('hayir', 'Hayır'),
+    ], string='Garanti Kapsamında mı?', tracking=True)
     aciklama = fields.Text(string='Açıklama', required=True)
     notlar = fields.Text(string='Notlar')
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
@@ -90,21 +93,18 @@ class ArizaKayit(models.Model):
             if not self.siparis_yok:
                 self.urun = False
                 self.model = False
-                self.garanti_durumu = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
             self.siparis_yok = False
             self.invoice_line_id = False
             self.urun = False
             self.model = False
-            self.garanti_durumu = False
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.siparis_yok = False
             self.invoice_line_id = False
             self.urun = False
             self.model = False
-            self.garanti_durumu = False
             self.magaza_ariza_tipi = False
 
     @api.onchange('magaza_ariza_tipi')
@@ -166,7 +166,6 @@ class ArizaKayit(models.Model):
             if product:
                 self.urun = product.name
                 self.model = product.default_code or ''
-                self.garanti_durumu = 'garanti_kapsaminda' if getattr(product.product_tmpl_id, 'warranty', False) else 'garanti_disinda'
                 self.marka = product.product_tmpl_id.brand_id.name if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id else ''
 
     @api.onchange('partner_id')
@@ -176,7 +175,6 @@ class ArizaKayit(models.Model):
             self.siparis_yok = False
             self.urun = False
             self.model = False
-            self.garanti_durumu = False
 
     @api.onchange('marka_id')
     def _onchange_marka_id(self):
@@ -190,6 +188,11 @@ class ArizaKayit(models.Model):
             self.tedarikci_adresi = self.tedarikci_id.street
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
+
+    @api.onchange('islem_tipi')
+    def _onchange_islem_tipi(self):
+        if self.islem_tipi != 'teslim':
+            self.garanti_kapsaminda_mi = False
 
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
@@ -229,4 +232,22 @@ class ArizaKayit(models.Model):
     def action_iptal(self):
         self.state = 'iptal'
         if self.transfer_id:
-            self.transfer_id.action_cancel() 
+            self.transfer_id.action_cancel()
+
+    @api.depends('invoice_line_id', 'fatura_tarihi')
+    def _compute_garanti_suresi(self):
+        for rec in self:
+            rec.garanti_suresi = ''
+            rec.garanti_bitis_tarihi = False
+            rec.kalan_garanti = ''
+            if rec.invoice_line_id and rec.fatura_tarihi:
+                product = rec.invoice_line_id.product_id
+                warranty_months = getattr(product.product_tmpl_id, 'warranty_period', 24)  # Varsayılan 24 ay
+                rec.garanti_suresi = f"{warranty_months} ay"
+                bitis = rec.fatura_tarihi + relativedelta(months=warranty_months)
+                rec.garanti_bitis_tarihi = bitis
+                kalan = (bitis - fields.Date.context_today(rec)).days
+                if kalan > 0:
+                    rec.kalan_garanti = f"{kalan} gün kaldı"
+                else:
+                    rec.kalan_garanti = "Süre doldu" 
