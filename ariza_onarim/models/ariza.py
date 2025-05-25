@@ -192,13 +192,26 @@ class ArizaKayit(models.Model):
                     # Marka bilgisini ürün şablonundan al
                     if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
                         self.marka_id = product.product_tmpl_id.brand_id.id
-                    # Garanti süresi otomatik hesaplanacak, garanti_suresi compute ile zaten otomatik
+                        # Marka seçilince tedarikçi otomatik gelsin
+                        if self.marka_id:
+                            marka = self.env['product.brand'].browse(self.marka_id)
+                            if marka and marka.partner_id:
+                                self.tedarikci_id = marka.partner_id.id
+                                self._onchange_tedarikci_id()
+                    else:
+                        self.marka_id = False
                 else:
                     self.urun = product.name
                     self.model = product.default_code or ''
-                    # Marka bilgisini ürün şablonundan al
                     if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
                         self.marka_id = product.product_tmpl_id.brand_id.id
+                        if self.marka_id:
+                            marka = self.env['product.brand'].browse(self.marka_id)
+                            if marka and marka.partner_id:
+                                self.tedarikci_id = marka.partner_id.id
+                                self._onchange_tedarikci_id()
+                    else:
+                        self.marka_id = False
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
@@ -210,9 +223,11 @@ class ArizaKayit(models.Model):
 
     @api.onchange('marka_id')
     def _onchange_marka_id(self):
-        if self.marka_id and self.marka_id.partner_id:
-            self.tedarikci_id = self.marka_id.partner_id
-            self._onchange_tedarikci_id()
+        if self.marka_id:
+            # Marka seçilince tedarikçi otomatik gelsin
+            if self.marka_id.partner_id:
+                self.tedarikci_id = self.marka_id.partner_id.id
+                self._onchange_tedarikci_id()
             # Marka ürünlerini filtrele
             if self.ariza_tipi in ['magaza', 'teknik', 'musteri']:
                 domain = [('product_tmpl_id.brand_id', '=', self.marka_id.id)]
