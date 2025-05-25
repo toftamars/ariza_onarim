@@ -128,6 +128,16 @@ class ArizaKayit(models.Model):
                 self.model = product.default_code or ''
                 self.garanti_durumu = 'garanti_kapsaminda' if product.warranty else 'garanti_disinda'
 
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        if not self.partner_id:
+            self.invoice_line_id = False
+            self.siparis_yok = False
+            self.urun = False
+            self.marka = False
+            self.model = False
+            self.garanti_durumu = False
+
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
             return
