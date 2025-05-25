@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Dashboard Kanvas -->
+    <!-- Dashboard Kanban View -->
     <record id="view_ariza_dashboard_kanban" model="ir.ui.view">
         <field name="name">ariza.dashboard.kanban</field>
         <field name="model">ariza.kayit</field>
@@ -18,8 +18,9 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="toplam_ariza_sayisi" widget="statinfo" string="Toplam Arıza"/>
+                                                <field name="acik_ariza_sayisi"/>
                                             </h2>
+                                            <p class="text-muted">Açık Arıza</p>
                                         </div>
                                     </div>
                                 </div>
@@ -27,8 +28,9 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="acik_ariza_sayisi" widget="statinfo" string="Açık Arızalar"/>
+                                                <field name="tamamlanan_ariza_sayisi"/>
                                             </h2>
+                                            <p class="text-muted">Tamamlanan</p>
                                         </div>
                                     </div>
                                 </div>
@@ -36,8 +38,9 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="tamamlanan_ariza_sayisi" widget="statinfo" string="Tamamlanan Arızalar"/>
+                                                <field name="iptal_ariza_sayisi"/>
                                             </h2>
+                                            <p class="text-muted">İptal</p>
                                         </div>
                                     </div>
                                 </div>
@@ -45,8 +48,9 @@
                                     <div class="card">
                                         <div class="card-body text-center">
                                             <h2 class="mb-0">
-                                                <field name="iptal_ariza_sayisi" widget="statinfo" string="İptal Edilen Arızalar"/>
+                                                <field name="toplam_ariza_sayisi"/>
                                             </h2>
+                                            <p class="text-muted">Toplam</p>
                                         </div>
                                     </div>
                                 </div>
@@ -58,7 +62,7 @@
         </field>
     </record>
 
-    <!-- Dashboard Aksiyonu -->
+    <!-- Dashboard Action -->
     <record id="action_ariza_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard</field>
         <field name="res_model">ariza.kayit</field>
