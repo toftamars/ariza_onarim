@@ -94,7 +94,7 @@
                                 <field name="kalan_garanti" readonly="1"/>
                             </group>
                         </page>
-                        <page string="Notlar">
+                        <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="onarim_bilgisi"/>
