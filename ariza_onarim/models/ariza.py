@@ -320,8 +320,48 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        # Tedarikçiye gönderim ve mağaza ürünü ise transfer oluştur
-        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
+        # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
+        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
+            # Analitik hesabın stok konumunu bul
+            kaynak_konum = None
+            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+            hesap_adi = self.analitik_hesap_id.name.strip().lower()
+            try:
+                with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                    for satir in f:
+                        if hesap_adi in satir.lower():
+                            parcalar = satir.strip().split('\t')
+                            if len(parcalar) == 2:
+                                konum_kodu = parcalar[1]
+                                kaynak_konum = self.env['stock.location'].search([
+                                    ('name', '=', konum_kodu),
+                                    ('company_id', '=', self.env.company.id)
+                                ], limit=1)
+                                break
+            except Exception as e:
+                pass
+            hedef_konum = self.tedarikci_id.property_stock_supplier if self.tedarikci_id.property_stock_supplier else False
+            if kaynak_konum and hedef_konum:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal'),
+                    ('warehouse_id', '=', kaynak_konum.warehouse_id.id)
+                ], limit=1)
+                if not picking_type:
+                    raise UserError("Transfer tipi bulunamadı.")
+                picking_vals = {
+                    'location_id': kaynak_konum.id,
+                    'location_dest_id': hedef_konum.id,
+                    'picking_type_id': picking_type.id,
+                    'move_type': 'direct',
+                    'immediate_transfer': True,
+                    'company_id': self.env.company.id,
+                    'origin': self.name,
+                }
+                picking = self.env['stock.picking'].create(picking_vals)
+                self.transfer_id = picking.id
+                self.transferler_ids = [(4, picking.id)]
+                picking.button_validate()
+        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
             self._create_stock_transfer()
         elif self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
             picking_type = self.env['stock.picking.type'].search([
@@ -343,7 +383,6 @@ class ArizaKayit(models.Model):
             picking = self.env['stock.picking'].create(picking_vals)
             self.transfer_id = picking.id
             self.transferler_ids = [(4, picking.id)]
-            # Otomatik doğrulama
             picking.button_validate()
         elif self.ariza_tipi == 'teknik' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
             self._create_stock_transfer()
