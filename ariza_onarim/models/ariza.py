@@ -124,7 +124,28 @@ class ArizaKayit(models.Model):
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
-            self._create_stock_transfer()
+            # Analitik hesabın adından kaynak konumu belirle
+            hesap_adi = self.analitik_hesap_id.name.lower()
+            # İlk 4 harfi al ve /stok ekle
+            konum_adi = f"{hesap_adi[:4]}/stok"
+            
+            # Kaynak konumu bul
+            kaynak_konum = self.env['stock.location'].search([
+                ('name', '=', konum_adi),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            
+            if kaynak_konum:
+                self.kaynak_konum_id = kaynak_konum
+            
+            # Eğer mağaza arıza tipi teknik servis ise hedef konumu da ayarla
+            if self.magaza_ariza_tipi == 'teknik_servis':
+                dtl_konum = self.env['stock.location'].search([
+                    ('name', '=', 'DTL/Stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
 
     @api.onchange('invoice_line_id')
     def _onchange_invoice_line_id(self):
