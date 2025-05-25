@@ -63,4 +63,76 @@
             </p>
         </field>
     </record>
+
+    <!-- Günlük Rapor Görünümü -->
+    <record id="view_ariza_gunluk_report" model="ir.ui.view">
+        <field name="name">ariza.gunluk.report</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Günlük Rapor">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ariza_tipi"/>
+                <field name="garanti_durumu"/>
+                <field name="sorumlu_id"/>
+                <filter string="Bugün" name="bugun" domain="[('tarih','=',context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Garanti Durumu" name="garanti_durumu" context="{'group_by':'garanti_durumu'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                    <filter string="Durum" name="state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Günlük Rapor Aksiyonu -->
+    <record id="action_ariza_gunluk_report" model="ir.actions.act_window">
+        <field name="name">Günlük Rapor</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_gunluk_report"/>
+        <field name="context">{'search_default_bugun': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bugün için arıza kaydı yok
+            </p>
+        </field>
+    </record>
+
+    <!-- Aylık Rapor Görünümü -->
+    <record id="view_ariza_aylik_report" model="ir.ui.view">
+        <field name="name">ariza.aylik.report</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Aylık Rapor">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ariza_tipi"/>
+                <field name="garanti_durumu"/>
+                <field name="sorumlu_id"/>
+                <filter string="Bu Ay" name="bu_ay" domain="[('tarih','&gt;=',context_today().strftime('%Y-%m-01'))]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
+                    <filter string="Garanti Durumu" name="garanti_durumu" context="{'group_by':'garanti_durumu'}"/>
+                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
+                    <filter string="Durum" name="state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Aylık Rapor Aksiyonu -->
+    <record id="action_ariza_aylik_report" model="ir.actions.act_window">
+        <field name="name">Aylık Rapor</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_aylik_report"/>
+        <field name="context">{'search_default_bu_ay': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bu ay için arıza kaydı yok
+            </p>
+        </field>
+    </record>
 </odoo> 
