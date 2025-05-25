@@ -2,6 +2,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import os
 
 class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
@@ -124,11 +125,30 @@ class ArizaKayit(models.Model):
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
-            # Analitik hesaptan kaynak konumu al
-            if hasattr(self.analitik_hesap_id, 'konum_id') and self.analitik_hesap_id.konum_id:
-                self.kaynak_konum_id = self.analitik_hesap_id.konum_id
-            
-            # Eğer mağaza arıza tipi teknik servis ise hedef konumu da ayarla
+            # Dosya yolu
+            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+            hesap_adi = self.analitik_hesap_id.name.strip().lower()
+            konum_kodu = None
+            try:
+                with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                    for satir in f:
+                        if hesap_adi in satir.lower():
+                            parcalar = satir.strip().split('\t')
+                            if len(parcalar) == 2:
+                                konum_kodu = parcalar[1]
+                                break
+            except Exception as e:
+                pass  # Hata yönetimi eklenebilir
+
+            if konum_kodu:
+                konum = self.env['stock.location'].search([
+                    ('name', '=', konum_kodu),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if konum:
+                    self.kaynak_konum_id = konum
+
+            # Teknik servis ise hedef konum
             if self.magaza_ariza_tipi == 'teknik_servis':
                 dtl_konum = self.env['stock.location'].search([
                     ('name', '=', 'DTL/Stok'),
