@@ -316,7 +316,9 @@ class ArizaKayit(models.Model):
     def action_onayla(self):
         self.state = 'onaylandi'
         # Tedarikçiye gönderim ve mağaza ürünü ise transfer oluştur
-        if self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
+        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
+            self._create_stock_transfer()
+        elif self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
                 ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
@@ -338,7 +340,7 @@ class ArizaKayit(models.Model):
             self.transferler_ids = [(4, picking.id)]
             # Otomatik doğrulama
             picking.button_validate()
-        elif self.ariza_tipi in ['magaza', 'teknik'] and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
+        elif self.ariza_tipi == 'teknik' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
             self._create_stock_transfer()
 
     def action_tamamla(self):
