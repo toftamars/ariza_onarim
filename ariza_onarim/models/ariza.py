@@ -411,14 +411,59 @@ class ArizaKayit(models.Model):
             })
             sms_obj.send()
 
+    def _create_delivery_order(self):
+        if not self.partner_id or not self.analitik_hesap_id:
+            return False
+
+        # Kargo şirketini bul
+        delivery_carrier = self.env['delivery.carrier'].search([
+            ('delivery_type', '=', 'fixed'),
+            ('fixed_price', '=', 0.0)
+        ], limit=1)
+
+        if not delivery_carrier:
+            raise UserError(_("Ücretsiz kargo seçeneği bulunamadı."))
+
+        # Satış siparişi oluştur
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.partner_id.id,
+            'analytic_account_id': self.analitik_hesap_id.id,
+            'carrier_id': delivery_carrier.id,
+            'order_line': [(0, 0, {
+                'name': f"Arıza Kaydı: {self.name}",
+                'product_id': self.env.ref('product.product_product_4').id,  # Kargo ürünü
+                'product_uom_qty': 1,
+                'price_unit': 0.0,
+            })],
+        })
+
+        # Satış siparişini onayla
+        sale_order.action_confirm()
+
+        # Teslimat siparişi oluştur
+        picking = sale_order.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
+        if picking:
+            picking.write({
+                'origin': self.name,
+                'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}"
+            })
+            return picking
+        return False
+
     def action_onayla(self):
         self.state = 'onaylandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
             sms_mesaji = f"Sayın {self.partner_id.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır. Takip No: {self.name}"
             self._send_sms_to_customer(sms_mesaji)
-        # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
-        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
+
+        # Transfer işlemleri
+        if self.transfer_metodu == 'ucretsiz_kargo':
+            picking = self._create_delivery_order()
+            if picking:
+                self.transfer_id = picking.id
+                self.transferler_ids = [(4, picking.id)]
+        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
             # Analitik hesabın stok konumunu bul
             kaynak_konum = None
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
@@ -515,6 +560,8 @@ class ArizaKayit(models.Model):
                     rec.kalan_garanti = "Süre doldu"
 
     def action_print(self):
+        if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').report_action(self)
 
     @api.onchange('magaza_urun_id')
