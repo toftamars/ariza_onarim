@@ -74,7 +74,7 @@
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                         </group>
                         <group>
-                            <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])]}"/>
+                            <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', 'not in', ['magaza'])]}"/>
                             <field name="analitik_hesap_id" required="1"/>
                             <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
