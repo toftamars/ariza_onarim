@@ -283,8 +283,8 @@ class ArizaKayit(models.Model):
                     self.urun = product.name
                     self.model = product.default_code or ''
                     # Marka bilgisini ürün şablonundan al
-                    if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
-                        self.marka_id = product.product_tmpl_id.brand_id.id
+                    if hasattr(product, 'brand_id') and product.brand_id:
+                        self.marka_id = product.brand_id.id
                         # Marka seçilince tedarikçi otomatik gelsin
                         if self.marka_id:
                             marka = self.env['product.brand'].browse(self.marka_id)
@@ -300,8 +300,8 @@ class ArizaKayit(models.Model):
                 else:
                     self.urun = product.name
                     self.model = product.default_code or ''
-                    if hasattr(product.product_tmpl_id, 'brand_id') and product.product_tmpl_id.brand_id:
-                        self.marka_id = product.product_tmpl_id.brand_id.id
+                    if hasattr(product, 'brand_id') and product.brand_id:
+                        self.marka_id = product.brand_id.id
                         if self.marka_id:
                             marka = self.env['product.brand'].browse(self.marka_id)
                             if marka and marka.partner_id:
