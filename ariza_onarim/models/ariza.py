@@ -85,6 +85,7 @@ class ArizaKayit(models.Model):
         string='Ürün',
         tracking=True
     )
+    sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -359,8 +360,22 @@ class ArizaKayit(models.Model):
         picking = self.env['stock.picking'].create(picking_vals)
         self.transfer_id = picking.id
 
+    def _send_sms_to_customer(self, message):
+        if self.partner_id and self.partner_id.phone:
+            sms_obj = self.env['sms.sms'].create({
+                'partner_id': self.partner_id.id,
+                'to': self.partner_id.phone,
+                'body': message,
+                'state': 'outgoing',
+            })
+            sms_obj.send()
+            self.sms_gonderildi = True
+
     def action_onayla(self):
         self.state = 'onaylandi'
+        # SMS gönderimi
+        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+            self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
         # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
         if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
             # Analitik hesabın stok konumunu bul
@@ -430,6 +445,9 @@ class ArizaKayit(models.Model):
 
     def action_tamamla(self):
         self.state = 'tamamlandi'
+        # SMS gönderimi
+        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+            self._send_sms_to_customer('Ürününüz teslim edilmeye hazırdır. Takip No: %s' % self.name)
 
     def action_iptal(self):
         self.state = 'iptal'
