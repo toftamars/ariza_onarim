@@ -7,8 +7,8 @@
             <form string="Arıza Kaydı">
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
-                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('islem_tipi', '=', 'teslim')]}"/>
-                    <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
+                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('islem_tipi', '!=', 'kabul')]}" />
+                    <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri')]}"/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
@@ -34,8 +34,9 @@
                         <group>
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', 'not in', ['magaza'])]}"/>
                             <field name="analitik_hesap_id" required="1"/>
-                            <field name="marka_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="invoice_line_id" attrs="{'invisible': ['|', '|', ('ariza_tipi', '=', 'magaza'), ('islem_tipi', '=', 'teslim'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="marka_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="tedarikci_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
@@ -43,7 +44,6 @@
                             <field name="transfer_id" readonly="1"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                            <field name="invoice_line_id" attrs="{'invisible': ['|', '|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
