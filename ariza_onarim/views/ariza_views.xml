@@ -24,6 +24,7 @@
                             <field name="ariza_tipi"/>
                             <field name="analitik_hesap_id"/>
                             <field name="marka" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                         </group>
                         <group>
                             <field name="partner_id" attrs="{'required': [('ariza_tipi', '=', 'musteri')]}"/>
