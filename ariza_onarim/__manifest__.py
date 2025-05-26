@@ -4,13 +4,15 @@
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
-        Arıza kayıt ve onarım takibi için modül.
+        Bu modül, arıza kayıtlarının ve onarım süreçlerinin takibini sağlar.
+        Özellikler:
         - Arıza kaydı oluşturma
-        - Onarım takibi
-        - Teslim işlemleri
+        - Onarım süreci takibi
+        - SMS bildirimleri
+        - Raporlama
     """,
-    'author': 'Tofta',
-    'website': 'https://www.tofta.com',
+    'author': 'Alper Tafta',
+    'website': 'https://www.ariza.com',
     'depends': [
         'base',
         'mail',
@@ -19,14 +21,20 @@
         'product',
         'product_brand',
         'delivery',
+        'sms',
+        'analytic',
     ],
     'data': [
         'security/ir.model.access.csv',
-        'views/ariza_views.xml',
+        'views/ariza_kayit_views.xml',
+        'views/ariza_kayit_menus.xml',
         'reports/report_ariza_kayit.xml',
+        'wizards/ariza_kayit_tamamla_wizard_views.xml',
     ],
     'images': ['static/description/icon.png'],
+    'demo': [],
     'installable': True,
     'application': True,
     'auto_install': False,
+    'license': 'LGPL-3',
 }

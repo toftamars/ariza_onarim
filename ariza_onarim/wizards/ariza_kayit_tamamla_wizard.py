@@ -1,0 +1,28 @@
+from odoo import models, fields, api, _
+
+class ArizaKayitTamamlaWizard(models.TransientModel):
+    _name = 'ariza.kayit.tamamla.wizard'
+    _description = 'Arıza Kaydı Tamamlama'
+
+    ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
+    musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
+    urun = fields.Char(string='Ürün', readonly=True)
+    onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
+    garanti_kapsaminda_mi = fields.Selection([
+        ('evet', 'Evet'),
+        ('hayir', 'Hayır'),
+    ], string='Garanti Kapsamında mı?', required=True)
+    ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
+
+    def action_tamamla(self):
+        self.ariza_id.write({
+            'state': 'tamamlandi',
+            'onarim_bilgisi': self.onarim_bilgisi,
+            'garanti_kapsaminda_mi': self.garanti_kapsaminda_mi,
+            'ucret_bilgisi': self.ucret_bilgisi,
+        })
+        # SMS gönderimi
+        if self.ariza_id.ariza_tipi == 'musteri' and self.ariza_id.partner_id and self.ariza_id.partner_id.phone:
+            sms_mesaji = f"Sayın {self.ariza_id.partner_id.name} {self.ariza_id.name}, {self.ariza_id.urun} ürününüz teslim edilmeye hazırdır."
+            self.ariza_id._send_sms_to_customer(sms_mesaji)
+        return {'type': 'ir.actions.act_window_close'} 

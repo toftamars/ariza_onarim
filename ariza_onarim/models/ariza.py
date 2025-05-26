@@ -49,6 +49,7 @@ class ArizaKayit(models.Model):
         ('draft', 'Taslak'),
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
+        ('teslim_edildi', 'Teslim Edildi'),
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
@@ -537,10 +538,24 @@ class ArizaKayit(models.Model):
                 picking.button_validate()
 
     def action_tamamla(self):
-        self.state = 'tamamlandi'
+        return {
+            'name': 'Onarım Tamamlandı',
+            'type': 'ir.actions.act_window',
+            'res_model': 'ariza.kayit.tamamla.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_ariza_id': self.id,
+                'default_musteri_adi': self.partner_id.name,
+                'default_urun': self.urun,
+            }
+        }
+
+    def action_teslim_et(self):
+        self.state = 'teslim_edildi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmeye hazırdır."
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmiştir. İyi günler dileriz."
             self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):
