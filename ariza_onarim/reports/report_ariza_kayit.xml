@@ -40,6 +40,11 @@
                             <div class="col-6">
                                 <strong>Teknik Servis:</strong>
                                 <t t-esc="doc.teknik_servis"/>
+                                <t t-if="teknik_servis_adres">
+                                    <br/>
+                                    <strong>Teknik Servis Adresi:</strong>
+                                    <t t-esc="teknik_servis_adres"/>
+                                </t>
                             </div>
                             <div class="col-6">
                                 <strong>Transfer Metodu:</strong>
