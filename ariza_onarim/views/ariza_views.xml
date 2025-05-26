@@ -11,6 +11,7 @@
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', '|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}"/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight"/>
+                    <button name="action_print_delivery" string="Kargo İrsaliyesi Yazdır" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
