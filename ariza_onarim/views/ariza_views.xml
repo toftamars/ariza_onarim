@@ -121,4 +121,48 @@
             </tree>
         </field>
     </record>
+    <record id="view_ariza_kayit_search" model="ir.ui.view">
+        <field name="name">ariza.kayit.search</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Arıza Kayıtları">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="urun"/>
+                <field name="model"/>
+                <field name="teknik_servis"/>
+                <field name="transfer_metodu"/>
+                <separator/>
+                <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
+                <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
+                <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
+                    <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
+                    <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
+                    <filter string="Transfer Metodu" name="transfer_metodu" context="{'group_by': 'transfer_metodu'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_ariza_kayit" model="ir.actions.act_window">
+        <field name="name">Arıza Kayıtları</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_kayit_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Yeni bir arıza kaydı oluşturun
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_ariza_onarim_root" 
+              name="Arıza Onarım" 
+              sequence="10"/>
+    <menuitem id="menu_ariza_kayit" 
+              name="Arıza Kayıtları" 
+              parent="menu_ariza_onarim_root" 
+              action="action_ariza_kayit" 
+              sequence="10"/>
 </odoo> 
