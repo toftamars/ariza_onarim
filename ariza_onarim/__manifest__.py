@@ -25,6 +25,7 @@
         'views/ariza_views.xml',
         'reports/report_ariza_kayit.xml',
     ],
+    'images': ['static/description/icon.png'],
     'installable': True,
     'application': True,
     'auto_install': False,
