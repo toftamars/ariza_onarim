@@ -411,8 +411,34 @@ class ArizaKayit(models.Model):
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
     def _create_stock_transfer(self):
-        if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
+        if not self.analitik_hesap_id:
             return
+
+        # Müşteri ürünü işlemlerinde konumları otomatik ayarla
+        if self.ariza_tipi == 'musteri':
+            # Kaynak konum müşteri konumu
+            if self.partner_id and self.partner_id.property_stock_customer:
+                self.kaynak_konum_id = self.partner_id.property_stock_customer
+            else:
+                # Müşteri konumu yoksa varsayılan müşteri konumunu kullan
+                customer_location = self.env['stock.location'].search([
+                    ('usage', '=', 'customer'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if customer_location:
+                    self.kaynak_konum_id = customer_location
+
+            # Hedef konum arıza/stok
+            ariza_konum = self.env['stock.location'].search([
+                ('name', '=', 'arıza/stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if ariza_konum:
+                self.hedef_konum_id = ariza_konum
+
+        if not self.kaynak_konum_id or not self.hedef_konum_id:
+            return
+
         # Transfer oluştur
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
@@ -420,6 +446,7 @@ class ArizaKayit(models.Model):
         ], limit=1)
         if not picking_type:
             raise UserError(_("Transfer tipi bulunamadı."))
+
         picking_vals = {
             'location_id': self.kaynak_konum_id.id,
             'location_dest_id': self.hedef_konum_id.id,
@@ -428,10 +455,9 @@ class ArizaKayit(models.Model):
             'immediate_transfer': True,
             'company_id': self.env.company.id,
             'origin': self.name,
-            'note': self.aciklama or '',
+            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
         }
         picking = self.env['stock.picking'].create(picking_vals)
-        self.transfer_id = picking.id
         return picking
 
     def _send_sms_to_customer(self, message):
