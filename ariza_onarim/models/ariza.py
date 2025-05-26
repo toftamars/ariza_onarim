@@ -491,11 +491,22 @@ class ArizaKayit(models.Model):
                 }
             }
 
+    def _clean_magaza_adi(self, name):
+        # [1101404] Perakende - Akasya -> Akasya
+        if name:
+            if '-' in name:
+                return name.split('-')[-1].strip().split()[0]
+            return name.split()[-1]
+        return ''
+
     def action_teslim_et(self):
         self.state = 'teslim_edildi'
         # Sadece ürün teslim işlemlerinde SMS gönder
         if self.islem_tipi == 'teslim' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmiştir. İyi günler dileriz."
+            magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
+            onarim = self.onarim_bilgisi or ''
+            garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim edilmiştir. Onarım: {onarim} | Garanti: {garanti}. İyi günler dileriz."
             self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):

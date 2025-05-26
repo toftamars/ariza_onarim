@@ -13,14 +13,23 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         ('hayir', 'Hayır'),
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
-    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', required=True,
-        domain="[('name', 'like', 'Perakende')]")
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', required=True)
+    teslim_magazasi_adi = fields.Char(string='Mağaza Adı', compute='_compute_teslim_magazasi_adi')
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi_id(self):
         if self.teslim_magazasi_id:
             # Perakende ifadesini kaldır
             self.teslim_magazasi_id.name = self.teslim_magazasi_id.name.replace('Perakende ', '')
+
+    @api.depends('teslim_magazasi_id')
+    def _compute_teslim_magazasi_adi(self):
+        for rec in self:
+            name = rec.teslim_magazasi_id.name or ''
+            if '-' in name:
+                rec.teslim_magazasi_adi = name.split('-')[-1].strip().split()[0]
+            else:
+                rec.teslim_magazasi_adi = name.split()[-1] if name else ''
 
     def action_tamamla(self):
         self.ariza_id.write({
