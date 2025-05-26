@@ -53,9 +53,12 @@ class ArizaKayit(models.Model):
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
+    siparis_no = fields.Char(string='Sipariş No', tracking=True)
+    siparis_tarihi = fields.Date(string='Sipariş Tarihi', tracking=True)
+    fatura_no = fields.Char(string='Fatura No', tracking=True)
+    fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
         domain="[('move_id.move_type', 'in', ['out_invoice', 'out_refund']), ('move_id.state', '=', 'posted'), ('move_id.partner_id', '=', partner_id)]")
-    fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=True)
     model = fields.Char(string='Model', required=True)
     garanti_suresi = fields.Char(string='Garanti Süresi', compute='_compute_garanti_suresi', store=True, tracking=True)
