@@ -86,6 +86,14 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
+    fatura_kalem_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
+        domain="[('move_id.move_type', 'in', ['out_invoice', 'out_refund']), ('move_id.state', '=', 'posted'), ('move_id.partner_id', '=', partner_id)]")
+    marka = fields.Char(string='Marka', compute='_compute_fatura_kalem', store=True)
+    urun_kodu = fields.Char(string='Ürün Kodu', compute='_compute_fatura_kalem', store=True)
+    urun_adi = fields.Char(string='Ürün Adı', compute='_compute_fatura_kalem', store=True)
+    urun_marka = fields.Char(string='Ürün Marka', compute='_compute_fatura_kalem', store=True)
+    urun_model = fields.Char(string='Ürün Model', compute='_compute_fatura_kalem', store=True)
+    urun_seri_no = fields.Char(string='Ürün Seri No', compute='_compute_fatura_kalem', store=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -411,13 +419,70 @@ class ArizaKayit(models.Model):
             })
             sms_obj.send()
 
+    def _create_delivery_order(self):
+        if not self.partner_id or not self.analitik_hesap_id:
+            return False
+
+        # Kargo şirketini bul
+        carrier = self.env['delivery.carrier'].search([
+            ('delivery_type', '=', 'fixed'),
+            ('fixed_price', '=', 0)
+        ], limit=1)
+
+        if not carrier:
+            raise UserError(_("Ücretsiz kargo seçeneği bulunamadı."))
+
+        # Satış siparişi oluştur
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.partner_id.id,
+            'partner_invoice_id': self.partner_id.id,
+            'partner_shipping_id': self.partner_id.id,
+            'pricelist_id': self.partner_id.property_product_pricelist.id,
+            'carrier_id': carrier.id,
+            'company_id': self.env.company.id,
+            'user_id': self.env.user.id,
+            'team_id': self.env['crm.team'].search([], limit=1).id,
+            'client_order_ref': self.name,
+            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
+        })
+
+        # Satış siparişi satırı ekle
+        self.env['sale.order.line'].create({
+            'order_id': sale_order.id,
+            'product_id': self.env.ref('delivery.product_product_delivery').id,
+            'name': f"Arıza Kaydı Kargo: {self.name}",
+            'product_uom_qty': 1,
+            'price_unit': 0,
+        })
+
+        # Siparişi onayla
+        sale_order.action_confirm()
+
+        # Teslimat siparişi oluştur
+        picking = sale_order.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
+        if picking:
+            picking.write({
+                'origin': self.name,
+                'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
+            })
+            return picking
+        return False
+
     def action_onayla(self):
         self.state = 'onaylandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.mobile:
             self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
+        
+        # Ücretsiz kargo seçili ise kargo siparişi oluştur
+        if self.transfer_metodu == 'ucretsiz_kargo':
+            picking = self._create_delivery_order()
+            if picking:
+                self.transfer_id = picking.id
+                self.transferler_ids = [(4, picking.id)]
+        
         # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
-        if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
+        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
             # Analitik hesabın stok konumunu bul
             kaynak_konum = None
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
@@ -532,4 +597,16 @@ class ArizaKayit(models.Model):
                 self.tedarikci_id = False
                 self.tedarikci_adresi = False
                 self.tedarikci_telefon = False
-                self.tedarikci_email = False 
+                self.tedarikci_email = False
+
+    @api.onchange('fatura_kalem_id')
+    def _onchange_fatura_kalem(self):
+        if self.fatura_kalem_id:
+            product = self.fatura_kalem_id.product_id
+            if product:
+                self.marka = product.brand_id.name if product.brand_id else ''
+                self.urun_kodu = product.default_code or ''
+                self.urun_adi = product.name
+                self.urun_marka = product.brand_id.name if product.brand_id else ''
+                self.urun_model = product.model or ''
+                self.urun_seri_no = product.serial_number or '' 
