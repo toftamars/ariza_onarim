@@ -91,7 +91,19 @@ class ArizaKayit(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if not vals.get('name') or vals.get('name') == _('New'):
-                vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit') or _('New')
+                # Benzersiz arıza numarası oluştur
+                sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                if not sequence:
+                    # Eğer sequence yoksa oluştur
+                    self.env['ir.sequence'].create({
+                        'name': 'Arıza Kayıt',
+                        'code': 'ariza.kayit',
+                        'prefix': 'ARZ/%(year)s/',
+                        'padding': 5,
+                        'company_id': self.env.company.id,
+                    })
+                    sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                vals['name'] = sequence
         return super().create(vals_list)
 
     @api.depends('invoice_line_id')
@@ -454,7 +466,7 @@ class ArizaKayit(models.Model):
         self.state = 'onaylandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır. Takip No: {self.name}"
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır."
             self._send_sms_to_customer(sms_mesaji)
 
         # Transfer işlemleri
@@ -528,7 +540,7 @@ class ArizaKayit(models.Model):
         self.state = 'tamamlandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim edilmeye hazırdır. Takip No: {self.name}"
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmeye hazırdır."
             self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):
