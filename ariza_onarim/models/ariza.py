@@ -35,6 +35,9 @@ class ArizaKayit(models.Model):
         ('ucretli_kargo', 'Ücretli Kargo'),
         ('magaza', 'Mağaza'),
     ], string='Transfer Metodu', tracking=True, default='arac')
+    carrier_id = fields.Many2one('delivery.carrier', string='Kargo Firması', tracking=True)
+    delivery_count = fields.Integer(compute='_compute_delivery_count', string='Kargo Siparişleri')
+    delivery_ids = fields.One2many('stock.picking', 'ariza_kayit_id', string='Kargo Siparişleri')
     partner_id = fields.Many2one('res.partner', string='Müşteri', tracking=True)
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
@@ -423,18 +426,34 @@ class ArizaKayit(models.Model):
             })
             sms_obj.send()
 
+    @api.depends('delivery_ids')
+    def _compute_delivery_count(self):
+        for record in self:
+            record.delivery_count = len(record.delivery_ids)
+
+    def action_view_delivery(self):
+        self.ensure_one()
+        return {
+            'name': 'Kargo Siparişleri',
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', self.delivery_ids.ids)],
+            'context': {'create': False},
+        }
+
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:
             return False
 
         # Kargo şirketini bul
-        carrier = self.env['delivery.carrier'].search([
+        carrier = self.carrier_id or self.env['delivery.carrier'].search([
             ('delivery_type', '=', 'fixed'),
             ('fixed_price', '=', 0)
         ], limit=1)
 
         if not carrier:
-            raise UserError(_("Ücretsiz kargo seçeneği bulunamadı."))
+            raise UserError(_("Kargo şirketi bulunamadı."))
 
         # Satış siparişi oluştur
         sale_order = self.env['sale.order'].create({
@@ -468,6 +487,7 @@ class ArizaKayit(models.Model):
             picking.write({
                 'origin': self.name,
                 'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
+                'ariza_kayit_id': self.id,
             })
             return picking
         return False
@@ -478,8 +498,8 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.mobile:
             self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
         
-        # Ücretsiz kargo seçili ise kargo siparişi oluştur
-        if self.transfer_metodu == 'ucretsiz_kargo':
+        # Kargo seçili ise kargo siparişi oluştur
+        if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo']:
             picking = self._create_delivery_order()
             if picking:
                 self.transfer_id = picking.id

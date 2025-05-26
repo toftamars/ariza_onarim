@@ -26,6 +26,8 @@
                             <field name="marka" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="magaza_ariza_tipi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
+                            <field name="transfer_metodu" required="1"/>
+                            <field name="carrier_id" attrs="{'invisible': [('transfer_metodu', 'not in', ['ucretsiz_kargo', 'ucretli_kargo'])], 'required': [('transfer_metodu', 'in', ['ucretsiz_kargo', 'ucretli_kargo'])]}"/>
                         </group>
                         <group>
                             <field name="partner_id" attrs="{'required': [('ariza_tipi', '=', 'musteri')]}"/>
@@ -61,11 +63,12 @@
                                 <field name="urun_seri_no"/>
                             </group>
                         </page>
-                        <page string="Transfer Bilgileri" attrs="{'invisible': [('ariza_tipi', '=', 'musteri')]}">
+                        <page string="Transfer Bilgileri">
                             <group>
                                 <field name="transfer_id" readonly="1"/>
                                 <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                                 <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                                <field name="delivery_count" widget="statinfo" string="Kargo Siparişleri" attrs="{'invisible': [('transfer_metodu', 'not in', ['ucretsiz_kargo', 'ucretli_kargo'])]}"/>
                             </group>
                         </page>
                     </notebook>
