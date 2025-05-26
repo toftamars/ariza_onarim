@@ -415,7 +415,8 @@ class ArizaKayit(models.Model):
         self.state = 'onaylandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
+            sms_mesaji = f"Sayın {self.partner_id.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır. Takip No: {self.name}"
+            self._send_sms_to_customer(sms_mesaji)
         # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
         if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
             # Analitik hesabın stok konumunu bul
@@ -487,7 +488,8 @@ class ArizaKayit(models.Model):
         self.state = 'tamamlandi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            self._send_sms_to_customer('Ürününüz teslim edilmeye hazırdır. Takip No: %s' % self.name)
+            sms_mesaji = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim edilmeye hazırdır. Takip No: {self.name}"
+            self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):
         self.state = 'iptal'
