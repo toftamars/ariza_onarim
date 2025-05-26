@@ -43,7 +43,9 @@
                             </div>
                             <div class="col-6">
                                 <strong>Transfer Metodu:</strong>
-                                <t t-esc="doc.transfer_metodu"/>
+                                <t t-if="doc.transfer_metodu">
+                                    <t t-esc="doc.transfer_metodu.capitalize()"/>
+                                </t>
                             </div>
                         </div>
                         <div class="row mt32 mb32">
