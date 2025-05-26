@@ -68,7 +68,7 @@ class ArizaKayit(models.Model):
     ], string='Garanti Kapsamında mı?', tracking=True)
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     notlar = fields.Text(string='Notlar')
-    transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
+    transfer_id = fields.Many2one('stock.picking', string='Ana Transfer', readonly=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
@@ -78,7 +78,7 @@ class ArizaKayit(models.Model):
         string='Marka Ürünleri',
         tracking=True
     )
-    transferler_ids = fields.Many2many('stock.picking', string='Transferler', tracking=True)
+    transferler_ids = fields.Many2many('stock.picking', string='Tüm Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
@@ -361,42 +361,65 @@ class ArizaKayit(models.Model):
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
     def _create_stock_transfer(self):
+        _logger = self.env['ir.logging']
         if not self.analitik_hesap_id:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Transfer oluşturulamadı: analitik_hesap_id yok. Arıza No: {self.name}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
             return
-
         # Müşteri ürünü işlemlerinde konumları otomatik ayarla
         if self.ariza_tipi == 'musteri':
             # Kaynak konum müşteri konumu
             if self.partner_id and self.partner_id.property_stock_customer:
                 self.kaynak_konum_id = self.partner_id.property_stock_customer
             else:
-                # Müşteri konumu yoksa varsayılan müşteri konumunu kullan
                 customer_location = self.env['stock.location'].search([
                     ('usage', '=', 'customer'),
                     ('company_id', '=', self.env.company.id)
                 ], limit=1)
                 if customer_location:
                     self.kaynak_konum_id = customer_location
-
-            # Hedef konum arıza/stok
             ariza_konum = self.env['stock.location'].search([
                 ('name', '=', 'arıza/stok'),
                 ('company_id', '=', self.env.company.id)
             ], limit=1)
             if ariza_konum:
                 self.hedef_konum_id = ariza_konum
-
         if not self.kaynak_konum_id or not self.hedef_konum_id:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Transfer oluşturulamadı: kaynak veya hedef konum yok. Arıza No: {self.name} - Kaynak: {self.kaynak_konum_id} - Hedef: {self.hedef_konum_id}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
             return
-
-        # Transfer oluştur
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
             ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
         ], limit=1)
         if not picking_type:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Transfer oluşturulamadı: picking_type yok. Arıza No: {self.name}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
             raise UserError(_("Transfer tipi bulunamadı."))
-
         picking_vals = {
             'location_id': self.kaynak_konum_id.id,
             'location_dest_id': self.hedef_konum_id.id,
@@ -408,6 +431,16 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
         }
         picking = self.env['stock.picking'].create(picking_vals)
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f"Transfer OLUŞTURULDU! Arıza No: {self.name} - Picking ID: {picking.id}",
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
         return picking
 
     def _send_sms_to_customer(self, message):
