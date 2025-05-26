@@ -34,7 +34,7 @@
                         <group>
                             <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
                             <field name="analitik_hesap_id" required="1"/>
-                            <field name="invoice_line_id" attrs="{'invisible': ['|', '|', ('ariza_tipi', '=', 'magaza'), ('islem_tipi', '=', 'teslim'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                             <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="tedarikci_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
@@ -66,7 +66,7 @@
                         <page string="Sipariş Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
                                 <field name="siparis_yok"/>
-                                <field name="invoice_line_id" attrs="{'invisible': [('siparis_yok', '=', True)], 'required': [('siparis_yok', '=', False)]}"/>
+                                <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                                 <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             </group>
                         </page>
