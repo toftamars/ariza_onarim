@@ -1,25 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Tree View -->
-    <record id="view_ariza_kayit_tree" model="ir.ui.view">
-        <field name="name">ariza.kayit.tree</field>
-        <field name="model">ariza.kayit</field>
-        <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-muted="state == 'iptal'">
-                <field name="name"/>
-                <field name="islem_tipi"/>
-                <field name="ariza_tipi"/>
-                <field name="partner_id"/>
-                <field name="analitik_hesap_id"/>
-                <field name="tedarikci_id"/>
-                <field name="sorumlu_id"/>
-                <field name="tarih"/>
-                <field name="state"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- Form View -->
     <record id="view_ariza_kayit_form" model="ir.ui.view">
         <field name="name">ariza.kayit.form</field>
         <field name="model">ariza.kayit</field>
@@ -64,6 +44,7 @@
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="sms_gonderildi" readonly="1"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
@@ -102,7 +83,7 @@
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
-                                <field name="garanti_kapsaminda_mi" required="1" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'teslim'), '&', ('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'dtl')] }"/>
+                                <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                                 <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                                 <field name="notlar"/>
                             </group>
@@ -117,207 +98,4 @@
             </form>
         </field>
     </record>
-
-    <!-- Search View -->
-    <record id="view_ariza_kayit_search" model="ir.ui.view">
-        <field name="name">ariza.kayit.search</field>
-        <field name="model">ariza.kayit</field>
-        <field name="arch" type="xml">
-            <search string="Arıza Kayıtları">
-                <field name="name"/>
-                <field name="partner_id"/>
-                <field name="analitik_hesap_id"/>
-                <field name="tedarikci_id"/>
-                <field name="sorumlu_id"/>
-                <separator/>
-                <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
-                <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
-                <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
-                <group expand="0" string="Grupla">
-                    <filter string="İşlem Tipi" name="islem_tipi" context="{'group_by': 'islem_tipi'}"/>
-                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
-                    <filter string="Sorumlu" name="sorumlu" context="{'group_by': 'sorumlu_id'}"/>
-                    <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <!-- Action -->
-    <record id="action_ariza_kayit" model="ir.actions.act_window">
-        <field name="name">Arıza Kayıtları</field>
-        <field name="res_model">ariza.kayit</field>
-        <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_ariza_kayit_search"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Yeni bir arıza kaydı oluşturun
-            </p>
-        </field>
-    </record>
-
-    <!-- Günlük Rapor Görünümü -->
-    <record id="view_ariza_gunluk_report" model="ir.ui.view">
-        <field name="name">ariza.kayit.gunluk.report</field>
-        <field name="model">ariza.kayit</field>
-        <field name="arch" type="xml">
-            <search string="Günlük Arıza Raporu">
-                <field name="name"/>
-                <field name="partner_id"/>
-                <field name="ariza_tipi"/>
-                <field name="magaza_ariza_tipi"/>
-                <field name="sorumlu_id"/>
-                <filter string="Bugün" name="bugun" domain="[('tarih','=',context_today().strftime('%Y-%m-%d'))]"/>
-                <filter string="Bu Hafta" name="bu_hafta" domain="[('tarih','&gt;=',(context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Grupla">
-                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
-                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
-                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <!-- Günlük Rapor Action -->
-    <record id="action_ariza_gunluk_report" model="ir.actions.act_window">
-        <field name="name">Günlük Arıza Raporu</field>
-        <field name="res_model">ariza.kayit</field>
-        <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_ariza_gunluk_report"/>
-        <field name="context">{'search_default_bugun': True}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Henüz rapor verisi yok
-            </p>
-        </field>
-    </record>
-
-    <!-- Aylık Rapor Görünümü -->
-    <record id="view_ariza_aylik_report" model="ir.ui.view">
-        <field name="name">ariza.kayit.aylik.report</field>
-        <field name="model">ariza.kayit</field>
-        <field name="arch" type="xml">
-            <search string="Aylık Arıza Raporu">
-                <field name="name"/>
-                <field name="partner_id"/>
-                <field name="ariza_tipi"/>
-                <field name="magaza_ariza_tipi"/>
-                <field name="sorumlu_id"/>
-                <filter string="Bu Ay" name="bu_ay" domain="[('tarih','&gt;=',(context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
-                <filter string="Geçen Ay" name="gecen_ay" domain="[('tarih','&gt;=',(context_today().replace(day=1) - relativedelta(months=1)).strftime('%Y-%m-%d')),('tarih','&lt;',(context_today().replace(day=1)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Grupla">
-                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by':'ariza_tipi'}"/>
-                    <filter string="Mağaza Arıza Tipi" name="magaza_ariza_tipi" context="{'group_by':'magaza_ariza_tipi'}"/>
-                    <filter string="Sorumlu" name="sorumlu" context="{'group_by':'sorumlu_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <!-- Aylık Rapor Action -->
-    <record id="action_ariza_aylik_report" model="ir.actions.act_window">
-        <field name="name">Aylık Arıza Raporu</field>
-        <field name="res_model">ariza.kayit</field>
-        <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_ariza_aylik_report"/>
-        <field name="context">{'search_default_bu_ay': True}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Henüz rapor verisi yok
-            </p>
-        </field>
-    </record>
-
-    <!-- Arıza Kabul Raporu QWeb Şablonu -->
-    <template id="report_ariza_kabul_document">
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <div class="page">
-                    <h2>Arıza Kabul Formu</h2>
-                    <p><strong>Arıza No:</strong> <span t-esc="o.name"/></p>
-                    <p><strong>Müşteri:</strong> <span t-esc="o.partner_id.name"/></p>
-                    <p><strong>Ürün:</strong> <span t-esc="o.urun"/></p>
-                    <p><strong>Model:</strong> <span t-esc="o.model"/></p>
-                    <p><strong>Marka:</strong> <span t-esc="o.marka_id.name"/></p>
-                    <p><strong>Fatura Tarihi:</strong> <span t-esc="o.fatura_tarihi"/></p>
-                    <p><strong>Garanti Süresi:</strong> <span t-esc="o.garanti_suresi"/></p>
-                    <p><strong>Açıklama:</strong> <span t-esc="o.ariza_tanimi"/></p>
-                </div>
-            </t>
-        </t>
-    </template>
-
-    <record id="action_report_ariza_kabul" model="ir.actions.report">
-        <field name="name">Arıza Kabul Formu</field>
-        <field name="model">ariza.kayit</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">ariza_onarim.report_ariza_kabul_document</field>
-        <field name="print_report_name">(object.name or 'ArızaKabul')</field>
-        <field name="binding_model_id" ref="model_ariza_kayit"/>
-        <field name="binding_type">report</field>
-        <field name="paperformat_id" ref="base.paperformat_euro"/>
-    </record>
-
-    <!-- Ürün Teslim Raporu QWeb Şablonu -->
-    <template id="report_urun_teslim_document">
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <div class="page">
-                    <h2>Ürün Teslim Formu</h2>
-                    <p><strong>Arıza No:</strong> <span t-esc="o.name"/></p>
-                    <p><strong>Müşteri:</strong> <span t-esc="o.partner_id.name"/></p>
-                    <p><strong>Ürün:</strong> <span t-esc="o.urun"/></p>
-                    <p><strong>Model:</strong> <span t-esc="o.model"/></p>
-                    <p><strong>Marka:</strong> <span t-esc="o.marka_id.name"/></p>
-                    <p><strong>Fatura Tarihi:</strong> <span t-esc="o.fatura_tarihi"/></p>
-                    <p><strong>Garanti Süresi:</strong> <span t-esc="o.garanti_suresi"/></p>
-                    <p><strong>Yapılan İşlemler:</strong> <span t-esc="o.yapilan_islemler"/></p>
-                    <p><strong>Onarım Ücreti:</strong> <span t-esc="o.onarim_ucreti"/></p>
-                </div>
-            </t>
-        </t>
-    </template>
-
-    <record id="action_report_urun_teslim" model="ir.actions.report">
-        <field name="name">Ürün Teslim Formu</field>
-        <field name="model">ariza.kayit</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">ariza_onarim.report_urun_teslim_document</field>
-        <field name="print_report_name">(object.name or 'UrunTeslim')</field>
-        <field name="binding_model_id" ref="model_ariza_kayit"/>
-        <field name="binding_type">report</field>
-        <field name="paperformat_id" ref="base.paperformat_euro"/>
-    </record>
-
-    <!-- Ana Menü -->
-    <menuitem id="menu_ariza_root" 
-              name="Arıza Takip" 
-              sequence="10"/>
-
-    <!-- Arıza Kayıtları Menüsü -->
-    <menuitem id="menu_ariza_kayit" 
-              name="Arıza Kayıtları" 
-              parent="menu_ariza_root" 
-              action="action_ariza_kayit" 
-              sequence="10"/>
-
-    <!-- Raporlar Menüsü -->
-    <menuitem id="menu_ariza_report" 
-              name="Raporlar" 
-              parent="menu_ariza_root" 
-              sequence="20"/>
-
-    <!-- Rapor Alt Menüleri -->
-    <menuitem id="menu_ariza_report_gunluk" 
-              name="Günlük Rapor" 
-              parent="menu_ariza_report" 
-              action="action_ariza_gunluk_report" 
-              sequence="10"/>
-
-    <menuitem id="menu_ariza_report_aylik" 
-              name="Aylık Rapor" 
-              parent="menu_ariza_report" 
-              action="action_ariza_aylik_report" 
-              sequence="20"/>
 </odoo> 
