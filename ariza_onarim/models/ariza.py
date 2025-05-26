@@ -599,4 +599,8 @@ class ArizaKayit(models.Model):
                 self.tedarikci_id = False
                 self.tedarikci_adresi = False
                 self.tedarikci_telefon = False
-                self.tedarikci_email = False 
+                self.tedarikci_email = False
+
+    def action_print_delivery(self):
+        if self.transfer_id:
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id) 
