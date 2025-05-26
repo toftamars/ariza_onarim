@@ -279,6 +279,10 @@ class ArizaKayit(models.Model):
                                 self._onchange_tedarikci_id()
                     else:
                         self.marka_id = False
+                        self.tedarikci_id = False
+                        self.tedarikci_adresi = False
+                        self.tedarikci_telefon = False
+                        self.tedarikci_email = False
                 else:
                     self.urun = product.name
                     self.model = product.default_code or ''
@@ -291,6 +295,10 @@ class ArizaKayit(models.Model):
                                 self._onchange_tedarikci_id()
                     else:
                         self.marka_id = False
+                        self.tedarikci_id = False
+                        self.tedarikci_adresi = False
+                        self.tedarikci_telefon = False
+                        self.tedarikci_email = False
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
