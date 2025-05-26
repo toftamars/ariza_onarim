@@ -1,0 +1,43 @@
+ARIZA kabulü oluştururken seçilebilir seçenekler şunlar ;
+   İşlem Tipi
+
+     - Müşteri Ürünü
+     - Mağaza Ürünü  
+     - Teknik Servis
+
+ - Eğer Müşteri Ürünü seçilirse ürün bizim stoklarımıza girmeden bir form doldurulacak.
+   Doldurulması gereken alanlar:
+  1-Müşteri bilgileri mevcut kontaklar modülünden çekilecek 
+  2-Marka ve Model Bilgisi
+  3-Sale order ve point of sale modüllerinden sipariş verileri çekilebilecek.
+  4-Sipariş yok ise sipariş yok işaretlenecek ve tüm bilgiler elle girilecek.
+    a-Ürün 
+    b-Marka 
+    c-Model 
+    d-Arıza ve bakım tanımı gibi zorunlu alanlar eklenecek
+  5-Fatura tarihi var ise sistemdeki siparişten çekilecek.
+  6-Arıza ve Onarım Tanımı
+  7-Garanti durumu onarım ekibi tarafından uygun görülürse seçilebilecek.
+  8-Not ekleme alanı 
+  9-Müşteri ürünleri hiç bir şekilde stoklara giriş olmadan süreç tamamlanacak.
+  10-Sorumlu bilgisi zorunlu olacak 
+  11-Tarih mutlaka olacak. 
+
+  Mağaza Ürünü seçilirse iki seçenek gelecek
+          1-Depo Arıza
+          2-Tedarikçiler
+          3-Nefesli Arıza
+
+    -Depo Arıza işaretlenirse Seçilen Analitik hesabın konumundan arıza/stok konumuna otomatik transfer oluşturulacak. 
+    -Örnek Analitik Hesap Akasya ise kaynak konum aksy/stok hedef konum arıza/stok olacak şekilde transfer oluşturulacak.
+
+    -Eğer tedarikçiler seçilir ise kontaklardan tedarikçi seçebileceğiz olacak ama sadece tedarikçilerin verileri çekilecek
+    -Tedarikçiler seçildiğinde Örnek Analitik Hesap Akasya ise kaynak konum aksy/stok konumundan tedarikçiye transfer belgesi oluşturulacak bu bu belge matbuu olacak e irsaliye olmayacak ama bu seçilebilir olacak
+    -Eğer nefesli seçilirse ilgili analitik hesabın kaynak konumundan nfsl/stok konumuna otomatik transfer oluşturulacak. Örnek analitik hesap Akasya seçildiğinde kaynak konum aksy/stok konumundan hedef konum nfsl/stok konumuna otomatik transfer oluşturulacak.
+    -Analitik hesap seçilecek.
+
+Bunlar kabul edilen ürünler için uygulanan adımlar
+
+    Tüm bu işlemler Arıza  ürünü Teslim edilirken de  geçerli olacak.
+
+Ürün kabul ve ürün teslim iki aşamalı olacak.
