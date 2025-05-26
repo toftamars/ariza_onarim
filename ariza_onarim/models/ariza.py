@@ -405,7 +405,7 @@ class ArizaKayit(models.Model):
         if self.partner_id and self.partner_id.phone:
             sms_obj = self.env['sms.sms'].create({
                 'partner_id': self.partner_id.id,
-                'to': self.partner_id.phone,
+                'number': self.partner_id.phone,
                 'body': message,
                 'state': 'outgoing',
             })
