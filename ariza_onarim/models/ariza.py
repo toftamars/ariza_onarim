@@ -23,6 +23,7 @@ class ArizaKayit(models.Model):
         ('dtl_beyoglu', 'DTL Beyoğlu'),
         ('dtl_okmeydani', 'DTL Ok Meydanı'),
         ('zuhal', 'Zuhal'),
+        ('magaza', 'Mağaza'),
     ], string='Teknik Servis', tracking=True)
     magaza_ariza_tipi = fields.Selection([
         ('tedarikci', 'Tedarikçiye Gönderim'),
@@ -235,6 +236,36 @@ class ArizaKayit(models.Model):
                     if konum:
                         self.kaynak_konum_id = konum
         elif self.teknik_servis == 'zuhal':
+            # Hedef konum arıza/stok
+            ariza_konum = self.env['stock.location'].search([
+                ('name', '=', 'arıza/stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if ariza_konum:
+                self.hedef_konum_id = ariza_konum
+            # Kaynak konum analitik hesaba ait stok konumu
+            if self.analitik_hesap_id:
+                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+                hesap_adi = self.analitik_hesap_id.name.strip().lower()
+                konum_kodu = None
+                try:
+                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                        for satir in f:
+                            if hesap_adi in satir.lower():
+                                parcalar = satir.strip().split('\t')
+                                if len(parcalar) == 2:
+                                    konum_kodu = parcalar[1]
+                                    break
+                except Exception as e:
+                    pass
+                if konum_kodu:
+                    konum = self.env['stock.location'].search([
+                        ('name', '=', konum_kodu),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    if konum:
+                        self.kaynak_konum_id = konum
+        elif self.teknik_servis == 'magaza':
             # Hedef konum arıza/stok
             ariza_konum = self.env['stock.location'].search([
                 ('name', '=', 'arıza/stok'),
