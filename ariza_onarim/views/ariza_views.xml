@@ -35,7 +35,7 @@
                             <field name="partner_id" required="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', 'not in', ['magaza'])]}"/>
                             <field name="analitik_hesap_id" required="1"/>
                             <field name="marka_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
-                            <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]", 'domain': [('brand_id', '=', marka_id)]}"/>
+                            <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}" domain="[('brand_id', '=', marka_id)]"/>
                             <field name="tedarikci_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
