@@ -1,20 +1,76 @@
-                    <tr>
-                        <td class="text-left" style="width: 50%;">
-                            <strong>Teknik Servis:</strong>
-                            <t t-esc="doc.teknik_servis"/>
-                        </td>
-                        <td class="text-left" style="width: 50%;">
-                            <strong>Transfer Metodu:</strong>
-                            <t t-esc="doc.transfer_metodu"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="text-left" style="width: 50%;">
-                            <strong>Arıza Tanımı:</strong>
-                            <t t-esc="doc.ariza_tanimi"/>
-                        </td>
-                        <td class="text-left" style="width: 50%;">
-                            <strong>Notlar:</strong>
-                            <t t-esc="doc.notlar"/>
-                        </td>
-                    </tr> 
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_ariza_kayit">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Arıza Kaydı</h2>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Arıza No:</strong>
+                                <t t-esc="doc.name"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Tarih:</strong>
+                                <t t-esc="doc.tarih"/>
+                            </div>
+                        </div>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Müşteri:</strong>
+                                <t t-esc="doc.partner_id.name"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Ürün:</strong>
+                                <t t-esc="doc.urun"/>
+                            </div>
+                        </div>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Model:</strong>
+                                <t t-esc="doc.model"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Garanti Durumu:</strong>
+                                <t t-esc="doc.garanti_kapsaminda_mi"/>
+                            </div>
+                        </div>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Teknik Servis:</strong>
+                                <t t-esc="doc.teknik_servis"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Transfer Metodu:</strong>
+                                <t t-esc="doc.transfer_metodu"/>
+                            </div>
+                        </div>
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Arıza Tanımı:</strong>
+                                <t t-esc="doc.ariza_tanimi"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Notlar:</strong>
+                                <t t-esc="doc.notlar"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_ariza_kayit" model="ir.actions.report">
+        <field name="name">Arıza Kaydı</field>
+        <field name="model">ariza.kayit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ariza_onarim.report_ariza_kayit</field>
+        <field name="report_file">ariza_onarim.report_ariza_kayit</field>
+        <field name="print_report_name">'Arıza Kaydı - %s' % (object.name)</field>
+        <field name="attachment">(object.state == 'onaylandi') and ((object.name)+'.pdf')</field>
+        <field name="binding_model_id" ref="model_ariza_kayit"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo> 
