@@ -1,36 +1,31 @@
 {
-    'name': 'Arıza Takip',
+    'name': 'Arıza Onarım',
     'version': '1.0',
     'category': 'Services',
-    'summary': 'Arıza takip ve onarım yönetimi',
+    'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
-        Arıza takip ve onarım yönetimi için geliştirilmiş modül.
-        Özellikler:
-        - Arıza kayıtları
-        - Müşteri ürünleri takibi
-        - Mağaza ürünleri takibi
-        - Teknik servis işlemleri
+        Arıza kayıt ve onarım takibi için modül.
+        - Arıza kaydı oluşturma
+        - Onarım takibi
+        - Teslim işlemleri
     """,
-    'author': 'Alper Tofta',
-    'website': 'https://www.toftamars.com',
+    'author': 'Tofta',
+    'website': 'https://www.tofta.com',
     'depends': [
         'base',
         'mail',
-        'sale',
-        'point_of_sale',
         'stock',
         'account',
+        'product',
+        'product_brand',
+        'delivery',
     ],
     'data': [
         'security/ir.model.access.csv',
-        'data/ir_sequence_ariza_kayit.xml',
         'views/ariza_views.xml',
-        'views/report_views.xml',
-        'views/menu_views.xml',
+        'reports/report_ariza_kayit.xml',
     ],
-    'demo': [],
     'installable': True,
     'application': True,
     'auto_install': False,
-    'license': 'LGPL-3',
 }
