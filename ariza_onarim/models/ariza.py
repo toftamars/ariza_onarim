@@ -13,7 +13,6 @@ class ArizaKayit(models.Model):
     name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
-        ('teslim', 'Ürün Teslim'),
     ], string='İşlem Tipi', required=True, tracking=True)
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
@@ -535,6 +534,7 @@ class ArizaKayit(models.Model):
     @api.onchange('magaza_urun_id')
     def _onchange_magaza_urun_id(self):
         if self.magaza_urun_id:
+            self.urun = self.magaza_urun_id.name or ''
             # Ürün seçilince marka otomatik gelsin
             if hasattr(self.magaza_urun_id, 'brand_id') and self.magaza_urun_id.brand_id:
                 self.marka_id = self.magaza_urun_id.brand_id.id
