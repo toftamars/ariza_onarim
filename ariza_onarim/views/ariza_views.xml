@@ -30,8 +30,8 @@
                             <field name="partner_id" attrs="{'required': [('ariza_tipi', '=', 'musteri')]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', True)]}"/>
-                            <field name="urun" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('magaza_ariza_tipi', '=', 'tedarikci')], 'required': ['&', ('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
-                            <field name="model" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('magaza_ariza_tipi', '=', 'tedarikci')], 'required': ['&', ('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                            <field name="urun" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('magaza_ariza_tipi', '=', 'tedarikci')], 'required': ['&amp;', ('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                            <field name="model" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('magaza_ariza_tipi', '=', 'tedarikci')], 'required': ['&amp;', ('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
                             <field name="seri_no"/>
                         </group>
                     </group>
