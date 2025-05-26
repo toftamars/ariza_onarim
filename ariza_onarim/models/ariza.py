@@ -650,4 +650,8 @@ class ArizaKayit(models.Model):
                         self.tedarikci_id = marka.partner_id.id
                         self._onchange_tedarikci_id()
             else:
-                self.marka_id = False 
+                self.marka_id = False
+                self.tedarikci_id = False
+                self.tedarikci_adresi = False
+                self.tedarikci_telefon = False
+                self.tedarikci_email = False 
