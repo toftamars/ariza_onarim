@@ -1,0 +1,20 @@
+                    <tr>
+                        <td class="text-left" style="width: 50%;">
+                            <strong>Teknik Servis:</strong>
+                            <t t-esc="doc.teknik_servis"/>
+                        </td>
+                        <td class="text-left" style="width: 50%;">
+                            <strong>Transfer Metodu:</strong>
+                            <t t-esc="doc.transfer_metodu"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left" style="width: 50%;">
+                            <strong>Arıza Tanımı:</strong>
+                            <t t-esc="doc.ariza_tanimi"/>
+                        </td>
+                        <td class="text-left" style="width: 50%;">
+                            <strong>Notlar:</strong>
+                            <t t-esc="doc.notlar"/>
+                        </td>
+                    </tr> 
