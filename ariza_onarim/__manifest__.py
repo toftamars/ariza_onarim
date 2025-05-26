@@ -31,7 +31,7 @@
         'reports/report_ariza_kayit.xml',
         'wizards/ariza_kayit_tamamla_wizard_views.xml',
     ],
-    'images': ['static/description/icon.png'],
+    'icon': '/static/description/icon.png',
     'demo': [],
     'installable': True,
     'application': True,
