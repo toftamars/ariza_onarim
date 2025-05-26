@@ -85,7 +85,6 @@ class ArizaKayit(models.Model):
         string='Ürün',
         tracking=True
     )
-    sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -392,15 +391,26 @@ class ArizaKayit(models.Model):
         picking = self.env['stock.picking'].create(picking_vals)
         self.transfer_id = picking.id
 
-    def _send_sms_to_customer(self, message):
-        if self.partner_id and self.partner_id.phone:
-            self.sms_gonderildi = True
+    @api.depends('invoice_line_id', 'fatura_tarihi')
+    def _compute_garanti_suresi(self):
+        for rec in self:
+            rec.garanti_suresi = ''
+            rec.garanti_bitis_tarihi = False
+            rec.kalan_garanti = ''
+            if rec.invoice_line_id and rec.fatura_tarihi:
+                product = rec.invoice_line_id.product_id
+                warranty_months = getattr(product.product_tmpl_id, 'warranty_period', 24)  # Varsayılan 24 ay
+                rec.garanti_suresi = f"{warranty_months} ay"
+                bitis = rec.fatura_tarihi + relativedelta(months=warranty_months)
+                rec.garanti_bitis_tarihi = bitis
+                kalan = (bitis - fields.Date.context_today(rec)).days
+                if kalan > 0:
+                    rec.kalan_garanti = f"{kalan} gün kaldı"
+                else:
+                    rec.kalan_garanti = "Süre doldu"
 
     def action_onayla(self):
         self.state = 'onaylandi'
-        # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
         # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
         if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
             # Analitik hesabın stok konumunu bul
@@ -470,29 +480,8 @@ class ArizaKayit(models.Model):
 
     def action_tamamla(self):
         self.state = 'tamamlandi'
-        # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            self._send_sms_to_customer('Ürününüz teslim edilmeye hazırdır. Takip No: %s' % self.name)
 
     def action_iptal(self):
         self.state = 'iptal'
         if self.transfer_id:
-            self.transfer_id.action_cancel()
-
-    @api.depends('invoice_line_id', 'fatura_tarihi')
-    def _compute_garanti_suresi(self):
-        for rec in self:
-            rec.garanti_suresi = ''
-            rec.garanti_bitis_tarihi = False
-            rec.kalan_garanti = ''
-            if rec.invoice_line_id and rec.fatura_tarihi:
-                product = rec.invoice_line_id.product_id
-                warranty_months = getattr(product.product_tmpl_id, 'warranty_period', 24)  # Varsayılan 24 ay
-                rec.garanti_suresi = f"{warranty_months} ay"
-                bitis = rec.fatura_tarihi + relativedelta(months=warranty_months)
-                rec.garanti_bitis_tarihi = bitis
-                kalan = (bitis - fields.Date.context_today(rec)).days
-                if kalan > 0:
-                    rec.kalan_garanti = f"{kalan} gün kaldı"
-                else:
-                    rec.kalan_garanti = "Süre doldu" 
+            self.transfer_id.action_cancel() 
