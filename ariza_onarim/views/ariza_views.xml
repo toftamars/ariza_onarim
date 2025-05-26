@@ -27,7 +27,7 @@
                             <field name="ariza_tipi"/>
                             <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])]}"/>
                             <field name="magaza_ariza_tipi" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', False)]}"/>
-                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
+                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="tarih"/>
                             <field name="sorumlu_id"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
