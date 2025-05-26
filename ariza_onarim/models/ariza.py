@@ -463,7 +463,7 @@ class ArizaKayit(models.Model):
             if picking:
                 self.transfer_id = picking.id
                 self.transferler_ids = [(4, picking.id)]
-        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
+        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id:
             # Analitik hesabın stok konumunu bul
             kaynak_konum = None
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
@@ -482,7 +482,25 @@ class ArizaKayit(models.Model):
                                 break
             except Exception as e:
                 pass
-            hedef_konum = self.tedarikci_id.property_stock_supplier if self.tedarikci_id.property_stock_supplier else False
+
+            # Teknik servise göre hedef konumu belirle
+            hedef_konum = False
+            if self.teknik_servis == 'tedarikci':
+                hedef_konum = self.env['stock.location'].search([
+                    ('name', '=', 'tedarikçi/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+            elif self.teknik_servis == 'dtl':
+                hedef_konum = self.env['stock.location'].search([
+                    ('name', '=', 'DTL/Stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+            elif self.teknik_servis == 'zuhal':
+                hedef_konum = self.env['stock.location'].search([
+                    ('name', '=', 'arıza/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+
             if kaynak_konum and hedef_konum:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal'),
@@ -498,36 +516,13 @@ class ArizaKayit(models.Model):
                     'immediate_transfer': True,
                     'company_id': self.env.company.id,
                     'origin': self.name,
+                    'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}"
                 }
                 picking = self.env['stock.picking'].create(picking_vals)
                 self.transfer_id = picking.id
                 self.transferler_ids = [(4, picking.id)]
+                # Transferi otomatik doğrula
                 picking.button_validate()
-        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
-            self._create_stock_transfer()
-        elif self.magaza_ariza_tipi == 'tedarikci' and self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.kaynak_konum_id and self.tedarikci_id:
-            picking_type = self.env['stock.picking.type'].search([
-                ('code', '=', 'internal'),
-                ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
-            ], limit=1)
-            if not picking_type:
-                raise UserError("Transfer tipi bulunamadı.")
-            picking_vals = {
-                'location_id': self.kaynak_konum_id.id,
-                'location_dest_id': self.tedarikci_id.property_stock_supplier.id if self.tedarikci_id.property_stock_supplier else False,
-                'picking_type_id': picking_type.id,
-                'move_type': 'direct',
-                'immediate_transfer': True,
-                'company_id': self.env.company.id,
-                'origin': self.name,
-                'note': self.aciklama or '',
-            }
-            picking = self.env['stock.picking'].create(picking_vals)
-            self.transfer_id = picking.id
-            self.transferler_ids = [(4, picking.id)]
-            picking.button_validate()
-        elif self.ariza_tipi == 'teknik' and self.analitik_hesap_id and self.kaynak_konum_id and self.hedef_konum_id:
-            self._create_stock_transfer()
 
     def action_tamamla(self):
         self.state = 'tamamlandi'
