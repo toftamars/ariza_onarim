@@ -44,7 +44,6 @@
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="sms_gonderildi" readonly="1"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
