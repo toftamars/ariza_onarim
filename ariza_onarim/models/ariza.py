@@ -20,7 +20,8 @@ class ArizaKayit(models.Model):
     ], string='Arıza Tipi', required=True, tracking=True)
     teknik_servis = fields.Selection([
         ('tedarikci', 'Tedarikçi'),
-        ('dtl', 'DTL'),
+        ('dtl_beyoglu', 'DTL Beyoğlu'),
+        ('dtl_okmeydani', 'DTL Ok Meydanı'),
         ('zuhal', 'Zuhal'),
     ], string='Teknik Servis', tracking=True)
     magaza_ariza_tipi = fields.Selection([
@@ -173,10 +174,40 @@ class ArizaKayit(models.Model):
                     ], limit=1)
                     if konum:
                         self.kaynak_konum_id = konum
-        elif self.teknik_servis == 'dtl':
-            # Hedef konum DTL/Stok
+        elif self.teknik_servis == 'dtl_beyoglu':
+            # Hedef konum DTL Beyoğlu/Stok
             dtl_konum = self.env['stock.location'].search([
-                ('name', '=', 'DTL/Stok'),
+                ('name', '=', 'DTL Beyoğlu/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
+            # Kaynak konum analitik hesaba ait stok konumu
+            if self.analitik_hesap_id:
+                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+                hesap_adi = self.analitik_hesap_id.name.strip().lower()
+                konum_kodu = None
+                try:
+                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                        for satir in f:
+                            if hesap_adi in satir.lower():
+                                parcalar = satir.strip().split('\t')
+                                if len(parcalar) == 2:
+                                    konum_kodu = parcalar[1]
+                                    break
+                except Exception as e:
+                    pass
+                if konum_kodu:
+                    konum = self.env['stock.location'].search([
+                        ('name', '=', konum_kodu),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    if konum:
+                        self.kaynak_konum_id = konum
+        elif self.teknik_servis == 'dtl_okmeydani':
+            # Hedef konum DTL Ok Meydanı/Stok
+            dtl_konum = self.env['stock.location'].search([
+                ('name', '=', 'DTL Ok Meydanı/Stok'),
                 ('company_id', '=', self.env.company.id)
             ], limit=1)
             if dtl_konum:
@@ -534,7 +565,20 @@ class ArizaKayit(models.Model):
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
-        return self.env.ref('ariza_onarim.action_report_ariza_kayit').report_action(self)
+        # Teknik servis adres bilgisi
+        teknik_servis_adres = ''
+        if self.teknik_servis == 'tedarikci' and self.tedarikci_id:
+            teknik_servis_adres = self.tedarikci_adresi or self.tedarikci_id.street or ''
+        elif self.teknik_servis == 'zuhal':
+            teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+        elif self.teknik_servis == 'dtl_beyoglu':
+            teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
+        elif self.teknik_servis == 'dtl_okmeydani':
+            teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+        # Rapor contextine adresi ekle
+        ctx = dict(self.env.context)
+        ctx['teknik_servis_adres'] = teknik_servis_adres
+        return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
 
     @api.onchange('magaza_urun_id')
     def _onchange_magaza_urun_id(self):
