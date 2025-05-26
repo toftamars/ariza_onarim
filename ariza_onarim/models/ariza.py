@@ -488,20 +488,19 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         # Ürün teslim işlemlerinde SMS gönderme
-        if self.islem_tipi != 'teslim':
-            if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır."
-                self._send_sms_to_customer(sms_mesaji)
-        # Müşteri ürünü ve transfer metodu kargo ise Odoo kargo entegrasyonunu kullan
-        if self.ariza_tipi == 'musteri' and self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo']:
-            picking = self._create_delivery_order()
-            if picking:
-                self.transfer_id = picking.id
-        # Tüm işlemler için transfer_id otomatik oluşturulsun
-        if not self.transfer_id:
+        if self.islem_tipi == 'teslim':
+            if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
+                message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz {self.teslim_magazasi_id.name} mağazasında teslime hazır. Lütfen en kısa sürede teslim alınız."
+                self._send_sms_to_customer(message)
+                self.sms_gonderildi = True
+
+        # Müşteri ürünü işlemlerinde siparişi var seçeneği ile işlem yapıldığında otomatik transfer oluştur
+        if self.ariza_tipi == 'musteri' and not self.siparis_yok and not self.transfer_id:
             picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
+                self.transferler_ids = [(4, picking.id)]
+
         self.state = 'onaylandi'
         # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
         if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
