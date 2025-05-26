@@ -465,98 +465,37 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
+        # Ürün teslim işlemlerinde SMS gönderme
+        if self.islem_tipi != 'teslim':
+            if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır."
+                self._send_sms_to_customer(sms_mesaji)
         self.state = 'onaylandi'
-        # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır."
-            self._send_sms_to_customer(sms_mesaji)
-
-        # Transfer işlemleri
-        if self.transfer_metodu == 'ucretsiz_kargo':
-            picking = self._create_delivery_order()
-            if picking:
-                self.transfer_id = picking.id
-                self.transferler_ids = [(4, picking.id)]
-        elif self.ariza_tipi == 'magaza' and self.analitik_hesap_id:
-            # Analitik hesabın stok konumunu bul
-            kaynak_konum = None
-            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-            hesap_adi = self.analitik_hesap_id.name.strip().lower()
-            try:
-                with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                    for satir in f:
-                        if hesap_adi in satir.lower():
-                            parcalar = satir.strip().split('\t')
-                            if len(parcalar) == 2:
-                                konum_kodu = parcalar[1]
-                                kaynak_konum = self.env['stock.location'].search([
-                                    ('name', '=', konum_kodu),
-                                    ('company_id', '=', self.env.company.id)
-                                ], limit=1)
-                                break
-            except Exception as e:
-                pass
-
-            # Teknik servise göre hedef konumu belirle
-            hedef_konum = False
-            if self.teknik_servis == 'tedarikci':
-                hedef_konum = self.env['stock.location'].search([
-                    ('name', '=', 'tedarikçi/stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-            elif self.teknik_servis == 'dtl':
-                hedef_konum = self.env['stock.location'].search([
-                    ('name', '=', 'DTL/Stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-            elif self.teknik_servis == 'zuhal':
-                hedef_konum = self.env['stock.location'].search([
-                    ('name', '=', 'arıza/stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-
-            if kaynak_konum and hedef_konum:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('code', '=', 'internal'),
-                    ('warehouse_id', '=', kaynak_konum.warehouse_id.id)
-                ], limit=1)
-                if not picking_type:
-                    raise UserError("Transfer tipi bulunamadı.")
-                picking_vals = {
-                    'location_id': kaynak_konum.id,
-                    'location_dest_id': hedef_konum.id,
-                    'picking_type_id': picking_type.id,
-                    'move_type': 'direct',
-                    'immediate_transfer': True,
-                    'company_id': self.env.company.id,
-                    'origin': self.name,
-                    'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}"
-                }
-                picking = self.env['stock.picking'].create(picking_vals)
-                self.transfer_id = picking.id
-                self.transferler_ids = [(4, picking.id)]
-                # Transferi otomatik doğrula
-                picking.button_validate()
+        # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
+        if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
+            self.analitik_hesap_id = self.ariza_kabul_id.analitik_hesap_id
 
     def action_tamamla(self):
-        return {
-            'name': 'Onarım Tamamlandı',
-            'type': 'ir.actions.act_window',
-            'res_model': 'ariza.kayit.tamamla.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_ariza_id': self.id,
-                'default_musteri_adi': self.partner_id.name,
-                'default_urun': self.urun,
+        # Sadece kabul işlemlerinde tamamla butonu olsun
+        if self.islem_tipi == 'kabul':
+            return {
+                'name': 'Onarım Tamamlandı',
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.kayit.tamamla.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_ariza_id': self.id,
+                    'default_musteri_adi': self.partner_id.name,
+                    'default_urun': self.urun,
+                }
             }
-        }
 
     def action_teslim_et(self):
         self.state = 'teslim_edildi'
-        # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {self.teslim_magazasi_id.name} mağazamızdan teslim edilmiştir. İyi günler dileriz."
+        # Sadece ürün teslim işlemlerinde SMS gönder
+        if self.islem_tipi == 'teslim' and self.partner_id and self.partner_id.phone:
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmiştir. İyi günler dileriz."
             self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):
