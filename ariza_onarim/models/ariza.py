@@ -502,4 +502,136 @@ class ArizaKayit(models.Model):
                 if kalan > 0:
                     rec.kalan_garanti = f"{kalan} gün kaldı"
                 else:
-                    rec.kalan_garanti = "Süre doldu" 
+                    rec.kalan_garanti = "Süre doldu"
+
+    def action_print(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_kayit').report_action(self)
+
+    def action_print_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_teslim').report_action(self)
+
+    def action_print_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_onarim').report_action(self)
+
+    def action_print_tedarikci(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci').report_action(self)
+
+    def action_print_dtl(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl').report_action(self)
+
+    def action_print_zuhal(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal').report_action(self)
+
+    def action_print_magaza(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza').report_action(self)
+
+    def action_print_musteri(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri').report_action(self)
+
+    def action_print_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_teknik').report_action(self)
+
+    def action_print_tedarikci_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teknik').report_action(self)
+
+    def action_print_dtl_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teknik').report_action(self)
+
+    def action_print_zuhal_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teknik').report_action(self)
+
+    def action_print_magaza_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teknik').report_action(self)
+
+    def action_print_musteri_teknik(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teknik').report_action(self)
+
+    def action_print_tedarikci_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teslim').report_action(self)
+
+    def action_print_dtl_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teslim').report_action(self)
+
+    def action_print_zuhal_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teslim').report_action(self)
+
+    def action_print_magaza_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teslim').report_action(self)
+
+    def action_print_musteri_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teslim').report_action(self)
+
+    def action_print_tedarikci_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_onarim').report_action(self)
+
+    def action_print_dtl_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_onarim').report_action(self)
+
+    def action_print_zuhal_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_onarim').report_action(self)
+
+    def action_print_magaza_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_onarim').report_action(self)
+
+    def action_print_musteri_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_onarim').report_action(self)
+
+    def action_print_tedarikci_teknik_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teknik_teslim').report_action(self)
+
+    def action_print_dtl_teknik_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teknik_teslim').report_action(self)
+
+    def action_print_zuhal_teknik_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teknik_teslim').report_action(self)
+
+    def action_print_magaza_teknik_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teknik_teslim').report_action(self)
+
+    def action_print_musteri_teknik_teslim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teknik_teslim').report_action(self)
+
+    def action_print_tedarikci_teknik_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teknik_onarim').report_action(self)
+
+    def action_print_dtl_teknik_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teknik_onarim').report_action(self)
+
+    def action_print_zuhal_teknik_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teknik_onarim').report_action(self)
+
+    def action_print_magaza_teknik_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teknik_onarim').report_action(self)
+
+    def action_print_musteri_teknik_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teknik_onarim').report_action(self)
+
+    def action_print_tedarikci_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teslim_onarim').report_action(self)
+
+    def action_print_dtl_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teslim_onarim').report_action(self)
+
+    def action_print_zuhal_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teslim_onarim').report_action(self)
+
+    def action_print_magaza_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teslim_onarim').report_action(self)
+
+    def action_print_musteri_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teslim_onarim').report_action(self)
+
+    def action_print_tedarikci_teknik_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_tedarikci_teknik_teslim_onarim').report_action(self)
+
+    def action_print_dtl_teknik_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_dtl_teknik_teslim_onarim').report_action(self)
+
+    def action_print_zuhal_teknik_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_zuhal_teknik_teslim_onarim').report_action(self)
+
+    def action_print_magaza_teknik_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_magaza_teknik_teslim_onarim').report_action(self)
+
+    def action_print_musteri_teknik_teslim_onarim(self):
+        return self.env.ref('ariza_onarim.action_report_ariza_musteri_teknik_teslim_onarim').report_action(self) 
