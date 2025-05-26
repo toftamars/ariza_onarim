@@ -360,7 +360,8 @@ class ArizaKayit(models.Model):
                 'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
                 'fatura_tarihi', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
                 'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'magaza_ariza_tipi', 'transfer_metodu',
-                'magaza_urun_id', 'marka_urunleri_ids', 'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi', 'garanti_kapsaminda_mi', 'ariza_tipi'
+                'magaza_urun_id', 'marka_urunleri_ids', 'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi', 'garanti_kapsaminda_mi', 'ariza_tipi',
+                'invoice_line_id', 'siparis_yok'
             ]
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
