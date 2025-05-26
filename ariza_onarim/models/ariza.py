@@ -410,7 +410,6 @@ class ArizaKayit(models.Model):
                 'state': 'outgoing',
             })
             sms_obj.send()
-            self.sms_gonderildi = True
 
     def action_onayla(self):
         self.state = 'onaylandi'
