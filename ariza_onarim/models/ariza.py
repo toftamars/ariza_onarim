@@ -128,7 +128,39 @@ class ArizaKayit(models.Model):
 
     @api.onchange('teknik_servis', 'analitik_hesap_id')
     def _onchange_teknik_servis(self):
-        if self.teknik_servis == 'dtl':
+        if self.teknik_servis == 'tedarikci':
+            # Marka alanını göster
+            self.marka_id = False
+            # Hedef konum tedarikçi/stok
+            tedarikci_konum = self.env['stock.location'].search([
+                ('name', '=', 'tedarikçi/stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if tedarikci_konum:
+                self.hedef_konum_id = tedarikci_konum
+            # Kaynak konum analitik hesaba ait stok konumu
+            if self.analitik_hesap_id:
+                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+                hesap_adi = self.analitik_hesap_id.name.strip().lower()
+                konum_kodu = None
+                try:
+                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                        for satir in f:
+                            if hesap_adi in satir.lower():
+                                parcalar = satir.strip().split('\t')
+                                if len(parcalar) == 2:
+                                    konum_kodu = parcalar[1]
+                                    break
+                except Exception as e:
+                    pass
+                if konum_kodu:
+                    konum = self.env['stock.location'].search([
+                        ('name', '=', konum_kodu),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    if konum:
+                        self.kaynak_konum_id = konum
+        elif self.teknik_servis == 'dtl':
             # Hedef konum DTL/Stok
             dtl_konum = self.env['stock.location'].search([
                 ('name', '=', 'DTL/Stok'),
