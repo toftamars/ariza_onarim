@@ -413,16 +413,13 @@ class ArizaKayit(models.Model):
     def _create_stock_transfer(self):
         if not self.analitik_hesap_id or not self.kaynak_konum_id or not self.hedef_konum_id:
             return
-
         # Transfer oluştur
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
             ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
         ], limit=1)
-
         if not picking_type:
             raise UserError(_("Transfer tipi bulunamadı."))
-
         picking_vals = {
             'location_id': self.kaynak_konum_id.id,
             'location_dest_id': self.hedef_konum_id.id,
@@ -433,9 +430,9 @@ class ArizaKayit(models.Model):
             'origin': self.name,
             'note': self.aciklama or '',
         }
-
         picking = self.env['stock.picking'].create(picking_vals)
         self.transfer_id = picking.id
+        return picking
 
     def _send_sms_to_customer(self, message):
         # Sadece müşteri ürünü işlemlerinde SMS gönder
@@ -498,6 +495,11 @@ class ArizaKayit(models.Model):
         # Müşteri ürünü ve transfer metodu kargo ise Odoo kargo entegrasyonunu kullan
         if self.ariza_tipi == 'musteri' and self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo']:
             picking = self._create_delivery_order()
+            if picking:
+                self.transfer_id = picking.id
+        # Tüm işlemler için transfer_id otomatik oluşturulsun
+        if not self.transfer_id:
+            picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
         self.state = 'onaylandi'
