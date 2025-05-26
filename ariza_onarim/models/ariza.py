@@ -331,11 +331,11 @@ class ArizaKayit(models.Model):
                 self._onchange_tedarikci_id()
             # Mağaza ürünü için ürünleri filtrele
             if self.ariza_tipi == 'magaza':
-                domain = [('product_tmpl_id.brand_id', '=', self.marka_id.id)]
+                domain = [('brand_id', '=', self.marka_id.id)]
                 return {'domain': {'magaza_urun_id': domain}}
             # Marka ürünlerini filtrele
             if self.ariza_tipi in ['magaza', 'teknik', 'musteri']:
-                domain = [('product_tmpl_id.brand_id', '=', self.marka_id.id)]
+                domain = [('brand_id', '=', self.marka_id.id)]
                 return {'domain': {'marka_urunleri_ids': domain}}
         else:
             self.tedarikci_id = False
@@ -416,6 +416,9 @@ class ArizaKayit(models.Model):
         self.transfer_id = picking.id
 
     def _send_sms_to_customer(self, message):
+        # Sadece müşteri ürünü işlemlerinde SMS gönder
+        if self.ariza_tipi != 'musteri':
+            return
         if self.partner_id and self.partner_id.phone:
             sms_obj = self.env['sms.sms'].create({
                 'partner_id': self.partner_id.id,
