@@ -1,2 +1,1 @@
-from . import ariza
-from . import ariza_kayit 
+from . import ariza 
