@@ -402,19 +402,19 @@ class ArizaKayit(models.Model):
         self.transfer_id = picking.id
 
     def _send_sms_to_customer(self, message):
-        if self.partner_id and self.partner_id.phone:
+        if self.partner_id and self.partner_id.mobile:
             sms_obj = self.env['sms.sms'].create({
-                'partner_id': self.partner_id.id,
-                'to': self.partner_id.phone,
+                'number': self.partner_id.mobile,
                 'body': message,
-                'state': 'outgoing',
+                'partner_id': self.partner_id.id,
+                'state': 'outgoing'
             })
             sms_obj.send()
 
     def action_onayla(self):
         self.state = 'onaylandi'
         # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.mobile:
             self._send_sms_to_customer('Arıza kaydınız alınmıştır. Takip No: %s' % self.name)
         # Mağaza ürünü ve tedarikçi seçili ise transfer oluştur
         if self.ariza_tipi == 'magaza' and self.analitik_hesap_id and self.tedarikci_id:
@@ -486,7 +486,7 @@ class ArizaKayit(models.Model):
     def action_tamamla(self):
         self.state = 'tamamlandi'
         # SMS gönderimi
-        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+        if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.mobile:
             self._send_sms_to_customer('Ürününüz teslim edilmeye hazırdır. Takip No: %s' % self.name)
 
     def action_iptal(self):
