@@ -60,7 +60,7 @@
                             <div class="col-12">
                                 <strong>Analitik Hesap Adresi:</strong>
                                 <t t-if="doc.analitik_hesap_id">
-                                    <t t-esc="doc.analitik_hesap_id.name"/>
+                                    <t t-esc="doc.analitik_hesap_id.name.split(' - ')[-1].replace('Perakende', '').strip()"/>
                                     <t t-if="doc.analitik_hesap_id.partner_id">
                                         <br/>
                                         <t t-esc="doc.analitik_hesap_id.partner_id.street"/>
