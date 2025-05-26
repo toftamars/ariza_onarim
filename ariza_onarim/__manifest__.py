@@ -25,6 +25,7 @@
         'security/ir.model.access.csv',
         'data/ir_sequence_ariza_kayit.xml',
         'views/ariza_views.xml',
+        'views/report_views.xml',
         'views/menu_views.xml',
     ],
     'demo': [],
