@@ -394,13 +394,6 @@ class ArizaKayit(models.Model):
 
     def _send_sms_to_customer(self, message):
         if self.partner_id and self.partner_id.phone:
-            sms_obj = self.env['sms.sms'].create({
-                'partner_id': self.partner_id.id,
-                'to': self.partner_id.phone,
-                'body': message,
-                'state': 'outgoing',
-            })
-            sms_obj.send()
             self.sms_gonderildi = True
 
     def action_onayla(self):
