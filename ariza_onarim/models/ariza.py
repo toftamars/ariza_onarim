@@ -143,158 +143,77 @@ class ArizaKayit(models.Model):
 
     @api.onchange('teknik_servis', 'analitik_hesap_id')
     def _onchange_teknik_servis(self):
-        if self.teknik_servis == 'tedarikci':
-            # Marka alanını göster
-            self.marka_id = False
-            # Hedef konum tedarikçi/stok
-            tedarikci_konum = self.env['stock.location'].search([
-                ('name', '=', 'tedarikçi/stok'),
+        if not self.analitik_hesap_id:
+            return
+
+        # Analitik hesaba ait stok konumunu bul
+        dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+        hesap_adi = self.analitik_hesap_id.name.strip().lower()
+        konum_kodu = None
+        try:
+            with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                for satir in f:
+                    if hesap_adi in satir.lower():
+                        parcalar = satir.strip().split('\t')
+                        if len(parcalar) == 2:
+                            konum_kodu = parcalar[1]
+                            break
+        except Exception as e:
+            pass
+
+        if konum_kodu:
+            konum = self.env['stock.location'].search([
+                ('name', '=', konum_kodu),
                 ('company_id', '=', self.env.company.id)
             ], limit=1)
-            if tedarikci_konum:
-                self.hedef_konum_id = tedarikci_konum
-            # Kaynak konum analitik hesaba ait stok konumu
-            if self.analitik_hesap_id:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                konum_kodu = None
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    pass
-                if konum_kodu:
-                    konum = self.env['stock.location'].search([
-                        ('name', '=', konum_kodu),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
-                    if konum:
-                        self.kaynak_konum_id = konum
-        elif self.teknik_servis == 'dtl_beyoglu':
-            # Hedef konum DTL Beyoğlu/Stok
-            dtl_konum = self.env['stock.location'].search([
-                ('name', '=', 'DTL Beyoğlu/Stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if dtl_konum:
-                self.hedef_konum_id = dtl_konum
-            # Kaynak konum analitik hesaba ait stok konumu
-            if self.analitik_hesap_id:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                konum_kodu = None
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    pass
-                if konum_kodu:
-                    konum = self.env['stock.location'].search([
-                        ('name', '=', konum_kodu),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
-                    if konum:
-                        self.kaynak_konum_id = konum
-        elif self.teknik_servis == 'dtl_okmeydani':
-            # Hedef konum DTL Ok Meydanı/Stok
-            dtl_konum = self.env['stock.location'].search([
-                ('name', '=', 'DTL Ok Meydanı/Stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if dtl_konum:
-                self.hedef_konum_id = dtl_konum
-            # Kaynak konum analitik hesaba ait stok konumu
-            if self.analitik_hesap_id:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                konum_kodu = None
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    pass
-                if konum_kodu:
-                    konum = self.env['stock.location'].search([
-                        ('name', '=', konum_kodu),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
-                    if konum:
-                        self.kaynak_konum_id = konum
-        elif self.teknik_servis == 'zuhal':
-            # Hedef konum arıza/stok
-            ariza_konum = self.env['stock.location'].search([
-                ('name', '=', 'arıza/stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if ariza_konum:
-                self.hedef_konum_id = ariza_konum
-            # Kaynak konum analitik hesaba ait stok konumu
-            if self.analitik_hesap_id:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                konum_kodu = None
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    pass
-                if konum_kodu:
-                    konum = self.env['stock.location'].search([
-                        ('name', '=', konum_kodu),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
-                    if konum:
-                        self.kaynak_konum_id = konum
-        elif self.teknik_servis == 'magaza':
-            # Hedef konum arıza/stok
-            ariza_konum = self.env['stock.location'].search([
-                ('name', '=', 'arıza/stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if ariza_konum:
-                self.hedef_konum_id = ariza_konum
-            # Kaynak konum analitik hesaba ait stok konumu
-            if self.analitik_hesap_id:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                konum_kodu = None
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    pass
-                if konum_kodu:
-                    konum = self.env['stock.location'].search([
-                        ('name', '=', konum_kodu),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
-                    if konum:
-                        self.kaynak_konum_id = konum
+            if konum:
+                self.kaynak_konum_id = konum
+
+        # Müşteri ürünü işlemleri için hedef konum ayarları
+        if self.ariza_tipi == 'musteri':
+            if self.teknik_servis == 'magaza' and konum_kodu:
+                # Mağaza seçildiğinde [KOD]/arızalı konumu
+                arizali_konum = self.env['stock.location'].search([
+                    ('name', '=', f"{konum_kodu.split('/')[0]}/arızalı"),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if arizali_konum:
+                    self.hedef_konum_id = arizali_konum
+            elif self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani']:
+                # DTL seçildiğinde dtl/stok konumu
+                dtl_konum = self.env['stock.location'].search([
+                    ('name', '=', 'dtl/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == 'zuhal':
+                # Zuhal seçildiğinde arıza/stok konumu
+                ariza_konum = self.env['stock.location'].search([
+                    ('name', '=', 'arıza/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if ariza_konum:
+                    self.hedef_konum_id = ariza_konum
+
+        # Mağaza ürünü işlemleri için hedef konum ayarları
+        elif self.ariza_tipi == 'magaza':
+            if self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani']:
+                # DTL seçildiğinde dtl/stok konumu
+                dtl_konum = self.env['stock.location'].search([
+                    ('name', '=', 'dtl/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == 'zuhal':
+                # Zuhal seçildiğinde arıza/stok konumu
+                ariza_konum = self.env['stock.location'].search([
+                    ('name', '=', 'arıza/stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if ariza_konum:
+                    self.hedef_konum_id = ariza_konum
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
@@ -551,12 +470,20 @@ class ArizaKayit(models.Model):
                 self._send_sms_to_customer(message)
                 self.sms_gonderildi = True
 
-        # Müşteri ürünü işlemlerinde siparişi var seçeneği ile işlem yapıldığında otomatik transfer oluştur
-        if self.ariza_tipi == 'musteri' and not self.siparis_yok and not self.transfer_id:
+        # Müşteri ürünü işlemlerinde her zaman otomatik transfer oluştur
+        if self.ariza_tipi == 'musteri' and not self.transfer_id:
             picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
                 self.transferler_ids = [(4, picking.id)]
+
+        # Mağaza ürünü işlemlerinde teknik servis seçimine göre transfer oluştur
+        elif self.ariza_tipi == 'magaza' and not self.transfer_id:
+            if self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani', 'zuhal']:
+                picking = self._create_stock_transfer()
+                if picking:
+                    self.transfer_id = picking.id
+                    self.transferler_ids = [(4, picking.id)]
 
         self.state = 'onaylandi'
         # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
