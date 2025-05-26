@@ -42,11 +42,11 @@
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
-                            <field name="transfer_id" readonly="1"/>
+                            <field name="transfer_id" widget="many2one" options="{'no_create': True}" string="Ana Transfer"/>
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                            <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="transferler_ids" widget="many2many_tags" options="{'no_create': True}" string="Tüm Transferler"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
