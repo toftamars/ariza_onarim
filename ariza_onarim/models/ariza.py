@@ -19,7 +19,7 @@ class ArizaKayit(models.Model):
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü'),
     ], string='Arıza Tipi', required=True, tracking=True)
-    seri_no = fields.Char(string='Seri No', tracking=True)
+    seri_no = fields.Char(string='Seri No', tracking=True, required=False)
     teknik_servis = fields.Selection([
         ('tedarikci', 'Tedarikçi'),
         ('dtl', 'DTL'),
