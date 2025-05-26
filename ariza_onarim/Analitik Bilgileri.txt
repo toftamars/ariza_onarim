@@ -13,5 +13,5 @@
 [2101408] Perakende - Mavibahçe	MVBHC/Stok
 [3101408] Perakende - Adana	ADANA/Stok
 [3101409] Perakende - Antalya	ANTL/Stok
-[4101410] Perakende - Ankara	ANKKR/Stok
+[4101410] Perakende - Ankara	ANKR/Stok
 [4101411] Perakende - Kentpark	KENT/Stok
