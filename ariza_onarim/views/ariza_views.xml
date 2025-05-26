@@ -44,6 +44,7 @@
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', 'in', ['musteri', 'teknik']), ('siparis_yok', '=', False)]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="transferler_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="sms_gonderildi" readonly="1"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
@@ -95,6 +96,30 @@
                     <field name="message_ids"/>
                 </div>
             </form>
+        </field>
+    </record>
+    <record id="view_ariza_kayit_tree" model="ir.ui.view">
+        <field name="name">ariza.kayit.tree</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'">
+                <field name="name"/>
+                <field name="islem_tipi"/>
+                <field name="ariza_tipi"/>
+                <field name="teknik_servis"/>
+                <field name="partner_id"/>
+                <field name="analitik_hesap_id"/>
+                <field name="tedarikci_id"/>
+                <field name="marka_id"/>
+                <field name="urun"/>
+                <field name="model"/>
+                <field name="tarih"/>
+                <field name="state"/>
+                <field name="sorumlu_id"/>
+                <field name="garanti_kapsaminda_mi"/>
+                <field name="onarim_ucreti"/>
+                <field name="sms_gonderildi"/>
+            </tree>
         </field>
     </record>
 </odoo> 
