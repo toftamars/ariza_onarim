@@ -584,6 +584,7 @@ class ArizaKayit(models.Model):
     def _onchange_magaza_urun_id(self):
         if self.magaza_urun_id:
             self.urun = self.magaza_urun_id.name or ''
+            self.model = self.magaza_urun_id.default_code or ''
             # Ürün seçilince marka otomatik gelsin
             if hasattr(self.magaza_urun_id, 'brand_id') and self.magaza_urun_id.brand_id:
                 self.marka_id = self.magaza_urun_id.brand_id.id
