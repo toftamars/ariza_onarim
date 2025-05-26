@@ -329,14 +329,6 @@ class ArizaKayit(models.Model):
             if self.marka_id.partner_id:
                 self.tedarikci_id = self.marka_id.partner_id.id
                 self._onchange_tedarikci_id()
-            # Mağaza ürünü için ürünleri filtrele
-            if self.ariza_tipi == 'magaza':
-                domain = [('brand_id', '=', self.marka_id.id)]
-                return {'domain': {'magaza_urun_id': domain}}
-            # Marka ürünlerini filtrele
-            if self.ariza_tipi in ['magaza', 'teknik', 'musteri']:
-                domain = [('brand_id', '=', self.marka_id.id)]
-                return {'domain': {'marka_urunleri_ids': domain}}
         else:
             self.tedarikci_id = False
             self.tedarikci_adresi = False
