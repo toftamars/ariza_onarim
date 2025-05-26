@@ -11,7 +11,7 @@
         - Mağaza ürünleri takibi
         - Teknik servis işlemleri
     """,
-    'author': 'Tofta Mars',
+    'author': 'Alper Tofta',
     'website': 'https://www.toftamars.com',
     'depends': [
         'base',
@@ -22,9 +22,10 @@
         'account',
     ],
     'data': [
-        'data/ir_sequence_ariza_kayit.xml',
         'security/ir.model.access.csv',
+        'data/ir_sequence_ariza_kayit.xml',
         'views/ariza_views.xml',
+        'views/menu_views.xml',
     ],
     'demo': [],
     'installable': True,
