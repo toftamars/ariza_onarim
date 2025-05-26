@@ -87,6 +87,7 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -555,7 +556,7 @@ class ArizaKayit(models.Model):
         self.state = 'teslim_edildi'
         # SMS gönderimi
         if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz teslim edilmiştir. İyi günler dileriz."
+            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {self.teslim_magazasi_id.name} mağazamızdan teslim edilmiştir. İyi günler dileriz."
             self._send_sms_to_customer(sms_mesaji)
 
     def action_iptal(self):

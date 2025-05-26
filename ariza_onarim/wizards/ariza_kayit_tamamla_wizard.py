@@ -13,6 +13,14 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         ('hayir', 'Hayır'),
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', required=True,
+        domain="[('name', 'like', 'Perakende')]")
+
+    @api.onchange('teslim_magazasi_id')
+    def _onchange_teslim_magazasi_id(self):
+        if self.teslim_magazasi_id:
+            # Perakende ifadesini kaldır
+            self.teslim_magazasi_id.name = self.teslim_magazasi_id.name.replace('Perakende ', '')
 
     def action_tamamla(self):
         self.ariza_id.write({
@@ -20,9 +28,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             'onarim_bilgisi': self.onarim_bilgisi,
             'garanti_kapsaminda_mi': self.garanti_kapsaminda_mi,
             'ucret_bilgisi': self.ucret_bilgisi,
+            'teslim_magazasi_id': self.teslim_magazasi_id.id,
         })
         # SMS gönderimi
         if self.ariza_id.ariza_tipi == 'musteri' and self.ariza_id.partner_id and self.ariza_id.partner_id.phone:
-            sms_mesaji = f"Sayın {self.ariza_id.partner_id.name} {self.ariza_id.name}, {self.ariza_id.urun} ürününüz teslim edilmeye hazırdır."
+            sms_mesaji = f"Sayın {self.ariza_id.partner_id.name} {self.ariza_id.name}, {self.ariza_id.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {self.teslim_magazasi_id.name} mağazamızdan teslim alabilirsiniz."
             self.ariza_id._send_sms_to_customer(sms_mesaji)
         return {'type': 'ir.actions.act_window_close'} 
