@@ -464,6 +464,11 @@ class ArizaKayit(models.Model):
             if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
                 sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz için arıza kaydınız alınmıştır."
                 self._send_sms_to_customer(sms_mesaji)
+        # Müşteri ürünü ve transfer metodu kargo ise Odoo kargo entegrasyonunu kullan
+        if self.ariza_tipi == 'musteri' and self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo']:
+            picking = self._create_delivery_order()
+            if picking:
+                self.transfer_id = picking.id
         self.state = 'onaylandi'
         # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
         if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
