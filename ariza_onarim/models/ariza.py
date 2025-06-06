@@ -496,6 +496,12 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
+        # Müşteri ürünü işlemlerinde SMS gönder
+        if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
+            message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı. Ürününüz onarım sürecine alınmıştır."
+            self._send_sms_to_customer(message)
+            self.sms_gonderildi = True
+
         # Ürün teslim işlemlerinde SMS gönderme
         if self.islem_tipi == 'teslim':
             if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
