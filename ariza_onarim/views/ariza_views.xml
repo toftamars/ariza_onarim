@@ -46,7 +46,6 @@
                             <field name="transfer_irsaliye" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                            <field name="transferler_ids" widget="many2many_tags" options="{'no_create': True}" string="Tüm Transferler"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
