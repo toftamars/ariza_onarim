@@ -16,6 +16,7 @@
                     <field name="ucret_bilgisi" attrs="{'invisible': [('garanti_kapsaminda_mi', '=', 'evet')], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
                     <field name="teslim_magazasi_id"/>
                     <field name="teslim_magazasi_adi" readonly="1"/>
+                    <field name="sms_gonderildi_wizard" readonly="1"/>
                 </group>
                 <footer>
                     <button name="action_tamamla" string="Tamamla" type="object" class="btn-primary"/>

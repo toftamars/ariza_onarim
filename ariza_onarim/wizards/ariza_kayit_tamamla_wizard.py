@@ -15,6 +15,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', required=True)
     teslim_magazasi_adi = fields.Char(string='Mağaza Adı', compute='_compute_teslim_magazasi_adi')
+    sms_gonderildi_wizard = fields.Boolean(string='SMS Gönderildi', readonly=True, default=False)
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi_id(self):
@@ -40,7 +41,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             'teslim_magazasi_id': self.teslim_magazasi_id.id,
         })
         # SMS gönderimi
+        sms_gonderildi = False
         if self.ariza_id.ariza_tipi == 'musteri' and self.ariza_id.partner_id and self.ariza_id.partner_id.phone:
             sms_mesaji = f"Sayın {self.ariza_id.partner_id.name} {self.ariza_id.name}, {self.ariza_id.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {self.teslim_magazasi_id.name} mağazamızdan teslim alabilirsiniz."
             self.ariza_id._send_sms_to_customer(sms_mesaji)
+            sms_gonderildi = True
+        self.sms_gonderildi_wizard = sms_gonderildi
         return {'type': 'ir.actions.act_window_close'} 
