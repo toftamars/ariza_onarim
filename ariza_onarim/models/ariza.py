@@ -172,6 +172,9 @@ class ArizaKayit(models.Model):
         # DTL Beyoğlu adresini otomatik ekle
         if self.teknik_servis == 'dtl_beyoglu':
             self.tedarikci_adresi = 'Şahkulu, Nakkaş Çk. No:1 D:1, 34420 Beyoğlu/İstanbul'
+        # Zuhal adresini otomatik ekle
+        elif self.teknik_servis == 'zuhal':
+            self.tedarikci_adresi = 'Halkalı Merkez, 34303 Küçükçekmece/İstanbul'
 
         # Müşteri ürünü işlemleri için hedef konum ayarları
         if self.ariza_tipi == 'musteri':
