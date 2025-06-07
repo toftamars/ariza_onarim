@@ -367,8 +367,10 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
-    def _create_stock_transfer(self):
+    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None):
         _logger = self.env['ir.logging']
+        kaynak = kaynak_konum or self.kaynak_konum_id
+        hedef = hedef_konum or self.hedef_konum_id
         if not self.analitik_hesap_id:
             _logger.create({
                 'name': 'ariza_onarim',
@@ -381,31 +383,13 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             return
-        # Müşteri ürünü işlemlerinde konumları otomatik ayarla
-        if self.ariza_tipi == 'musteri':
-            # Kaynak konum müşteri konumu
-            if self.partner_id and self.partner_id.property_stock_customer:
-                self.kaynak_konum_id = self.partner_id.property_stock_customer
-            else:
-                customer_location = self.env['stock.location'].search([
-                    ('usage', '=', 'customer'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-                if customer_location:
-                    self.kaynak_konum_id = customer_location
-            ariza_konum = self.env['stock.location'].search([
-                ('name', '=', 'arıza/stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if ariza_konum:
-                self.hedef_konum_id = ariza_konum
-        if not self.kaynak_konum_id or not self.hedef_konum_id:
+        if not kaynak or not hedef:
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: kaynak veya hedef konum yok. Arıza No: {self.name} - Kaynak: {self.kaynak_konum_id} - Hedef: {self.hedef_konum_id}",
+                'message': f"Transfer oluşturulamadı: kaynak veya hedef konum yok. Arıza No: {self.name} - Kaynak: {kaynak} - Hedef: {hedef}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
@@ -413,7 +397,7 @@ class ArizaKayit(models.Model):
             return
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
-            ('warehouse_id', '=', self.kaynak_konum_id.warehouse_id.id)
+            ('warehouse_id', '=', kaynak.warehouse_id.id)
         ], limit=1)
         if not picking_type:
             _logger.create({
@@ -428,8 +412,8 @@ class ArizaKayit(models.Model):
             })
             raise UserError(_("Transfer tipi bulunamadı."))
         picking_vals = {
-            'location_id': self.kaynak_konum_id.id,
-            'location_dest_id': self.hedef_konum_id.id,
+            'location_id': kaynak.id,
+            'location_dest_id': hedef.id,
             'picking_type_id': picking_type.id,
             'move_type': 'direct',
             'immediate_transfer': True,
@@ -447,8 +431,8 @@ class ArizaKayit(models.Model):
                 'product_uom_qty': 1,
                 'product_uom': self.magaza_urun_id.uom_id.id,
                 'picking_id': picking.id,
-                'location_id': self.kaynak_konum_id.id,
-                'location_dest_id': self.hedef_konum_id.id,
+                'location_id': kaynak.id,
+                'location_dest_id': hedef.id,
                 'company_id': self.env.company.id,
                 'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
                 'quantity_done': 1,
@@ -559,30 +543,7 @@ class ArizaKayit(models.Model):
             if self.transfer_id:
                 onceki_kaynak = self.transfer_id.location_id
                 onceki_hedef = self.transfer_id.location_dest_id
-                # Ürün ve miktar önceki transferdekiyle aynı olacak
-                onceki_move = self.transfer_id.move_ids_without_package[:1]
-                if onceki_move:
-                    yeni_transfer = self.env['stock.picking'].create({
-                        'location_id': onceki_hedef.id,
-                        'location_dest_id': onceki_kaynak.id,
-                        'picking_type_id': self.transfer_id.picking_type_id.id,
-                        'company_id': self.env.company.id,
-                        'origin': self.name,
-                        'note': f"Arıza Kaydı: {self.name} (Teslimat)\nÜrün: {onceki_move.product_id.name}\nModel: {self.model}",
-                        'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-                    })
-                    self.env['stock.move'].create({
-                        'name': onceki_move.name,
-                        'product_id': onceki_move.product_id.id,
-                        'product_uom_qty': onceki_move.product_uom_qty,
-                        'product_uom': onceki_move.product_uom.id,
-                        'picking_id': yeni_transfer.id,
-                        'location_id': onceki_hedef.id,
-                        'location_dest_id': onceki_kaynak.id,
-                        'company_id': self.env.company.id,
-                        'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-                        'quantity_done': onceki_move.quantity_done,
-                    })
+                self._create_stock_transfer(kaynak_konum=onceki_hedef, hedef_konum=onceki_kaynak)
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
