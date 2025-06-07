@@ -525,7 +525,9 @@ class ArizaKayit(models.Model):
                 magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
                 onarim = self.onarim_bilgisi or ''
                 garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
-                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz. Onarım: {onarim} | Garanti: {garanti}. İyi günler dileriz."
+                ucret = self.ucret_bilgisi or ''
+                durum = dict(self._fields['state'].selection).get(self.state, '')
+                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
                 self._send_sms_to_customer(sms_mesaji)
             return {
                 'name': 'Onarım Tamamlandı',
