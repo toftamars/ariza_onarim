@@ -438,6 +438,18 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
         }
         picking = self.env['stock.picking'].create(picking_vals)
+        # Ürün hareketi ekle
+        if self.magaza_urun_id:
+            self.env['stock.move'].create({
+                'name': self.urun or self.magaza_urun_id.name,
+                'product_id': self.magaza_urun_id.id,
+                'product_uom_qty': 1,
+                'product_uom': self.magaza_urun_id.uom_id.id,
+                'picking_id': picking.id,
+                'location_id': self.kaynak_konum_id.id,
+                'location_dest_id': self.hedef_konum_id.id,
+                'company_id': self.env.company.id,
+            })
         _logger.create({
             'name': 'ariza_onarim',
             'type': 'server',
