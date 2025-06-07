@@ -452,7 +452,6 @@ class ArizaKayit(models.Model):
                 'location_dest_id': self.hedef_konum_id.id,
                 'company_id': self.env.company.id,
                 'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-                'quantity_done': 1,
             })
         _logger.create({
             'name': 'ariza_onarim',
