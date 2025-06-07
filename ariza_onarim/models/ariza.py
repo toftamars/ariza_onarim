@@ -435,9 +435,8 @@ class ArizaKayit(models.Model):
             'immediate_transfer': True,
             'company_id': self.env.company.id,
             'origin': self.name,
-            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
+            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-            'transfer_metodu': self.transfer_metodu,
         }
         picking = self.env['stock.picking'].create(picking_vals)
         # Ürün hareketi ekle
