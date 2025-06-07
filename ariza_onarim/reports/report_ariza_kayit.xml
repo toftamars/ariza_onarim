@@ -106,7 +106,6 @@
         <field name="report_name">stock.action_report_delivery</field>
         <field name="binding_model_id" ref="model_ariza_kayit"/>
         <field name="binding_type">report</field>
-        <field name="context">{{'default_transfer_id': object.transfer_id.id}}</field>
     </record>
     <record id="action_report_ariza_kargo_ciktisi_a4" model="ir.actions.report">
         <field name="name">Kargo Çıktısı A4</field>
@@ -115,6 +114,5 @@
         <field name="report_name">stock.action_report_delivery_slip</field>
         <field name="binding_model_id" ref="model_ariza_kayit"/>
         <field name="binding_type">report</field>
-        <field name="context">{{'default_transfer_id': object.transfer_id.id}}</field>
     </record>
 </odoo> 
