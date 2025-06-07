@@ -81,6 +81,11 @@
                 </t>
             </t>
         </t>
+        <xpath expr="//t[@t-call='web.external_layout']" position="inside">
+            <div class="footer" style="text-align:center; font-size:12px; margin-top:20px;">
+                <strong>İLETİŞİM:</strong> 0212 249 85 10 (Dahili: 153)
+            </div>
+        </xpath>
     </template>
 
     <record id="action_report_ariza_kayit" model="ir.actions.report">
