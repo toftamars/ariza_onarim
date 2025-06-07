@@ -496,29 +496,22 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
+        # Mağaza ürünü için transfer oluştur
+        if self.ariza_tipi == 'magaza' and not self.transfer_id:
+            picking = self._create_stock_transfer()
+            if picking:
+                self.transfer_id = picking.id
         # Müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
             message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı. Ürününüz onarım sürecine alınmıştır."
             self._send_sms_to_customer(message)
             self.sms_gonderildi = True
 
-        # Müşteri ürünü işlemlerinde her zaman otomatik transfer oluştur
-        if self.ariza_tipi == 'musteri' and not self.transfer_id:
-            picking = self._create_stock_transfer()
-            if picking:
-                self.transfer_id = picking.id
-
-        # Mağaza ürünü işlemlerinde teknik servis seçimine göre transfer oluştur
-        elif self.ariza_tipi == 'magaza' and not self.transfer_id:
-            if self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani', 'zuhal']:
-                picking = self._create_stock_transfer()
-                if picking:
-                    self.transfer_id = picking.id
-
-        self.state = 'onaylandi'
         # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
         if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
             self.analitik_hesap_id = self.ariza_kabul_id.analitik_hesap_id
+
+        self.state = 'onaylandi'
 
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
