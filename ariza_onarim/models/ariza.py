@@ -169,6 +169,10 @@ class ArizaKayit(models.Model):
             if konum:
                 self.kaynak_konum_id = konum
 
+        # DTL Beyoğlu adresini otomatik ekle
+        if self.teknik_servis == 'dtl_beyoglu':
+            self.tedarikci_adresi = 'Şahkulu, Nakkaş Çk. No:1 D:1, 34420 Beyoğlu/İstanbul'
+
         # Müşteri ürünü işlemleri için hedef konum ayarları
         if self.ariza_tipi == 'musteri':
             if self.teknik_servis == 'magaza' and konum_kodu:
