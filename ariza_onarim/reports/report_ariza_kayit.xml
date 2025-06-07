@@ -67,14 +67,14 @@
                         </t>
                         <div class="row mt-4">
                             <div class="col-12">
-                                <strong>TEKNİK SERVİS ADRESİ:</strong>
-                                <p t-field="doc.tedarikci_adresi"/>
+                                <strong>NOTLAR:</strong>
+                                <p t-field="doc.notlar"/>
                             </div>
                         </div>
                         <div class="row mt-4">
-                            <div class="col-12">
-                                <strong>NOTLAR:</strong>
-                                <p t-field="doc.notlar"/>
+                            <div class="col-12 text-center">
+                                <strong>İLETİŞİM:</strong>
+                                <p>0212 249 85 10 (Dahili: 153)</p>
                             </div>
                         </div>
                     </div>
