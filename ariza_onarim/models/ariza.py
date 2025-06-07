@@ -543,7 +543,11 @@ class ArizaKayit(models.Model):
             if self.transfer_id:
                 onceki_kaynak = self.transfer_id.location_id
                 onceki_hedef = self.transfer_id.location_dest_id
-                self._create_stock_transfer(kaynak_konum=onceki_hedef, hedef_konum=onceki_kaynak)
+                yeni_transfer = self._create_stock_transfer(kaynak_konum=onceki_hedef, hedef_konum=onceki_kaynak)
+                if yeni_transfer:
+                    self.transfer_id = yeni_transfer.id
+                else:
+                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
