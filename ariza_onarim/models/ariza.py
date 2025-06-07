@@ -436,6 +436,7 @@ class ArizaKayit(models.Model):
             'company_id': self.env.company.id,
             'origin': self.name,
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}",
+            'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
         picking = self.env['stock.picking'].create(picking_vals)
         # Ürün hareketi ekle
@@ -449,6 +450,7 @@ class ArizaKayit(models.Model):
                 'location_id': self.kaynak_konum_id.id,
                 'location_dest_id': self.hedef_konum_id.id,
                 'company_id': self.env.company.id,
+                'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             })
         _logger.create({
             'name': 'ariza_onarim',
