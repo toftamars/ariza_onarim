@@ -501,13 +501,6 @@ class ArizaKayit(models.Model):
             self._send_sms_to_customer(message)
             self.sms_gonderildi = True
 
-        # Ürün teslim işlemlerinde SMS gönderme
-        if self.islem_tipi == 'teslim':
-            if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
-                message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz {self.teslim_magazasi_id.name} mağazasında teslime hazır. Lütfen en kısa sürede teslim alınız."
-                self._send_sms_to_customer(message)
-                self.sms_gonderildi = True
-
         # Müşteri ürünü işlemlerinde her zaman otomatik transfer oluştur
         if self.ariza_tipi == 'musteri' and not self.transfer_id:
             picking = self._create_stock_transfer()
@@ -529,6 +522,13 @@ class ArizaKayit(models.Model):
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
         if self.islem_tipi == 'kabul':
+            # SMS gönderimi buraya taşındı
+            if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+                magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
+                onarim = self.onarim_bilgisi or ''
+                garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
+                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz. Onarım: {onarim} | Garanti: {garanti}. İyi günler dileriz."
+                self._send_sms_to_customer(sms_mesaji)
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
@@ -552,13 +552,7 @@ class ArizaKayit(models.Model):
 
     def action_teslim_et(self):
         self.state = 'teslim_edildi'
-        # Sadece ürün teslim işlemlerinde SMS gönder
-        if self.islem_tipi == 'teslim' and self.partner_id and self.partner_id.phone:
-            magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
-            onarim = self.onarim_bilgisi or ''
-            garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
-            sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim edilmiştir. Onarım: {onarim} | Garanti: {garanti}. İyi günler dileriz."
-            self._send_sms_to_customer(sms_mesaji)
+        # SMS gönderimi kaldırıldı, artık tamamla butonunda gönderilecek
 
     def action_iptal(self):
         self.state = 'iptal'
