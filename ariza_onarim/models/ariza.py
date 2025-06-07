@@ -508,6 +508,14 @@ class ArizaKayit(models.Model):
             picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': picking.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
         # Müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
             message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı, onarım sürecine alınmıştır."
