@@ -555,6 +555,34 @@ class ArizaKayit(models.Model):
                 durum = dict(self._fields['state'].selection).get(self.state, '')
                 sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
                 self._send_sms_to_customer(sms_mesaji)
+            # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+            if self.transfer_id:
+                onceki_kaynak = self.transfer_id.location_id
+                onceki_hedef = self.transfer_id.location_dest_id
+                # Ürün ve miktar önceki transferdekiyle aynı olacak
+                onceki_move = self.transfer_id.move_ids_without_package[:1]
+                if onceki_move:
+                    yeni_transfer = self.env['stock.picking'].create({
+                        'location_id': onceki_hedef.id,
+                        'location_dest_id': onceki_kaynak.id,
+                        'picking_type_id': self.transfer_id.picking_type_id.id,
+                        'company_id': self.env.company.id,
+                        'origin': self.name,
+                        'note': f"Arıza Kaydı: {self.name} (Teslimat)\nÜrün: {onceki_move.product_id.name}\nModel: {self.model}",
+                        'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
+                    })
+                    self.env['stock.move'].create({
+                        'name': onceki_move.name,
+                        'product_id': onceki_move.product_id.id,
+                        'product_uom_qty': onceki_move.product_uom_qty,
+                        'product_uom': onceki_move.product_uom.id,
+                        'picking_id': yeni_transfer.id,
+                        'location_id': onceki_hedef.id,
+                        'location_dest_id': onceki_kaynak.id,
+                        'company_id': self.env.company.id,
+                        'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
+                        'quantity_done': onceki_move.quantity_done,
+                    })
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
