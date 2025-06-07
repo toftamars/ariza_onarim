@@ -68,7 +68,7 @@
                         <div class="row mt-4">
                             <div class="col-12">
                                 <strong>TEKNİK SERVİS ADRESİ:</strong>
-                                <p t-esc="ctx.get('teknik_servis_adres', '')"/>
+                                <p t-field="doc.tedarikci_adresi"/>
                             </div>
                         </div>
                         <div class="row mt-4">
