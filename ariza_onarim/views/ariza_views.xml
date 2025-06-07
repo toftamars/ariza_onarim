@@ -47,13 +47,9 @@
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         </group>
                     </group>
-                    <group attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}">
-                        <group>
-                            <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        </group>
-                        <group>
-                            <field name="hedef_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        </group>
+                    <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
+                        <field name="kaynak_konum_id"/>
+                        <field name="hedef_konum_id"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
                         <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
