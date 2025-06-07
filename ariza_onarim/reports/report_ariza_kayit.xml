@@ -81,8 +81,8 @@
                 </t>
             </t>
         </t>
-        <xpath expr="//t[@t-call='web.external_layout']" position="inside">
-            <div class="footer" style="text-align:center; font-size:12px; margin-top:20px;">
+        <xpath expr="//div[@class='footer']" position="replace">
+            <div class="footer" style="width:100%;text-align:center;font-size:12px;position:fixed;bottom:0;left:0;">
                 <strong>İLETİŞİM:</strong> 0212 249 85 10 (Dahili: 153)
             </div>
         </xpath>
