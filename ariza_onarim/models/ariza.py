@@ -644,4 +644,23 @@ class ArizaKayit(models.Model):
 
     def action_print_delivery(self):
         if self.transfer_id:
-            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id) 
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    def button_validate(self):
+        res = super().button_validate()
+        # Origin alanı üzerinden arıza kaydını bul
+        for picking in self:
+            if picking.origin:
+                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                if ariza:
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ariza.kayit',
+                        'res_id': ariza.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
+        return res 
