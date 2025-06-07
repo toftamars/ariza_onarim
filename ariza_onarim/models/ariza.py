@@ -78,7 +78,6 @@ class ArizaKayit(models.Model):
         string='Marka Ürünleri',
         tracking=True
     )
-    transferler_ids = fields.Many2many('stock.picking', string='Tüm Transferler', tracking=True)
     ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
@@ -514,7 +513,6 @@ class ArizaKayit(models.Model):
             picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
-                self.transferler_ids = [(4, picking.id)]
 
         # Mağaza ürünü işlemlerinde teknik servis seçimine göre transfer oluştur
         elif self.ariza_tipi == 'magaza' and not self.transfer_id:
@@ -522,7 +520,6 @@ class ArizaKayit(models.Model):
                 picking = self._create_stock_transfer()
                 if picking:
                     self.transfer_id = picking.id
-                    self.transferler_ids = [(4, picking.id)]
 
         self.state = 'onaylandi'
         # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
