@@ -41,6 +41,7 @@ class ArizaKayit(models.Model):
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
     marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
+    marka_manu = fields.Char(string='Marka (Manuel)', tracking=True)
     tedarikci_adresi = fields.Text(string='Teslim Adresi', tracking=True)
     tedarikci_telefon = fields.Char(string='Tedarikçi Telefon', tracking=True)
     tedarikci_email = fields.Char(string='Tedarikçi E-posta', tracking=True)
