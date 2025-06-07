@@ -11,6 +11,7 @@ class ArizaKayit(models.Model):
     _order = 'id desc'
 
     name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
+    transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
     ], string='İşlem Tipi', required=True, tracking=True)
@@ -69,7 +70,6 @@ class ArizaKayit(models.Model):
     ], string='Garanti Kapsamında mı?', tracking=True)
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     notlar = fields.Text(string='Notlar')
-    transfer_id = fields.Many2one('stock.picking', string='Ana Transfer', readonly=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)

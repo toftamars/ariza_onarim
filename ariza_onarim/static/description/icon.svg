@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Ana daire arka planı -->
+    <circle cx="256" cy="256" r="240" fill="#875A7B"/>
+    
+    <!-- Çark dişlisi -->
+    <path d="M256 80C167.6 80 96 151.6 96 240C96 328.4 167.6 400 256 400C344.4 400 416 328.4 416 240C416 151.6 344.4 80 256 80ZM256 368C185.3 368 128 310.7 128 240C128 169.3 185.3 112 256 112C326.7 112 384 169.3 384 240C384 310.7 326.7 368 256 368Z" fill="white"/>
+    
+    <!-- İç çark dişlisi -->
+    <path d="M256 144C194.1 144 144 194.1 144 256C144 317.9 194.1 368 256 368C317.9 368 368 317.9 368 256C368 194.1 317.9 144 256 144ZM256 336C211.8 336 176 300.2 176 256C176 211.8 211.8 176 256 176C300.2 176 336 211.8 336 256C336 300.2 300.2 336 256 336Z" fill="#875A7B"/>
+    
+    <!-- Anahtar -->
+    <path d="M320 192L304 208L288 192L304 176L320 192Z" fill="white"/>
+    <path d="M304 208L304 240" stroke="white" stroke-width="16" stroke-linecap="round"/>
+    
+    <!-- Çark dişlisi detayları -->
+    <path d="M256 80L256 48" stroke="white" stroke-width="16" stroke-linecap="round"/>
+    <path d="M256 464L256 432" stroke="white" stroke-width="16" stroke-linecap="round"/>
+    <path d="M80 256L48 256" stroke="white" stroke-width="16" stroke-linecap="round"/>
+    <path d="M464 256L432 256" stroke="white" stroke-width="16" stroke-linecap="round"/>
+</svg> 
