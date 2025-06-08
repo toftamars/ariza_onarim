@@ -438,9 +438,9 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
-        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_shipping_id'yi contact_id olarak ayarla
+        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla
         if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
-            picking_vals['partner_shipping_id'] = self.contact_id.id
+            picking_vals['partner_id'] = self.contact_id.id
         picking = self.env['stock.picking'].create(picking_vals)
         # Ürün hareketi ekle
         self.env['stock.move'].create({
