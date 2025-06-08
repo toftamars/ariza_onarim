@@ -36,7 +36,7 @@
                         <group>
                             <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
                             <field name="analitik_hesap_id" required="1"/>
-                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                            <field name="invoice_line_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                             <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
