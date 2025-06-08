@@ -54,7 +54,7 @@
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}" options="{'no_open': True, 'no_create': True}"/>
                         <field name="hedef_konum_id" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('islem_tipi', '!=', 'kabul'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}" options="{'no_open': True, 'no_create': True}"/>
-                        <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}" options="{'no_open': True, 'no_create': True}"/>
+                        <field name="contact_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': ['&', ('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')]}" options="{'no_open': True, 'no_create': True}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
                         <!-- marka_urunleri_ids alanı ve grubu kaldırıldı -->
