@@ -25,7 +25,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}
+                            <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" options='{"no_open": true, "no_create": true}'/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
                             <field name="teknik_servis"/>
