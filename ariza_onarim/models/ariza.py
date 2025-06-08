@@ -137,7 +137,7 @@ class ArizaKayit(models.Model):
             self.urun = False
             self.model = False
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
-            if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+            if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
@@ -667,7 +667,7 @@ class ArizaKayit(models.Model):
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
-        if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+        if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
             self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         else:
             self.teslim_adresi = False
