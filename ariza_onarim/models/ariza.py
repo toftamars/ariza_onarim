@@ -93,6 +93,7 @@ class ArizaKayit(models.Model):
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
+    teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -702,21 +703,21 @@ class ArizaKayit(models.Model):
             else:
                 self.marka_id = False
 
-    @property
-    def teknik_servis_adres(self):
-        if self.teknik_servis == 'tedarikci' and self.tedarikci_id:
-            return self.tedarikci_adresi or self.tedarikci_id.street or ''
-        elif self.teknik_servis == 'zuhal':
-            return 'Halkalı merkez mh. Dereboyu cd. No:8/B'
-        elif self.teknik_servis == 'dtl_beyoglu':
-            return 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
-        elif self.teknik_servis == 'dtl_okmeydani':
-            return 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-        elif self.teknik_servis == 'zuhal_nefesli':
-            return 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
-        elif self.teknik_servis == 'zuhal_ariza_depo':
-            return 'Halkalı merkez mh. Dereboyu cd. No:8/B'
-        return ''
+    @api.depends('teknik_servis', 'tedarikci_id', 'tedarikci_adresi')
+    def _compute_teknik_servis_adres(self):
+        for rec in self:
+            if rec.teknik_servis == 'TEDARİKÇİ' and rec.tedarikci_id:
+                rec.teknik_servis_adres = rec.tedarikci_adresi or rec.tedarikci_id.street or ''
+            elif rec.teknik_servis == 'ZUHAL ARIZA DEPO':
+                rec.teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+            elif rec.teknik_servis == 'DTL BEYOĞLU':
+                rec.teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
+            elif rec.teknik_servis == 'DTL OKMEYDANI':
+                rec.teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+            elif rec.teknik_servis == 'ZUHAL NEFESLİ':
+                rec.teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
+            else:
+                rec.teknik_servis_adres = ''
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
