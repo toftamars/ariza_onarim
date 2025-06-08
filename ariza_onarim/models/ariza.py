@@ -739,6 +739,17 @@ class ArizaKayit(models.Model):
             else:
                 record.musteri_faturalari = False
 
+    @api.onchange('fatura_kalem_id')
+    def _onchange_fatura_kalem_id(self):
+        if self.fatura_kalem_id:
+            self.urun = self.fatura_kalem_id.product_id.name
+            self.model = self.fatura_kalem_id.product_id.default_code
+            # Ürünün marka bilgisini al
+            if self.fatura_kalem_id.product_id.brand_id:
+                self.marka_id = self.fatura_kalem_id.product_id.brand_id.id
+            else:
+                self.marka_id = False
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
