@@ -452,14 +452,18 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
-        # Chatter'a mesaj ekle (transfer no linkli)
+        # Chatter'a mesaj ekle (transfer no linkli, durum ve sms bilgisiyle)
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
+        durum = dict(self._fields['state'].selection).get(self.state, self.state)
+        sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
             body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
                  f"Transfer No: <a href='{transfer_url}' target='_blank'>{picking.name}</a><br/>"
                  f"Kaynak: {kaynak.display_name}<br/>"
                  f"Hedef: {hedef.display_name}<br/>"
-                 f"Tarih: {fields.Date.today()}"
+                 f"Tarih: {fields.Date.today()}<br/>"
+                 f"Durum: {durum}<br/>"
+                 f"SMS Gönderildi: {sms_bilgi}"
         )
         return picking
 
