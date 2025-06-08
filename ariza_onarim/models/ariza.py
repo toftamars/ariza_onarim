@@ -27,10 +27,6 @@ class ArizaKayit(models.Model):
         ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
         ('TEDARİKÇİ', 'TEDARİKÇİ')
     ], string='Teknik Servis')
-    magaza_ariza_tipi = fields.Selection([
-        ('tedarikci', 'Tedarikçiye Gönderim'),
-        ('teknik_servis', 'Teknik Servis'),
-    ], string='Mağaza Arıza Tipi', tracking=True)
     transfer_metodu = fields.Selection([
         ('arac', 'Araç'),
         ('ucretsiz_kargo', 'Ücretsiz Kargo'),
@@ -282,11 +278,11 @@ class ArizaKayit(models.Model):
                     self.kaynak_konum_id = konum
 
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id:
+            if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
                 if self.tedarikci_id.property_stock_supplier:
                     self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
             # Teknik servis ise hedef konum DTL/Stok
-            elif self.magaza_ariza_tipi == 'teknik_servis':
+            elif self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
                 dtl_konum = self.env['stock.location'].search([
                     ('name', '=', 'DTL/Stok'),
                     ('company_id', '=', self.env.company.id)
@@ -364,7 +360,7 @@ class ArizaKayit(models.Model):
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id.property_stock_supplier:
+            if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id.property_stock_supplier:
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('islem_tipi')
@@ -393,7 +389,7 @@ class ArizaKayit(models.Model):
                 'partner_id', 'analitik_hesap_id', 'kaynak_konum_id', 'hedef_konum_id', 'tedarikci_id',
                 'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
                 'fatura_tarihi', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
-                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'magaza_ariza_tipi', 'transfer_metodu',
+                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'transfer_metodu',
                 'magaza_urun_id', 'marka_urunleri_ids', 'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi', 'garanti_kapsaminda_mi', 'ariza_tipi',
                 'invoice_line_id', 'siparis_yok'
             ]
