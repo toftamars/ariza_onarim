@@ -7,7 +7,6 @@
             <form string="Arıza Kaydı">
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft" options='{"no_open": true}'/>
-                    <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi" options='{"no_open": true}'/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}"/>
