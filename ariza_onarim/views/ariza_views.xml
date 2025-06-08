@@ -11,7 +11,6 @@
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', '|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}"/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight"/>
-                    <button name="action_print_delivery" string="Kargo İrsaliyesi Yazdır" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
@@ -25,35 +24,34 @@
                             <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
-                            <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])]}"/>
-                            <field name="magaza_ariza_tipi" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', False)]}"/>
-                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                            <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="tarih"/>
-                            <field name="sorumlu_id"/>
+                            <field name="sorumlu_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                             <field name="transfer_id"/>
                         </group>
                         <group>
-                            <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
-                            <field name="analitik_hesap_id" required="1"/>
-                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                            <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
-                            <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                            <field name="partner_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
+                            <field name="analitik_hesap_id" options="{'no_create': True, 'no_open': True}" required="1"/>
+                            <field name="invoice_line_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                            <field name="magaza_urun_id" options="{'no_create': True, 'no_open': True}" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="marka_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
-                            <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
-                            <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
-                            <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')]}"/>
+                            <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
+                            <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
+                            <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
                             <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
-                        <field name="kaynak_konum_id"/>
-                        <field name="hedef_konum_id"/>
+                        <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
+                        <field name="hedef_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
                     </group>
-                    <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
-                        <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
+                    <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
+                        <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('marka_id', '=', False)]}">
                         <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
@@ -160,14 +158,14 @@
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
             <pivot string="Arıza Kayıtları">
-                <field name="state"/>
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
-                <field name="magaza_ariza_tipi"/>
+                <field name="transfer_metodu"/>
                 <field name="marka_id"/>
                 <field name="sorumlu_id"/>
                 <field name="tarih"/>
-                <field name="company_id"/>
+                <field name="state"/>
+                <field name="id" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -175,12 +173,10 @@
         <field name="name">ariza.kayit.graph</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <graph string="Arıza Kayıtları" type="bar">
-                <field name="tarih" type="row"/>
-                <field name="state" type="col"/>
+            <graph string="Arıza Kayıtları">
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
-                <field name="magaza_ariza_tipi"/>
+                <field name="transfer_metodu"/>
                 <field name="marka_id"/>
             </graph>
         </field>

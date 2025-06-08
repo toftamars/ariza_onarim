@@ -17,19 +17,16 @@ class ArizaKayit(models.Model):
     ], string='İşlem Tipi', required=True, tracking=True)
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü'),
+        ('magaza', 'Mağaza Ürünü')
     ], string='Arıza Tipi', required=True, tracking=True)
     teknik_servis = fields.Selection([
-        ('tedarikci', 'Tedarikçi'),
-        ('dtl_beyoglu', 'DTL Beyoğlu'),
-        ('dtl_okmeydani', 'DTL Ok Meydanı'),
-        ('zuhal', 'Zuhal'),
-        ('magaza', 'Mağaza'),
-    ], string='Teknik Servis', tracking=True)
-    magaza_ariza_tipi = fields.Selection([
-        ('tedarikci', 'Tedarikçiye Gönderim'),
-        ('teknik_servis', 'Teknik Servis'),
-    ], string='Mağaza Arıza Tipi', tracking=True)
+        ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
+        ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
+        ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
+        ('MAĞAZA', 'MAĞAZA'),
+        ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
+        ('TEDARİKÇİ', 'TEDARİKÇİ')
+    ], string='Teknik Servis')
     transfer_metodu = fields.Selection([
         ('arac', 'Araç'),
         ('ucretsiz_kargo', 'Ücretsiz Kargo'),
@@ -56,8 +53,9 @@ class ArizaKayit(models.Model):
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
-    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
-        domain="[('move_id.move_type', 'in', ['out_invoice', 'out_refund']), ('move_id.state', '=', 'posted'), ('move_id.partner_id', '=', partner_id)]")
+    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi',
+        domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product')]",
+        tracking=True)
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=True)
     model = fields.Char(string='Model', required=True)
@@ -90,24 +88,33 @@ class ArizaKayit(models.Model):
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
+    musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
+    teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
+    teslim_alan = fields.Char(string='Teslim Alan')
+    teslim_alan_tc = fields.Char(string='Teslim Alan TC')
+    teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
+    teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
+    teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get('name') or vals.get('name') == _('New'):
-                # Benzersiz arıza numarası oluştur
-                sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                if not sequence:
-                    # Eğer sequence yoksa oluştur
-                    self.env['ir.sequence'].create({
-                        'name': 'Arıza Kayıt',
-                        'code': 'ariza.kayit',
-                        'prefix': 'ARZ/%(year)s/',
-                        'padding': 5,
-                        'company_id': self.env.company.id,
-                    })
-                    sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                vals['name'] = sequence
+            # Sorumlu kişinin analitik bilgisini al
+            if not vals.get('analitik_hesap_id') and vals.get('sorumlu_id'):
+                sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
+                if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
+                    vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
+            # Varsayılan değerleri ayarla
+            if not vals.get('name'):
+                vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+            if not vals.get('state'):
+                vals['state'] = 'draft'
+            if not vals.get('islem_tipi'):
+                vals['islem_tipi'] = 'kabul'
+            if not vals.get('ariza_tipi'):
+                vals['ariza_tipi'] = 'musteri'
+            if not vals.get('sorumlu_id'):
+                vals['sorumlu_id'] = self.env.user.id
         return super().create(vals_list)
 
     @api.depends('invoice_line_id')
@@ -121,31 +128,25 @@ class ArizaKayit(models.Model):
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == 'musteri':
-            self.magaza_ariza_tipi = False
-            self.analitik_hesap_id = False
-            self.kaynak_konum_id = False
-            self.hedef_konum_id = False
-            if not self.siparis_yok:
-                self.urun = False
-                self.model = False
+            self.partner_id = False
+            self.urun = False
+            self.model = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
+            self.transfer_id = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
-            self.siparis_yok = False
-            self.invoice_line_id = False
             self.urun = False
             self.model = False
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
-            if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+            if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
-            self.siparis_yok = False
-            self.invoice_line_id = False
             self.urun = False
             self.model = False
-            self.magaza_ariza_tipi = False
+            self.teslim_magazasi_id = False
+            self.teslim_adresi = False
 
     @api.onchange('teknik_servis')
     def _onchange_teknik_servis(self):
@@ -228,6 +229,29 @@ class ArizaKayit(models.Model):
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
 
+        # Teknik servis seçimine göre hedef konumu otomatik ata
+        if self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
+            dtl_konum = self.env['stock.location'].search([
+                ('name', '=', 'DTL/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
+        elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
+            ariza_konum = self.env['stock.location'].search([
+                ('name', '=', 'Arıza/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if ariza_konum:
+                self.hedef_konum_id = ariza_konum
+        elif self.teknik_servis == 'ZUHAL NEFESLİ':
+            nfsl_konum = self.env['stock.location'].search([
+                ('name', '=', 'Nfsl/Arızalı'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if nfsl_konum:
+                self.hedef_konum_id = nfsl_konum
+
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
@@ -255,11 +279,11 @@ class ArizaKayit(models.Model):
                     self.kaynak_konum_id = konum
 
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id:
+            if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
                 if self.tedarikci_id.property_stock_supplier:
                     self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
             # Teknik servis ise hedef konum DTL/Stok
-            elif self.magaza_ariza_tipi == 'teknik_servis':
+            elif self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
                 dtl_konum = self.env['stock.location'].search([
                     ('name', '=', 'DTL/Stok'),
                     ('company_id', '=', self.env.company.id)
@@ -283,7 +307,7 @@ class ArizaKayit(models.Model):
                             marka = self.env['product.brand'].browse(self.marka_id)
                             if marka and marka.partner_id:
                                 self.tedarikci_id = marka.partner_id.id
-                                self._onchange_tedarikci_id()
+                                self._onchange_tedarikci()
                     else:
                         self.marka_id = False
                         self.tedarikci_id = False
@@ -299,7 +323,7 @@ class ArizaKayit(models.Model):
                             marka = self.env['product.brand'].browse(self.marka_id)
                             if marka and marka.partner_id:
                                 self.tedarikci_id = marka.partner_id.id
-                                self._onchange_tedarikci_id()
+                                self._onchange_tedarikci()
                     else:
                         self.marka_id = False
                         self.tedarikci_id = False
@@ -321,7 +345,7 @@ class ArizaKayit(models.Model):
             # Marka seçilince tedarikçi otomatik gelsin
             if self.marka_id.partner_id:
                 self.tedarikci_id = self.marka_id.partner_id.id
-                self._onchange_tedarikci_id()
+                self._onchange_tedarikci()
         else:
             self.tedarikci_id = False
             self.tedarikci_adresi = False
@@ -331,13 +355,13 @@ class ArizaKayit(models.Model):
             self.magaza_urun_id = False
 
     @api.onchange('tedarikci_id')
-    def _onchange_tedarikci_id(self):
+    def _onchange_tedarikci(self):
         if self.tedarikci_id:
             self.tedarikci_adresi = self.tedarikci_id.street
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.magaza_ariza_tipi == 'tedarikci' and self.tedarikci_id.property_stock_supplier:
+            if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id.property_stock_supplier:
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('islem_tipi')
@@ -366,7 +390,7 @@ class ArizaKayit(models.Model):
                 'partner_id', 'analitik_hesap_id', 'kaynak_konum_id', 'hedef_konum_id', 'tedarikci_id',
                 'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
                 'fatura_tarihi', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
-                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'magaza_ariza_tipi', 'transfer_metodu',
+                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'transfer_metodu',
                 'magaza_urun_id', 'marka_urunleri_ids', 'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi', 'garanti_kapsaminda_mi', 'ariza_tipi',
                 'invoice_line_id', 'siparis_yok'
             ]
@@ -377,46 +401,19 @@ class ArizaKayit(models.Model):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
+
         if not self.analitik_hesap_id:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: analitik_hesap_id yok. Arıza No: {self.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            return
+            raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: kaynak veya hedef konum yok. Arıza No: {self.name} - Kaynak: {kaynak} - Hedef: {hedef}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            return
+            raise UserError(_("Transfer oluşturulamadı: Kaynak veya hedef konum eksik!"))
+        if not self.magaza_urun_id:
+            raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
             ('warehouse_id', '=', kaynak.warehouse_id.id)
         ], limit=1)
         if not picking_type:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: picking_type yok. Arıza No: {self.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            raise UserError(_("Transfer tipi bulunamadı."))
+            raise UserError(_("Transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -430,19 +427,18 @@ class ArizaKayit(models.Model):
         }
         picking = self.env['stock.picking'].create(picking_vals)
         # Ürün hareketi ekle
-        if self.magaza_urun_id:
-            self.env['stock.move'].create({
-                'name': self.urun or self.magaza_urun_id.name,
-                'product_id': self.magaza_urun_id.id,
-                'product_uom_qty': 1,
-                'product_uom': self.magaza_urun_id.uom_id.id,
-                'picking_id': picking.id,
-                'location_id': kaynak.id,
-                'location_dest_id': hedef.id,
-                'company_id': self.env.company.id,
-                'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-                'quantity_done': 1,
-            })
+        self.env['stock.move'].create({
+            'name': self.urun or self.magaza_urun_id.name,
+            'product_id': self.magaza_urun_id.id,
+            'product_uom_qty': 1,
+            'product_uom': self.magaza_urun_id.uom_id.id,
+            'picking_id': picking.id,
+            'location_id': kaynak.id,
+            'location_dest_id': hedef.id,
+            'company_id': self.env.company.id,
+            'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
+            'quantity_done': 1,
+        })
         _logger.create({
             'name': 'ariza_onarim',
             'type': 'server',
@@ -467,6 +463,29 @@ class ArizaKayit(models.Model):
                 'state': 'outgoing',
             })
             sms_obj.send()
+        # SMS ile birlikte mail de gönder
+        if self.partner_id and self.partner_id.email:
+            subject = "Arıza Kaydınız Hakkında Bilgilendirme"
+            self._send_email_to_customer(subject, message)
+
+    def _send_email_to_customer(self, subject, body):
+        if not self.partner_id or not self.partner_id.email:
+            return
+        template = self.env.ref('ariza_onarim.email_template_ariza_bilgilendirme', raise_if_not_found=False)
+        if template:
+            template.with_context(
+                email_to=self.partner_id.email,
+                email_subject=subject,
+                email_body=body
+            ).send_mail(self.id, force_send=True)
+        else:
+            # Template bulunamazsa manuel mail gönder
+            self.env['mail.mail'].create({
+                'subject': subject,
+                'body_html': body,
+                'email_to': self.partner_id.email,
+                'auto_delete': True,
+            }).send()
 
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:
@@ -508,6 +527,30 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
+        # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
+            if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
+                raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
+            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
+            if picking:
+                self.transfer_id = picking.id
+                self.state = 'onaylandi'
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': picking.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
+        # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'MAĞAZA':
+            self.state = 'onaylandi'
+            return
+        # Mağaza ürünü için transfer oluşturma kontrolü
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEKNİK SERVİS':
+            self.state = 'onaylandi'
+            return
         # Mağaza ürünü için transfer oluştur
         if self.ariza_tipi == 'magaza' and not self.transfer_id:
             picking = self._create_stock_transfer()
@@ -525,7 +568,7 @@ class ArizaKayit(models.Model):
         
         # Müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
-            message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı, onarım sürecine alınmıştır."
+            message = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
             self._send_sms_to_customer(message)
             self.sms_gonderildi = True
 
@@ -538,44 +581,7 @@ class ArizaKayit(models.Model):
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
         if self.islem_tipi == 'kabul':
-            # SMS gönderimi buraya taşındı
-            if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-                magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
-                onarim = self.onarim_bilgisi or ''
-                garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
-                ucret = self.ucret_bilgisi or ''
-                durum = dict(self._fields['state'].selection).get(self.state, '')
-                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
-                self._send_sms_to_customer(sms_mesaji)
-            
-            # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
-            if self.transfer_id:
-                # Mevcut transferin konumlarını al
-                mevcut_kaynak = self.transfer_id.location_id
-                mevcut_hedef = self.transfer_id.location_dest_id
-                
-                # Konumları ters çevirerek yeni transfer oluştur
-                yeni_transfer = self._create_stock_transfer(
-                    kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                    hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
-                )
-                
-                if yeni_transfer:
-                    self.transfer_id = yeni_transfer.id
-                    # Yeni transferin detaylarını logla
-                    self.env['ir.logging'].create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'info',
-                        'dbname': self._cr.dbname,
-                        'message': f"Yeni transfer oluşturuldu! Arıza No: {self.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
-                        'path': __file__,
-                        'func': 'action_tamamla',
-                        'line': 0,
-                    })
-                else:
-                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-            
+            # Onay uyarısı göster
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
@@ -586,6 +592,7 @@ class ArizaKayit(models.Model):
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name,
                     'default_urun': self.urun,
+                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
                 }
             }
 
@@ -628,16 +635,7 @@ class ArizaKayit(models.Model):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
-        teknik_servis_adres = ''
-        if self.teknik_servis == 'tedarikci' and self.tedarikci_id:
-            teknik_servis_adres = self.tedarikci_adresi or self.tedarikci_id.street or ''
-        elif self.teknik_servis == 'zuhal':
-            teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
-        elif self.teknik_servis == 'dtl_beyoglu':
-            teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
-        elif self.teknik_servis == 'dtl_okmeydani':
-            teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-        # Rapor contextine adresi ekle
+        teknik_servis_adres = self.teknik_servis_adres
         ctx = dict(self.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
@@ -655,7 +653,7 @@ class ArizaKayit(models.Model):
                     marka = self.env['product.brand'].browse(self.marka_id)
                     if marka and marka.partner_id:
                         self.tedarikci_id = marka.partner_id.id
-                        self._onchange_tedarikci_id()
+                        self._onchange_tedarikci()
             else:
                 self.marka_id = False
                 self.tedarikci_id = False
@@ -669,10 +667,58 @@ class ArizaKayit(models.Model):
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
-        if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+        if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
             self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         else:
             self.teslim_adresi = False
+
+    @api.onchange('sorumlu_id')
+    def _onchange_sorumlu_id(self):
+        """Sorumlu değiştiğinde analitik hesabı güncelle"""
+        if self.sorumlu_id and self.sorumlu_id.employee_id and self.sorumlu_id.employee_id.magaza_id:
+            self.analitik_hesap_id = self.sorumlu_id.employee_id.magaza_id.id
+
+    @api.depends('partner_id')
+    def _get_musteri_faturalari(self):
+        for record in self:
+            if record.partner_id:
+                # Müşteriye ait gelen faturaları bul
+                faturalar = self.env['account.move'].search([
+                    ('partner_id', '=', record.partner_id.id),
+                    ('move_type', '=', 'in_invoice'),
+                    ('state', '=', 'posted'),
+                    ('invoice_line_ids.product_id.type', '=', 'product')  # Sadece stok ürünleri
+                ])
+                record.musteri_faturalari = faturalar
+            else:
+                record.musteri_faturalari = False
+
+    @api.onchange('fatura_kalem_id')
+    def _onchange_fatura_kalem_id(self):
+        if self.fatura_kalem_id:
+            self.urun = self.fatura_kalem_id.product_id.name
+            self.model = self.fatura_kalem_id.product_id.default_code
+            # Ürünün marka bilgisini al
+            if self.fatura_kalem_id.product_id.brand_id:
+                self.marka_id = self.fatura_kalem_id.product_id.brand_id.id
+            else:
+                self.marka_id = False
+
+    @api.depends('teknik_servis', 'tedarikci_id', 'tedarikci_adresi')
+    def _compute_teknik_servis_adres(self):
+        for rec in self:
+            if rec.teknik_servis == 'TEDARİKÇİ' and rec.tedarikci_id:
+                rec.teknik_servis_adres = rec.tedarikci_adresi or rec.tedarikci_id.street or ''
+            elif rec.teknik_servis == 'ZUHAL ARIZA DEPO':
+                rec.teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+            elif rec.teknik_servis == 'DTL BEYOĞLU':
+                rec.teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
+            elif rec.teknik_servis == 'DTL OKMEYDANI':
+                rec.teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+            elif rec.teknik_servis == 'ZUHAL NEFESLİ':
+                rec.teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
+            else:
+                rec.teknik_servis_adres = ''
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -692,3 +738,50 @@ class StockPicking(models.Model):
                         'target': 'current',
                     }
         return res 
+
+class ArizaKayitTamamlaWizard(models.TransientModel):
+    _name = 'ariza.kayit.tamamla.wizard'
+    _description = 'Arıza Kaydı Tamamlama Sihirbazı'
+
+    ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
+    musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
+    urun = fields.Char(string='Ürün', readonly=True)
+    onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
+
+    def action_tamamla(self):
+        ariza = self.ariza_id
+        # SMS gönderimi
+        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
+            magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+            # SMS mesajı
+            sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+            ariza._send_sms_to_customer(sms_mesaji)
+        
+        # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        if ariza.transfer_id:
+            mevcut_kaynak = ariza.transfer_id.location_id
+            mevcut_hedef = ariza.transfer_id.location_dest_id
+            
+            # Konumları ters çevirerek yeni transfer oluştur
+            yeni_transfer = ariza._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+            )
+            
+            if yeni_transfer:
+                ariza.transfer_id = yeni_transfer.id
+                # Yeni transferin detaylarını logla
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'info',
+                    'dbname': self._cr.dbname,
+                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                    'path': __file__,
+                    'func': 'action_tamamla',
+                    'line': 0,
+                })
+            else:
+                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+        
+        return {'type': 'ir.actions.act_window_close'} 
