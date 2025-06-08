@@ -64,8 +64,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         if self.teslim_durumu == 'tamamlandi':
             self.ariza_id.write({
                 'state': 'tamamlandi',
-                'teslim_tarihi': self.teslim_tarihi,
-                'teslim_saati': self.teslim_saati,
                 'teslim_eden': self.teslim_eden.id,
                 'teslim_alan': self.teslim_alan.upper() if self.teslim_alan else '',
                 'teslim_alan_tc': self.teslim_alan_tc,
