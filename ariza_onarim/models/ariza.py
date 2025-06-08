@@ -550,6 +550,10 @@ class ArizaKayit(models.Model):
                     'view_mode': 'form',
                     'target': 'current',
                 }
+        # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'MAĞAZA':
+            self.state = 'onaylandi'
+            return
         # Mağaza ürünü için transfer oluşturma kontrolü
         if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEKNİK SERVİS':
             self.state = 'onaylandi'
