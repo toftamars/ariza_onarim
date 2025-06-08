@@ -16,7 +16,7 @@
                                 <strong>ARIZA NO:</strong> <span t-esc="(doc.name or '').upper()"/>
                             </div>
                             <div class="col-6">
-                                <strong>TARİH:</strong> <span t-esc="(doc.tarih or '').upper()"/>
+                                <strong>TARİH:</strong> <span t-esc="doc.tarih and doc.tarih.strftime('%d.%m.%Y') or ''"/>
                             </div>
                         </div>
                         <div class="row mt-4">
