@@ -506,6 +506,26 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
+        # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
+            if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
+                raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
+            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
+            if picking:
+                self.transfer_id = picking.id
+                self.state = 'onaylandi'
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': picking.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
+        # Mağaza ürünü için transfer oluşturma kontrolü
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEKNİK SERVİS':
+            self.state = 'onaylandi'
+            return
         # Mağaza ürünü için transfer oluştur
         if self.ariza_tipi == 'magaza' and not self.transfer_id:
             picking = self._create_stock_transfer()

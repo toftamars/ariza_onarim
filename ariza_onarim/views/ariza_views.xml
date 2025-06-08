@@ -11,7 +11,6 @@
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', '|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}"/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight"/>
-                    <button name="action_print_delivery" string="Kargo İrsaliyesi Yazdır" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
@@ -40,7 +39,7 @@
                             <field name="magaza_urun_id" options="{'no_create': True, 'no_open': True}" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
-                            <field name="tedarikci_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
+                            <field name="tedarikci_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': ['|',('ariza_tipi','!=','magaza'),('teknik_servis','!=','TEDARİKÇİ')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
@@ -49,8 +48,8 @@
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
-                        <field name="kaynak_konum_id"/>
-                        <field name="hedef_konum_id"/>
+                        <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi','!=','magaza')]}"/>
+                        <field name="hedef_konum_id" attrs="{'invisible': [('ariza_tipi','=','magaza'),('teknik_servis','=','TEDARİKÇİ')]}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False)]}">
                         <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('magaza_ariza_tipi', '!=', 'tedarikci'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
