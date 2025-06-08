@@ -539,15 +539,35 @@ class ArizaKayit(models.Model):
                 durum = dict(self._fields['state'].selection).get(self.state, '')
                 sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
                 self._send_sms_to_customer(sms_mesaji)
+            
             # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
             if self.transfer_id:
-                onceki_kaynak = self.transfer_id.location_id
-                onceki_hedef = self.transfer_id.location_dest_id
-                yeni_transfer = self._create_stock_transfer(kaynak_konum=onceki_hedef, hedef_konum=onceki_kaynak)
+                # Mevcut transferin konumlarını al
+                mevcut_kaynak = self.transfer_id.location_id
+                mevcut_hedef = self.transfer_id.location_dest_id
+                
+                # Konumları ters çevirerek yeni transfer oluştur
+                yeni_transfer = self._create_stock_transfer(
+                    kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                    hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+                )
+                
                 if yeni_transfer:
                     self.transfer_id = yeni_transfer.id
+                    # Yeni transferin detaylarını logla
+                    self.env['ir.logging'].create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'info',
+                        'dbname': self._cr.dbname,
+                        'message': f"Yeni transfer oluşturuldu! Arıza No: {self.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                        'path': __file__,
+                        'func': 'action_tamamla',
+                        'line': 0,
+                    })
                 else:
                     raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+            
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
