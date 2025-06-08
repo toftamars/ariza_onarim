@@ -557,6 +557,12 @@ class ArizaKayit(models.Model):
                     'func': 'action_onayla',
                     'line': 0,
                 })
+
+                # Onarım sürecine alınmıştır SMS'i gönder
+                if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+                    sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz onarım sürecine alınmıştır. İyi günler dileriz."
+                    self._send_sms_to_customer(sms_mesaji)
+
                 return self.env.ref('stock.action_report_delivery').report_action(transfer)
             else:
                 raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
