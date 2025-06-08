@@ -13,47 +13,54 @@
                         </div>
                         <div class="row mt-4">
                             <div class="col-6">
-                                <strong>ARIZA NO:</strong> <span t-field="doc.name"/>
+                                <strong>ARIZA NO:</strong> <span t-esc="(doc.name or '').upper()"/>
                             </div>
                             <div class="col-6">
-                                <strong>TARİH:</strong> <span t-field="doc.tarih"/>
+                                <strong>TARİH:</strong> <span t-esc="(doc.tarih or '').upper()"/>
                             </div>
                         </div>
                         <div class="row mt-4">
                             <div class="col-6">
-                                <strong>MÜŞTERİ:</strong> <span t-field="doc.partner_id.name"/>
+                                <strong>MÜŞTERİ:</strong> <span t-esc="(doc.partner_id.name or '').upper()"/>
                             </div>
                             <div class="col-6">
-                                <strong>TELEFON:</strong> <span t-field="doc.partner_id.phone"/>
+                                <strong>TELEFON:</strong> <span t-esc="(doc.partner_id.phone or '').upper()"/>
                             </div>
                         </div>
                         <div class="row mt-4">
                             <div class="col-6">
-                                <strong>ÜRÜN:</strong> <span t-field="doc.urun"/>
+                                <strong>ÜRÜN:</strong> <span t-esc="(doc.urun or '').upper()"/>
                             </div>
                             <div class="col-6">
-                                <strong>MODEL:</strong> <span t-field="doc.model"/>
+                                <strong>MODEL:</strong> <span t-esc="(doc.model or '').upper()"/>
                             </div>
                         </div>
                         <div class="row mt-4">
                             <div class="col-6">
-                                <strong>MARKA:</strong> <span t-field="doc.marka_id.name"/>
+                                <strong>MARKA:</strong> <span t-esc="(doc.marka_id.name or '').upper()"/>
                             </div>
                             <div class="col-6">
-                                <strong>GARANTİ DURUMU:</strong> <span t-field="doc.garanti_kapsaminda_mi"/>
+                                <strong>GARANTİ DURUMU:</strong> <span t-esc="(doc.garanti_kapsaminda_mi or '').upper()"/>
                             </div>
                         </div>
+                        <t t-if="doc.ariza_tipi == 'magaza'">
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <strong>ANALİTİK HESAP:</strong> <span t-esc="(doc.analitik_hesap_id.name or '').upper()"/>
+                                </div>
+                            </div>
+                        </t>
                         <div class="row mt-4">
                             <div class="col-12">
                                 <strong>ARIZA TANIMI:</strong>
-                                <p t-field="doc.ariza_tanimi"/>
+                                <p t-esc="(doc.ariza_tanimi or '').upper()"/>
                             </div>
                         </div>
                         <t t-if="doc.onarim_bilgisi">
                             <div class="row mt-4">
                                 <div class="col-12">
                                     <strong>ONARIM BİLGİSİ:</strong>
-                                    <p t-field="doc.onarim_bilgisi"/>
+                                    <p t-esc="(doc.onarim_bilgisi or '').upper()"/>
                                 </div>
                             </div>
                         </t>
@@ -61,20 +68,20 @@
                             <div class="row mt-4">
                                 <div class="col-12">
                                     <strong>ÜCRET BİLGİSİ:</strong>
-                                    <p t-field="doc.ucret_bilgisi"/>
+                                    <p t-esc="(doc.ucret_bilgisi or '').upper()"/>
                                 </div>
                             </div>
                         </t>
                         <div class="row mt-4">
                             <div class="col-12">
-                                <strong>Gönderilen:</strong>
-                                <span t-esc="doc.teknik_servis_adres or ''"/>
+                                <strong>GÖNDERİLEN:</strong>
+                                <span t-esc="(doc.teknik_servis_adres or '').upper()"/>
                             </div>
                         </div>
                         <div class="row mt-4">
                             <div class="col-12">
                                 <strong>NOTLAR:</strong>
-                                <p t-field="doc.notlar"/>
+                                <p t-esc="(doc.notlar or '').upper()"/>
                             </div>
                         </div>
                     </div>
