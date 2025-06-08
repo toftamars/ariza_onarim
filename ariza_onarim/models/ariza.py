@@ -282,7 +282,7 @@ class ArizaKayit(models.Model):
                             marka = self.env['product.brand'].browse(self.marka_id)
                             if marka and marka.partner_id:
                                 self.tedarikci_id = marka.partner_id.id
-                                self._onchange_tedarikci_id()
+                                self._onchange_tedarikci()
                     else:
                         self.marka_id = False
                         self.tedarikci_id = False
@@ -298,7 +298,7 @@ class ArizaKayit(models.Model):
                             marka = self.env['product.brand'].browse(self.marka_id)
                             if marka and marka.partner_id:
                                 self.tedarikci_id = marka.partner_id.id
-                                self._onchange_tedarikci_id()
+                                self._onchange_tedarikci()
                     else:
                         self.marka_id = False
                         self.tedarikci_id = False
@@ -320,7 +320,7 @@ class ArizaKayit(models.Model):
             # Marka seçilince tedarikçi otomatik gelsin
             if self.marka_id.partner_id:
                 self.tedarikci_id = self.marka_id.partner_id.id
-                self._onchange_tedarikci_id()
+                self._onchange_tedarikci()
         else:
             self.tedarikci_id = False
             self.tedarikci_adresi = False
@@ -330,7 +330,7 @@ class ArizaKayit(models.Model):
             self.magaza_urun_id = False
 
     @api.onchange('tedarikci_id')
-    def _onchange_tedarikci_id(self):
+    def _onchange_tedarikci(self):
         if self.tedarikci_id:
             self.tedarikci_adresi = self.tedarikci_id.street
             self.tedarikci_telefon = self.tedarikci_id.phone
@@ -648,7 +648,7 @@ class ArizaKayit(models.Model):
                     marka = self.env['product.brand'].browse(self.marka_id)
                     if marka and marka.partner_id:
                         self.tedarikci_id = marka.partner_id.id
-                        self._onchange_tedarikci_id()
+                        self._onchange_tedarikci()
             else:
                 self.marka_id = False
                 self.tedarikci_id = False
