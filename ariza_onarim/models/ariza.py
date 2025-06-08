@@ -560,7 +560,7 @@ class ArizaKayit(models.Model):
                 if self.partner_id and self.partner_id.phone:
                     sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz onarım sürecine alınmıştır. İyi günler dileriz."
                     self._send_sms_to_customer(sms_mesaji)
-                return True
+                return {'type': 'ir.actions.act_window_close'}
 
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun

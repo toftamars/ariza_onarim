@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 class ArizaKayitTamamlaWizard(models.TransientModel):
     _name = 'ariza.kayit.tamamla.wizard'
@@ -73,6 +74,28 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'teslim_eden_imza': self.teslim_eden_imza,
                 'teslim_notu': self.teslim_notu.upper() if self.teslim_notu else '',
             })
+            if self.ariza_id.ariza_tipi == 'magaza':
+                if self.ariza_id.transfer_id:
+                    mevcut_kaynak = self.ariza_id.transfer_id.location_id
+                    mevcut_hedef = self.ariza_id.transfer_id.location_dest_id
+                    yeni_transfer = self.ariza_id._create_stock_transfer(
+                        kaynak_konum=mevcut_hedef,
+                        hedef_konum=mevcut_kaynak
+                    )
+                    if yeni_transfer:
+                        self.ariza_id.transfer_id = yeni_transfer.id
+                        self.env['ir.logging'].create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'info',
+                            'dbname': self._cr.dbname,
+                            'message': f"Yeni transfer oluşturuldu! Arıza No: {self.ariza_id.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                            'path': __file__,
+                            'func': 'action_tamamla',
+                            'line': 0,
+                        })
+                    else:
+                        raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         elif self.teslim_durumu == 'iptal':
             self.ariza_id.write({
                 'state': 'iptal',
