@@ -411,12 +411,22 @@ class ArizaKayit(models.Model):
             raise UserError(_("Transfer oluşturulamadı: Kaynak veya hedef konum eksik!"))
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
-        picking_type = self.env['stock.picking.type'].search([
-            ('code', '=', 'internal'),
-            ('warehouse_id', '=', kaynak.warehouse_id.id)
-        ], limit=1)
-        if not picking_type:
-            raise UserError(_("Transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        # Picking type belirleme
+        picking_type = None
+        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ':
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', 'ilike', 'Tamir Teslimatları'),
+                ('warehouse_id', '=', kaynak.warehouse_id.id)
+            ], limit=1)
+            if not picking_type:
+                raise UserError(_("'Tamir Teslimatları' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        else:
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', kaynak.warehouse_id.id)
+            ], limit=1)
+            if not picking_type:
+                raise UserError(_("Transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -557,7 +567,6 @@ class ArizaKayit(models.Model):
                     'res_model': 'stock.picking',
                     'res_id': picking.id,
                     'view_mode': 'form',
-                    'target': 'current',
                 }
         # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
         if self.ariza_tipi == 'magaza' and self.teknik_servis == 'MAĞAZA':
@@ -579,7 +588,6 @@ class ArizaKayit(models.Model):
                     'res_model': 'stock.picking',
                     'res_id': picking.id,
                     'view_mode': 'form',
-                    'target': 'current',
                 }
         
         # Müşteri ürünü işlemlerinde SMS gönder
