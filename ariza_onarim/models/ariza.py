@@ -605,6 +605,28 @@ class ArizaKayit(models.Model):
         return ''
 
     def action_teslim_et(self):
+        # Eğer işlem tipi 'kabul' ve arıza tipi 'magaza' ise, transferi ters çevirerek yeni transfer oluştur
+        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.transfer_id:
+            mevcut_kaynak = self.transfer_id.location_id
+            mevcut_hedef = self.transfer_id.location_dest_id
+            yeni_transfer = self._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+            )
+            if yeni_transfer:
+                self.transfer_id = yeni_transfer.id
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'info',
+                    'dbname': self._cr.dbname,
+                    'message': f"Teslimde yeni transfer oluşturuldu! Arıza No: {self.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                    'path': __file__,
+                    'func': 'action_teslim_et',
+                    'line': 0,
+                })
+            else:
+                raise UserError(_("Teslimde transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         self.state = 'teslim_edildi'
         # SMS gönderimi kaldırıldı, artık tamamla butonunda gönderilecek
 
