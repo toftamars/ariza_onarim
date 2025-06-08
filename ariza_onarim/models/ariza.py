@@ -131,6 +131,7 @@ class ArizaKayit(models.Model):
             self.model = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
+            self.transfer_id = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
             self.urun = False
