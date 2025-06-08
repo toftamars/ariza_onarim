@@ -606,22 +606,61 @@ class ArizaKayit(models.Model):
         self.state = 'onaylandi'
 
     def action_tamamla(self):
-        # Sadece kabul işlemlerinde tamamla butonu olsun
-        if self.islem_tipi == 'kabul':
-            # Onay uyarısı göster
-            return {
-                'name': 'Onarım Tamamlandı',
-                'type': 'ir.actions.act_window',
-                'res_model': 'ariza.kayit.tamamla.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name,
-                    'default_urun': self.urun,
-                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
-                }
-            }
+        ariza = self.ariza_id
+        # SMS gönderimi
+        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
+            magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+            # SMS mesajı
+            sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+            ariza._send_sms_to_customer(sms_mesaji)
+        
+        # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        if ariza.transfer_id:
+            mevcut_kaynak = ariza.transfer_id.location_id
+            mevcut_hedef = ariza.transfer_id.location_dest_id
+            
+            # Konumları ters çevirerek yeni transfer oluştur (çıkış transferi)
+            yeni_transfer = ariza._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+            )
+            
+            if yeni_transfer:
+                ariza.transfer_id = yeni_transfer.id
+                # Yeni transferin detaylarını logla
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'info',
+                    'dbname': self._cr.dbname,
+                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                    'path': __file__,
+                    'func': 'action_tamamla',
+                    'line': 0,
+                })
+                # Eğer işlem tipi 'Arıza Kabul', arıza tipi 'Mağaza Ürünü', teknik servis 'TEDARİKÇİ' ise planlanan giriş transferi oluştur
+                if ariza.islem_tipi == 'kabul' and ariza.ariza_tipi == 'magaza' and ariza.teknik_servis == 'TEDARİKÇİ':
+                    # Giriş transferi: kaynak ve hedefi tekrar ters çevir
+                    giris_transfer = ariza._create_stock_transfer(
+                        kaynak_konum=mevcut_kaynak,  # Mağaza/depo
+                        hedef_konum=mevcut_hedef    # Tedarikçi
+                    )
+                    # Giriş transferi planlanan olarak kalsın (onaylama yok)
+                    if giris_transfer:
+                        self.env['ir.logging'].create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'info',
+                            'dbname': self._cr.dbname,
+                            'message': f"Planlanan giriş transferi oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {giris_transfer.id} - Kaynak: {mevcut_kaynak.name} - Hedef: {mevcut_hedef.name}",
+                            'path': __file__,
+                            'func': 'action_tamamla',
+                            'line': 0,
+                        })
+            else:
+                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+        
+        return {'type': 'ir.actions.act_window_close'}
 
     def _clean_magaza_adi(self, name):
         # [1101404] Perakende - Akasya -> Akasya
@@ -821,7 +860,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             mevcut_kaynak = ariza.transfer_id.location_id
             mevcut_hedef = ariza.transfer_id.location_dest_id
             
-            # Konumları ters çevirerek yeni transfer oluştur
+            # Konumları ters çevirerek yeni transfer oluştur (çıkış transferi)
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
                 hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
@@ -840,6 +879,25 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'func': 'action_tamamla',
                     'line': 0,
                 })
+                # Eğer işlem tipi 'Arıza Kabul', arıza tipi 'Mağaza Ürünü', teknik servis 'TEDARİKÇİ' ise planlanan giriş transferi oluştur
+                if ariza.islem_tipi == 'kabul' and ariza.ariza_tipi == 'magaza' and ariza.teknik_servis == 'TEDARİKÇİ':
+                    # Giriş transferi: kaynak ve hedefi tekrar ters çevir
+                    giris_transfer = ariza._create_stock_transfer(
+                        kaynak_konum=mevcut_kaynak,  # Mağaza/depo
+                        hedef_konum=mevcut_hedef    # Tedarikçi
+                    )
+                    # Giriş transferi planlanan olarak kalsın (onaylama yok)
+                    if giris_transfer:
+                        self.env['ir.logging'].create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'info',
+                            'dbname': self._cr.dbname,
+                            'message': f"Planlanan giriş transferi oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {giris_transfer.id} - Kaynak: {mevcut_kaynak.name} - Hedef: {mevcut_hedef.name}",
+                            'path': __file__,
+                            'func': 'action_tamamla',
+                            'line': 0,
+                        })
             else:
                 raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         
