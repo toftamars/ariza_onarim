@@ -18,6 +18,10 @@
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
+                        <div style="position:absolute; top:0; right:0; text-align:right;">
+                            <strong>GÖNDERİLEN:</strong>
+                            <field name="teknik_servis_adres" readonly="1"/>
+                        </div>
                     </div>
                     <group>
                         <group>
