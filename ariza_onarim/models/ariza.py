@@ -452,10 +452,11 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
-        # Chatter'a mesaj ekle
+        # Chatter'a mesaj ekle (transfer no linkli)
+        transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
         self.message_post(
             body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
-                 f"Transfer No: {picking.name}<br/>"
+                 f"Transfer No: <a href='{transfer_url}' target='_blank'>{picking.name}</a><br/>"
                  f"Kaynak: {kaynak.display_name}<br/>"
                  f"Hedef: {hedef.display_name}<br/>"
                  f"Tarih: {fields.Date.today()}"
