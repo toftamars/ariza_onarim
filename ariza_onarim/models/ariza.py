@@ -146,7 +146,7 @@ class ArizaKayit(models.Model):
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
 
-    @api.onchange('teknik_servis', 'analitik_hesap_id')
+    @api.onchange('teknik_servis')
     def _onchange_teknik_servis(self):
         if not self.analitik_hesap_id:
             return
@@ -266,7 +266,7 @@ class ArizaKayit(models.Model):
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
 
-    @api.onchange('invoice_line_id', 'islem_tipi', 'siparis_yok')
+    @api.onchange('invoice_line_id')
     def _onchange_invoice_line_id(self):
         if self.invoice_line_id:
             product = self.invoice_line_id.product_id
@@ -344,7 +344,7 @@ class ArizaKayit(models.Model):
         if self.islem_tipi != 'teslim':
             self.garanti_kapsaminda_mi = False
 
-    @api.onchange('ariza_tipi', 'analitik_hesap_id')
+    @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi_teknik(self):
         if self.ariza_tipi == 'teknik' and self.analitik_hesap_id:
             # Analitik hesaptan kaynak konumu al
@@ -502,38 +502,32 @@ class ArizaKayit(models.Model):
         return False
 
     def action_onayla(self):
-        if self.islem_tipi == 'kabul':
-            if self.ariza_tipi == 'magaza':
-                # Eğer daha önce oluşturulmuş bir transfer varsa, onu iptal et
-                if self.transfer_id:
-                    self.transfer_id.action_cancel()
-                    self.transfer_id = False
-                # Yeni transfer oluştur
-                transfer = self._create_stock_transfer()
-                if transfer:
-                    self.transfer_id = transfer.id
-                    # Transfer oluşturulduğunda log kaydı
-                    self.env['ir.logging'].create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'info',
-                        'dbname': self._cr.dbname,
-                        'message': f"Transfer yeniden oluşturuldu! Arıza No: {self.name} - Transfer ID: {transfer.id}",
-                        'path': __file__,
-                        'func': 'action_onayla',
-                        'line': 0,
-                    })
-                    return self.env.ref('stock.action_report_delivery').report_action(transfer)
-                else:
-                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-            elif self.ariza_tipi == 'musteri':
+        # Mağaza ürünü için transfer oluştur
+        if self.ariza_tipi == 'magaza' and not self.transfer_id:
+            picking = self._create_stock_transfer()
+            if picking:
+                self.transfer_id = picking.id
                 self.state = 'onaylandi'
-                if self.partner_id and self.partner_id.phone:
-                    sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz onarım sürecine alınmıştır. İyi günler dileriz."
-                    self._send_sms_to_customer(sms_mesaji)
-                    # SMS gönderildiğinde sohbet alanına mesaj ekle
-                    self.message_post(body=_("SMS gönderildi ve başarılı"))
-                return {'type': 'ir.actions.act_window_close'}
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': picking.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
+        
+        # Müşteri ürünü işlemlerinde SMS gönder
+        if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
+            message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı, onarım sürecine alınmıştır."
+            self._send_sms_to_customer(message)
+            self.sms_gonderildi = True
+
+        # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
+        if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
+            self.analitik_hesap_id = self.ariza_kabul_id.analitik_hesap_id
+
+        self.state = 'onaylandi'
 
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
