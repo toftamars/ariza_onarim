@@ -23,8 +23,9 @@ class ArizaKayit(models.Model):
         ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
         ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
         ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
-        ('Mağaza Tedarikçi', 'Mağaza Tedarikçi'),
-        ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ')
+        ('MAĞAZA', 'MAĞAZA'),
+        ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
+        ('TEDARİKÇİ', 'TEDARİKÇİ')
     ], string='Teknik Servis')
     magaza_ariza_tipi = fields.Selection([
         ('tedarikci', 'Tedarikçiye Gönderim'),
