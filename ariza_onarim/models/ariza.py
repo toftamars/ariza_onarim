@@ -571,7 +571,7 @@ class ArizaKayit(models.Model):
         
         # Müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
-            message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı, onarım sürecine alınmıştır."
+            message = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
             self._send_sms_to_customer(message)
             self.sms_gonderildi = True
 
