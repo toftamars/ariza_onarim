@@ -652,10 +652,20 @@ class ArizaKayit(models.Model):
                     'func': 'action_teslim_et',
                     'line': 0,
                 })
+                self.state = 'teslim_edildi'
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': yeni_transfer.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
             else:
                 raise UserError(_("Teslimde transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         self.state = 'teslim_edildi'
         # SMS gönderimi kaldırıldı, artık tamamla butonunda gönderilecek
+        return None
 
     def action_iptal(self):
         self.state = 'iptal'
