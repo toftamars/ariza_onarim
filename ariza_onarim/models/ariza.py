@@ -50,6 +50,7 @@ class ArizaKayit(models.Model):
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
+        ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
@@ -817,6 +818,14 @@ class ArizaKayit(models.Model):
                 rec.teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
             else:
                 rec.teknik_servis_adres = ''
+
+    def action_lock(self):
+        for rec in self:
+            rec.state = 'kilitli'
+
+    def action_unlock(self):
+        for rec in self:
+            rec.state = 'draft'
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'

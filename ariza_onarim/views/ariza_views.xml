@@ -11,6 +11,8 @@
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', '|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" options='{"no_open": true}'/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi" options='{"no_open": true}'/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
+                    <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
+                    <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
@@ -34,7 +36,7 @@
                             <field name="sorumlu_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                             <field name="transfer_id" widget="many2one" options="{'no_open': true, 'no_create': true}"/>
-                            <field name="teslim_magazasi_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}" options="{'no_open': true, 'no_create': true}"/>
+                            <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options="{'no_open': true, 'no_create': true}"/>
                         </group>
                         <group>
                             <field name="partner_id" options="{'no_create': true, 'no_open': true}" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
