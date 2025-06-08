@@ -458,7 +458,7 @@ class ArizaKayit(models.Model):
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
             body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
-                 f"Transfer No: <a href='{transfer_url}' target='_blank'>{picking.name}</a><br/>"
+                 f"Transfer No: <a href='{transfer_url}'>{picking.name}</a><br/>"
                  f"Kaynak: {kaynak.display_name}<br/>"
                  f"Hedef: {hedef.display_name}<br/>"
                  f"Tarih: {fields.Date.today()}<br/>"
