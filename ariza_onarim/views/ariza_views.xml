@@ -5,6 +5,10 @@
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
+                <div style="position:fixed; top: 70px; right: 40px; z-index: 1000; background: #fff; padding: 8px 16px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 15px;">
+                    <strong>GÖNDERİLEN:</strong>
+                    <field name="teknik_servis_adres" readonly="1"/>
+                </div>
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
                     <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'kabul'), ('state', '!=', 'onaylandi')]}" />
@@ -18,10 +22,6 @@
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
-                        <div style="position:absolute; top:0; right:0; text-align:right;">
-                            <strong>GÖNDERİLEN:</strong>
-                            <field name="teknik_servis_adres" readonly="1"/>
-                        </div>
                     </div>
                     <group>
                         <group>
