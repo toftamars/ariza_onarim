@@ -24,7 +24,7 @@
                             <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
-                            <field name="teknik_servis" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="teknik_servis"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="tarih"/>
                             <field name="sorumlu_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
