@@ -570,62 +570,7 @@ class ArizaKayit(models.Model):
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
         if self.islem_tipi == 'kabul':
-            # SMS ve mail gönderimi buraya taşındı
-            if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
-                magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
-                onarim = self.onarim_bilgisi or ''
-                garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
-                ucret = self.ucret_bilgisi or ''
-                durum = dict(self._fields['state'].selection).get(self.state, '')
-                
-                # SMS mesajı
-                sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
-                self._send_sms_to_customer(sms_mesaji)
-                
-                # Mail mesajı
-                mail_konusu = f"Arıza Kaydı {self.name} - Ürününüz Teslime Hazır"
-                mail_icerik = f"""
-                Sayın {self.partner_id.name},
-
-                {self.name} numaralı arıza kaydınız için {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alınmaya hazırdır.
-
-                Durum: {durum}
-                Garanti Kapsamında mı?: {garanti}
-                Onarım Bilgisi: {onarim}
-                Ücret Bilgisi: {ucret}
-                Teslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}
-
-                İyi günler dileriz.
-                """
-                self._send_email_to_customer(mail_konusu, mail_icerik)
-            
-            # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
-            if self.transfer_id:
-                mevcut_kaynak = self.transfer_id.location_id
-                mevcut_hedef = self.transfer_id.location_dest_id
-                
-                # Konumları ters çevirerek yeni transfer oluştur
-                yeni_transfer = self._create_stock_transfer(
-                    kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                    hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
-                )
-                
-                if yeni_transfer:
-                    self.transfer_id = yeni_transfer.id
-                    # Yeni transferin detaylarını logla
-                    self.env['ir.logging'].create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'info',
-                        'dbname': self._cr.dbname,
-                        'message': f"Yeni transfer oluşturuldu! Arıza No: {self.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
-                        'path': __file__,
-                        'func': 'action_tamamla',
-                        'line': 0,
-                    })
-                else:
-                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-            
+            # Onay uyarısı göster
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
@@ -636,6 +581,7 @@ class ArizaKayit(models.Model):
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name,
                     'default_urun': self.urun,
+                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS ve mail olarak bilgilendirme yapılacaktır. Emin misiniz?'
                 }
             }
 
@@ -774,3 +720,72 @@ class StockPicking(models.Model):
                         'target': 'current',
                     }
         return res 
+
+class ArizaKayitTamamlaWizard(models.TransientModel):
+    _name = 'ariza.kayit.tamamla.wizard'
+    _description = 'Arıza Kaydı Tamamlama Sihirbazı'
+
+    ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
+    musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
+    urun = fields.Char(string='Ürün', readonly=True)
+    onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
+
+    def action_tamamla(self):
+        ariza = self.ariza_id
+        # SMS ve mail gönderimi
+        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
+            magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+            onarim = ariza.onarim_bilgisi or ''
+            garanti = dict(ariza._fields['garanti_kapsaminda_mi'].selection).get(ariza.garanti_kapsaminda_mi, '')
+            ucret = ariza.ucret_bilgisi or ''
+            durum = dict(ariza._fields['state'].selection).get(ariza.state, '')
+            
+            # SMS mesajı
+            sms_mesaji = f"Sayın {ariza.partner_id.name} {ariza.name}, {ariza.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''}\nİyi günler dileriz."
+            ariza._send_sms_to_customer(sms_mesaji)
+            
+            # Mail mesajı
+            mail_konusu = f"Arıza Kaydı {ariza.name} - Ürününüz Teslime Hazır"
+            mail_icerik = f"""
+            Sayın {ariza.partner_id.name},
+
+            {ariza.name} numaralı arıza kaydınız için {ariza.urun} ürününüz {magaza_adi} mağazamızdan teslim alınmaya hazırdır.
+
+            Durum: {durum}
+            Garanti Kapsamında mı?: {garanti}
+            Onarım Bilgisi: {onarim}
+            Ücret Bilgisi: {ucret}
+            Teslim Mağazası: {ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''}
+
+            İyi günler dileriz.
+            """
+            ariza._send_email_to_customer(mail_konusu, mail_icerik)
+        
+        # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        if ariza.transfer_id:
+            mevcut_kaynak = ariza.transfer_id.location_id
+            mevcut_hedef = ariza.transfer_id.location_dest_id
+            
+            # Konumları ters çevirerek yeni transfer oluştur
+            yeni_transfer = ariza._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+            )
+            
+            if yeni_transfer:
+                ariza.transfer_id = yeni_transfer.id
+                # Yeni transferin detaylarını logla
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'info',
+                    'dbname': self._cr.dbname,
+                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                    'path': __file__,
+                    'func': 'action_tamamla',
+                    'line': 0,
+                })
+            else:
+                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+        
+        return {'type': 'ir.actions.act_window_close'} 
