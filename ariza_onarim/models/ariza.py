@@ -532,35 +532,35 @@ class ArizaKayit(models.Model):
 
     def action_onayla(self):
         if self.islem_tipi == 'kabul':
-            # Eğer daha önce oluşturulmuş bir transfer varsa, onu iptal et
-            if self.transfer_id:
-                self.transfer_id.action_cancel()
-                self.transfer_id = False
-
-            # Yeni transfer oluştur
-            transfer = self._create_stock_transfer()
-            if transfer:
-                self.transfer_id = transfer.id
-                # Transfer oluşturulduğunda log kaydı
-                self.env['ir.logging'].create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'info',
-                    'dbname': self._cr.dbname,
-                    'message': f"Transfer yeniden oluşturuldu! Arıza No: {self.name} - Transfer ID: {transfer.id}",
-                    'path': __file__,
-                    'func': 'action_onayla',
-                    'line': 0,
-                })
-
-                # Onarım sürecine alınmıştır SMS'i gönder
-                if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
+            if self.ariza_tipi == 'magaza':
+                # Eğer daha önce oluşturulmuş bir transfer varsa, onu iptal et
+                if self.transfer_id:
+                    self.transfer_id.action_cancel()
+                    self.transfer_id = False
+                # Yeni transfer oluştur
+                transfer = self._create_stock_transfer()
+                if transfer:
+                    self.transfer_id = transfer.id
+                    # Transfer oluşturulduğunda log kaydı
+                    self.env['ir.logging'].create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'info',
+                        'dbname': self._cr.dbname,
+                        'message': f"Transfer yeniden oluşturuldu! Arıza No: {self.name} - Transfer ID: {transfer.id}",
+                        'path': __file__,
+                        'func': 'action_onayla',
+                        'line': 0,
+                    })
+                    return self.env.ref('stock.action_report_delivery').report_action(transfer)
+                else:
+                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+            elif self.ariza_tipi == 'musteri':
+                self.state = 'onaylandi'
+                if self.partner_id and self.partner_id.phone:
                     sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz onarım sürecine alınmıştır. İyi günler dileriz."
                     self._send_sms_to_customer(sms_mesaji)
-
-                return self.env.ref('stock.action_report_delivery').report_action(transfer)
-            else:
-                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+                return True
 
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
