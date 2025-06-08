@@ -400,6 +400,13 @@ class ArizaKayit(models.Model):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
+        
+        # Tedarikçi için özel kontrol
+        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+            if not self.tedarikci_id.property_stock_supplier:
+                raise UserError(_("Tedarikçi için stok konumu tanımlanmamış!"))
+            hedef = self.tedarikci_id.property_stock_supplier
+
         if not self.analitik_hesap_id:
             raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
@@ -532,9 +539,9 @@ class ArizaKayit(models.Model):
     def action_onayla(self):
         # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
         if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
-            if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
-                raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
+            if not self.tedarikci_id:
+                raise UserError('Tedarikçi seçilmedi!')
+            picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
                 self.state = 'onaylandi'

@@ -38,7 +38,7 @@
                             <field name="magaza_urun_id" options="{'no_create': True, 'no_open': True}" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
-                            <field name="tedarikci_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': ['|',('ariza_tipi','!=','magaza'),('teknik_servis','!=','TEDARİKÇİ')]}"/>
+                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
@@ -48,7 +48,7 @@
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
-                        <field name="hedef_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
+                        <field name="hedef_konum_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('teknik_servis', 'in', ['MAĞAZA', 'TEDARİKÇİ'])], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
                         <field name="marka_urunleri_ids" widget="many2many_tags" attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False), ('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
