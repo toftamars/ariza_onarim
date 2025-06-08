@@ -60,46 +60,45 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         return res
 
     def action_tamamla(self):
-        self.ensure_one()
-        if self.teslim_durumu == 'tamamlandi':
-            self.ariza_id.write({
-                'state': 'tamamlandi',
-                'teslim_alan': self.teslim_alan.upper() if self.teslim_alan else '',
-                'teslim_alan_tc': self.teslim_alan_tc,
-                'teslim_alan_telefon': self.teslim_alan_telefon,
-                'teslim_alan_imza': self.teslim_alan_imza,
-                'teslim_notu': self.teslim_notu.upper() if self.teslim_notu else '',
-            })
-            if self.ariza_id.ariza_tipi == 'magaza':
-                if self.ariza_id.transfer_id:
-                    mevcut_kaynak = self.ariza_id.transfer_id.location_id
-                    mevcut_hedef = self.ariza_id.transfer_id.location_dest_id
-                    yeni_transfer = self.ariza_id._create_stock_transfer(
-                        kaynak_konum=mevcut_hedef,
-                        hedef_konum=mevcut_kaynak
-                    )
-                    if yeni_transfer:
-                        self.ariza_id.transfer_id = yeni_transfer.id
-                        self.env['ir.logging'].create({
-                            'name': 'ariza_onarim',
-                            'type': 'server',
-                            'level': 'info',
-                            'dbname': self._cr.dbname,
-                            'message': f"Yeni transfer oluşturuldu! Arıza No: {self.ariza_id.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
-                            'path': __file__,
-                            'func': 'action_tamamla',
-                            'line': 0,
-                        })
-                    else:
-                        raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-        elif self.teslim_durumu == 'iptal':
-            self.ariza_id.write({
-                'state': 'iptal',
-                'teslim_notu': self.teslim_notu.upper() if self.teslim_notu else '',
-            })
-        elif self.teslim_durumu == 'beklemede':
-            self.ariza_id.write({
-                'state': 'beklemede',
-                'teslim_notu': self.teslim_notu.upper() if self.teslim_notu else '',
-            })
+        ariza = self.ariza_id
+        # SMS gönderimi
+        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
+            magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+            # SMS mesajı
+            sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+            ariza._send_sms_to_customer(sms_mesaji)
+        
+        # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        if ariza.transfer_id:
+            mevcut_kaynak = ariza.transfer_id.location_id
+            mevcut_hedef = ariza.transfer_id.location_dest_id
+            
+            # Konumları ters çevirerek yeni transfer oluştur
+            yeni_transfer = ariza._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
+                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+            )
+            
+            if yeni_transfer:
+                ariza.transfer_id = yeni_transfer.id
+                # Yeni transferin detaylarını logla
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'info',
+                    'dbname': self._cr.dbname,
+                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
+                    'path': __file__,
+                    'func': 'action_tamamla',
+                    'line': 0,
+                })
+            else:
+                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+        
+        # Arıza kaydını güncelle
+        ariza.write({
+            'state': 'tamamlandi',
+            'teslim_notu': self.teslim_notu if hasattr(self, 'teslim_notu') else False
+        })
+        
         return {'type': 'ir.actions.act_window_close'} 

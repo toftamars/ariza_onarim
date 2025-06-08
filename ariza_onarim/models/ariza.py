@@ -94,6 +94,7 @@ class ArizaKayit(models.Model):
     teslim_alan_tc = fields.Char(string='Teslim Alan TC')
     teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
+    teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
