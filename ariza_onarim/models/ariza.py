@@ -95,6 +95,7 @@ class ArizaKayit(models.Model):
     teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
+    contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -401,7 +402,9 @@ class ArizaKayit(models.Model):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
-
+        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise hedef contact_id olsun
+        if self.ariza_tipi == 'magaza' and self.islem_tipi == 'kabul' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
+            hedef = self.contact_id.property_stock_customer or self.contact_id.property_stock_supplier
         if not self.analitik_hesap_id:
             raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
