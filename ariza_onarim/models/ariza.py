@@ -16,9 +16,11 @@ class ArizaKayit(models.Model):
         ('kabul', 'Arıza Kabul'),
     ], string='İşlem Tipi', required=True, tracking=True)
     ariza_tipi = fields.Selection([
-        ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü'),
-    ], string='Arıza Tipi', required=True, tracking=True)
+        ('musteri', 'MÜŞTERİ ÜRÜNÜ'),
+        ('magaza', 'MAĞAZA ÜRÜNÜ'),
+        ('teknik_zuhal', 'ZUHAL ARIZA DEPO'),
+        ('teknik_nefesli', 'ZUHAL NEFESLİ')
+    ], string='ARIZA TİPİ', required=True, default='musteri', tracking=True)
     teknik_servis = fields.Selection([
         ('tedarikci', 'Tedarikçi'),
         ('dtl_beyoglu', 'DTL Beyoğlu'),
@@ -121,31 +123,30 @@ class ArizaKayit(models.Model):
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == 'musteri':
-            self.magaza_ariza_tipi = False
-            self.analitik_hesap_id = False
-            self.kaynak_konum_id = False
-            self.hedef_konum_id = False
-            if not self.siparis_yok:
-                self.urun = False
-                self.model = False
+            self.partner_id = False
+            self.urun = False
+            self.model = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
-            self.siparis_yok = False
-            self.invoice_line_id = False
             self.urun = False
             self.model = False
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-        elif self.ariza_tipi == 'teknik':
+        elif self.ariza_tipi == 'teknik_zuhal':
             self.partner_id = False
-            self.siparis_yok = False
-            self.invoice_line_id = False
             self.urun = False
             self.model = False
-            self.magaza_ariza_tipi = False
+            self.teslim_magazasi_id = False
+            self.teslim_adresi = 'HALKALI MERKEZ MAH. DEREBOYU CD. NO:8/B'
+        elif self.ariza_tipi == 'teknik_nefesli':
+            self.partner_id = False
+            self.urun = False
+            self.model = False
+            self.teslim_magazasi_id = False
+            self.teslim_adresi = 'ŞAHKULU, GALİP DEDE CD. NO:33, 34421 BEYOĞLU/İSTANBUL'
 
     @api.onchange('teknik_servis', 'analitik_hesap_id')
     def _onchange_teknik_servis(self):
