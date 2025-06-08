@@ -94,6 +94,10 @@ class ArizaKayit(models.Model):
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
     teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
+    teslim_alan = fields.Char(string='Teslim Alan')
+    teslim_alan_tc = fields.Char(string='Teslim Alan TC')
+    teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
+    teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
 
     @api.model_create_multi
     def create(self, vals_list):
