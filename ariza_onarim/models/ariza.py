@@ -581,7 +581,7 @@ class ArizaKayit(models.Model):
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name,
                     'default_urun': self.urun,
-                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS ve mail olarak bilgilendirme yapılacaktır. Emin misiniz?'
+                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
                 }
             }
 
@@ -732,34 +732,12 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
 
     def action_tamamla(self):
         ariza = self.ariza_id
-        # SMS ve mail gönderimi
+        # SMS gönderimi
         if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
             magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
-            onarim = ariza.onarim_bilgisi or ''
-            garanti = dict(ariza._fields['garanti_kapsaminda_mi'].selection).get(ariza.garanti_kapsaminda_mi, '')
-            ucret = ariza.ucret_bilgisi or ''
-            durum = dict(ariza._fields['state'].selection).get(ariza.state, '')
-            
             # SMS mesajı
-            sms_mesaji = f"Sayın {ariza.partner_id.name} {ariza.name}, {ariza.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''}\nİyi günler dileriz."
+            sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
             ariza._send_sms_to_customer(sms_mesaji)
-            
-            # Mail mesajı
-            mail_konusu = f"Arıza Kaydı {ariza.name} - Ürününüz Teslime Hazır"
-            mail_icerik = f"""
-            Sayın {ariza.partner_id.name},
-
-            {ariza.name} numaralı arıza kaydınız için {ariza.urun} ürününüz {magaza_adi} mağazamızdan teslim alınmaya hazırdır.
-
-            Durum: {durum}
-            Garanti Kapsamında mı?: {garanti}
-            Onarım Bilgisi: {onarim}
-            Ücret Bilgisi: {ucret}
-            Teslim Mağazası: {ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''}
-
-            İyi günler dileriz.
-            """
-            ariza._send_email_to_customer(mail_konusu, mail_icerik)
         
         # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
         if ariza.transfer_id:
