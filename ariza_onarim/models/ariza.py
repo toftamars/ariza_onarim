@@ -449,6 +449,14 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
+        # Chatter'a mesaj ekle
+        self.message_post(
+            body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
+                 f"Transfer No: {picking.name}<br/>"
+                 f"Kaynak: {kaynak.display_name}<br/>"
+                 f"Hedef: {hedef.display_name}<br/>"
+                 f"Tarih: {fields.Date.today()}"
+        )
         return picking
 
     def _send_sms_to_customer(self, message):
