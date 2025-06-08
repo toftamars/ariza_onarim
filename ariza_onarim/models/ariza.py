@@ -468,6 +468,30 @@ class ArizaKayit(models.Model):
             })
             sms_obj.send()
 
+    def _send_email_to_customer(self, subject, body):
+        """Müşteriye mail gönder"""
+        if self.partner_id and self.partner_id.email:
+            try:
+                template = self.env.ref('ariza_onarim.email_template_ariza_bilgilendirme')
+                template.with_context(
+                    email_to=self.partner_id.email,
+                    email_subject=subject,
+                    email_body=body
+                ).send_mail(self.id, force_send=True)
+                return True
+            except Exception as e:
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'error',
+                    'dbname': self._cr.dbname,
+                    'message': f"Mail gönderimi başarısız! Arıza No: {self.name} - Hata: {str(e)}",
+                    'path': __file__,
+                    'func': '_send_email_to_customer',
+                    'line': 0,
+                })
+        return False
+
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:
             return False
@@ -536,19 +560,37 @@ class ArizaKayit(models.Model):
     def action_tamamla(self):
         # Sadece kabul işlemlerinde tamamla butonu olsun
         if self.islem_tipi == 'kabul':
-            # SMS gönderimi buraya taşındı
+            # SMS ve mail gönderimi buraya taşındı
             if self.ariza_tipi == 'musteri' and self.partner_id and self.partner_id.phone:
                 magaza_adi = self._clean_magaza_adi(self.teslim_magazasi_id.name) if self.teslim_magazasi_id else ''
                 onarim = self.onarim_bilgisi or ''
                 garanti = dict(self._fields['garanti_kapsaminda_mi'].selection).get(self.garanti_kapsaminda_mi, '')
                 ucret = self.ucret_bilgisi or ''
                 durum = dict(self._fields['state'].selection).get(self.state, '')
+                
+                # SMS mesajı
                 sms_mesaji = f"Sayın {self.partner_id.name} {self.name}, {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alabilirsiniz.\nDurum: {durum}\nGaranti Kapsamında mı?: {garanti}\nOnarım Bilgisi: {onarim}\nÜcret Bilgisi: {ucret}\nTeslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}\nİyi günler dileriz."
                 self._send_sms_to_customer(sms_mesaji)
+                
+                # Mail mesajı
+                mail_konusu = f"Arıza Kaydı {self.name} - Ürününüz Teslime Hazır"
+                mail_icerik = f"""
+                Sayın {self.partner_id.name},
+
+                {self.name} numaralı arıza kaydınız için {self.urun} ürününüz {magaza_adi} mağazamızdan teslim alınmaya hazırdır.
+
+                Durum: {durum}
+                Garanti Kapsamında mı?: {garanti}
+                Onarım Bilgisi: {onarim}
+                Ücret Bilgisi: {ucret}
+                Teslim Mağazası: {self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''}
+
+                İyi günler dileriz.
+                """
+                self._send_email_to_customer(mail_konusu, mail_icerik)
             
             # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
             if self.transfer_id:
-                # Mevcut transferin konumlarını al
                 mevcut_kaynak = self.transfer_id.location_id
                 mevcut_hedef = self.transfer_id.location_dest_id
                 
