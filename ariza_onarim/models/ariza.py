@@ -474,28 +474,23 @@ class ArizaKayit(models.Model):
             self._send_email_to_customer(subject, message)
 
     def _send_email_to_customer(self, subject, body):
-        """Müşteriye mail gönder"""
-        if self.partner_id and self.partner_id.email:
-            try:
-                template = self.env.ref('ariza_onarim.email_template_ariza_bilgilendirme')
-                template.with_context(
-                    email_to=self.partner_id.email,
-                    email_subject=subject,
-                    email_body=body
-                ).send_mail(self.id, force_send=True)
-                return True
-            except Exception as e:
-                self.env['ir.logging'].create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'error',
-                    'dbname': self._cr.dbname,
-                    'message': f"Mail gönderimi başarısız! Arıza No: {self.name} - Hata: {str(e)}",
-                    'path': __file__,
-                    'func': '_send_email_to_customer',
-                    'line': 0,
-                })
-        return False
+        if not self.partner_id or not self.partner_id.email:
+            return
+        template = self.env.ref('ariza_onarim.email_template_ariza_bilgilendirme', raise_if_not_found=False)
+        if template:
+            template.with_context(
+                email_to=self.partner_id.email,
+                email_subject=subject,
+                email_body=body
+            ).send_mail(self.id, force_send=True)
+        else:
+            # Template bulunamazsa manuel mail gönder
+            self.env['mail.mail'].create({
+                'subject': subject,
+                'body_html': body,
+                'email_to': self.partner_id.email,
+                'auto_delete': True,
+            }).send()
 
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:

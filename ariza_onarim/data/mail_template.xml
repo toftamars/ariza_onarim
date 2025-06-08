@@ -3,20 +3,18 @@
     <data noupdate="1">
         <!-- Arıza Bilgilendirme Mail Şablonu -->
         <record id="email_template_ariza_bilgilendirme" model="mail.template">
-            <field name="name">Arıza Bilgilendirme</field>
+            <field name="name">Arıza Kaydı Bilgilendirme</field>
             <field name="model_id" ref="model_ariza_kayit"/>
-            <field name="subject">{{ ctx.get('email_subject', 'Arıza Bilgilendirme') }}</field>
+            <field name="subject">{{ ctx.get('email_subject', 'Arıza Kaydınız Hakkında Bilgilendirme') }}</field>
             <field name="email_from">{{ user.email_formatted }}</field>
             <field name="email_to">{{ ctx.get('email_to', '') }}</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
-                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        {{ ctx.get('email_body', '') | safe }}
-                    </p>
+                    <p>{{ ctx.get('email_body', '') }}</p>
                 </div>
             </field>
-            <field name="lang">{{ object.partner_id.lang }}</field>
             <field name="auto_delete" eval="True"/>
+            <field name="lang">{{ object.partner_id.lang }}</field>
         </record>
     </data>
 </odoo> 
