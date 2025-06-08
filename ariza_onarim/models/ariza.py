@@ -147,7 +147,7 @@ class ArizaKayit(models.Model):
             self.model = False
             self.magaza_ariza_tipi = False
 
-    @api.onchange('teknik_servis', 'analitik_hesap_id')
+    @api.onchange('teknik_servis')
     def _onchange_teknik_servis(self):
         if not self.analitik_hesap_id:
             return
@@ -267,7 +267,7 @@ class ArizaKayit(models.Model):
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
 
-    @api.onchange('invoice_line_id', 'islem_tipi', 'siparis_yok')
+    @api.onchange('invoice_line_id')
     def _onchange_invoice_line_id(self):
         if self.invoice_line_id:
             product = self.invoice_line_id.product_id
@@ -345,7 +345,7 @@ class ArizaKayit(models.Model):
         if self.islem_tipi != 'teslim':
             self.garanti_kapsaminda_mi = False
 
-    @api.onchange('ariza_tipi', 'analitik_hesap_id')
+    @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi_teknik(self):
         if self.ariza_tipi == 'teknik' and self.analitik_hesap_id:
             # Analitik hesaptan kaynak konumu al
@@ -513,6 +513,7 @@ class ArizaKayit(models.Model):
             picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
+                self.state = 'onaylandi'
                 return {
                     'type': 'ir.actions.act_window',
                     'name': 'Transfer Belgesi',
@@ -521,6 +522,7 @@ class ArizaKayit(models.Model):
                     'view_mode': 'form',
                     'target': 'current',
                 }
+        
         # Müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
             message = f"Sayın {self.partner_id.name}, {self.urun} ürününüz teslim alındı, onarım sürecine alınmıştır."
