@@ -17,11 +17,13 @@ class ArizaKayit(models.Model):
     ], string='İşlem Tipi', required=True, tracking=True)
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü'),
-        ('teknik', 'Teknik Servis')
+        ('magaza', 'Mağaza Ürünü')
     ], string='Arıza Tipi', required=True, tracking=True)
     teknik_servis = fields.Selection([
+        ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
+        ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
         ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
+        ('Mağaza Tedarikçi', 'Mağaza Tedarikçi'),
         ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ')
     ], string='Teknik Servis')
     magaza_ariza_tipi = fields.Selection([
