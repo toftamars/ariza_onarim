@@ -34,6 +34,7 @@
                             <field name="sorumlu_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                             <field name="transfer_id"/>
+                            <field name="teslim_magazasi_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                         </group>
                         <group>
                             <field name="partner_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
