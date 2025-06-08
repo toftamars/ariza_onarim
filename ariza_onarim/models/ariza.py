@@ -590,19 +590,7 @@ class ArizaKayit(models.Model):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
-        teknik_servis_adres = ''
-        if self.teknik_servis == 'tedarikci' and self.tedarikci_id:
-            teknik_servis_adres = self.tedarikci_adresi or self.tedarikci_id.street or ''
-        elif self.teknik_servis == 'zuhal':
-            teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
-        elif self.teknik_servis == 'dtl_beyoglu':
-            teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
-        elif self.teknik_servis == 'dtl_okmeydani':
-            teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-        elif self.teknik_servis == 'zuhal_nefesli':
-            teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
-        elif self.teknik_servis == 'zuhal_ariza_depo':
-            teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+        teknik_servis_adres = self.teknik_servis_adres
         ctx = dict(self.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
@@ -670,6 +658,22 @@ class ArizaKayit(models.Model):
                 self.marka_id = self.fatura_kalem_id.product_id.brand_id.id
             else:
                 self.marka_id = False
+
+    @property
+    def teknik_servis_adres(self):
+        if self.teknik_servis == 'tedarikci' and self.tedarikci_id:
+            return self.tedarikci_adresi or self.tedarikci_id.street or ''
+        elif self.teknik_servis == 'zuhal':
+            return 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+        elif self.teknik_servis == 'dtl_beyoglu':
+            return 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
+        elif self.teknik_servis == 'dtl_okmeydani':
+            return 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+        elif self.teknik_servis == 'zuhal_nefesli':
+            return 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
+        elif self.teknik_servis == 'zuhal_ariza_depo':
+            return 'Halkalı merkez mh. Dereboyu cd. No:8/B'
+        return ''
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'

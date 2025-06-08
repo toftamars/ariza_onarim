@@ -68,7 +68,7 @@
                         <div class="row mt-4">
                             <div class="col-12">
                                 <strong>Gönderilen:</strong>
-                                <span t-esc="ctx.get('teknik_servis_adres','')"/>
+                                <span t-esc="doc.teknik_servis_adres or ''"/>
                             </div>
                         </div>
                         <div class="row mt-4">

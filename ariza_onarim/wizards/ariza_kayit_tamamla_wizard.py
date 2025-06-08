@@ -64,12 +64,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         if self.teslim_durumu == 'tamamlandi':
             self.ariza_id.write({
                 'state': 'tamamlandi',
-                'teslim_eden': self.teslim_eden.id,
                 'teslim_alan': self.teslim_alan.upper() if self.teslim_alan else '',
                 'teslim_alan_tc': self.teslim_alan_tc,
                 'teslim_alan_telefon': self.teslim_alan_telefon,
                 'teslim_alan_imza': self.teslim_alan_imza,
-                'teslim_eden_imza': self.teslim_eden_imza,
                 'teslim_notu': self.teslim_notu.upper() if self.teslim_notu else '',
             })
             if self.ariza_id.ariza_tipi == 'magaza':
