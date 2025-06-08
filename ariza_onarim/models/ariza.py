@@ -96,20 +96,22 @@ class ArizaKayit(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get('name') or vals.get('name') == _('New'):
-                # Benzersiz arıza numarası oluştur
-                sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                if not sequence:
-                    # Eğer sequence yoksa oluştur
-                    self.env['ir.sequence'].create({
-                        'name': 'Arıza Kayıt',
-                        'code': 'ariza.kayit',
-                        'prefix': 'ARZ/%(year)s/',
-                        'padding': 5,
-                        'company_id': self.env.company.id,
-                    })
-                    sequence = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                vals['name'] = sequence
+            # Sorumlu kişinin analitik bilgisini al
+            if not vals.get('analitik_hesap_id') and vals.get('sorumlu_id'):
+                sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
+                if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
+                    vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
+            # Varsayılan değerleri ayarla
+            if not vals.get('name'):
+                vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+            if not vals.get('state'):
+                vals['state'] = 'draft'
+            if not vals.get('islem_tipi'):
+                vals['islem_tipi'] = 'kabul'
+            if not vals.get('ariza_tipi'):
+                vals['ariza_tipi'] = 'musteri'
+            if not vals.get('sorumlu_id'):
+                vals['sorumlu_id'] = self.env.user.id
         return super().create(vals_list)
 
     @api.depends('invoice_line_id')
@@ -714,6 +716,12 @@ class ArizaKayit(models.Model):
             self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         else:
             self.teslim_adresi = False
+
+    @api.onchange('sorumlu_id')
+    def _onchange_sorumlu_id(self):
+        """Sorumlu değiştiğinde analitik hesabı güncelle"""
+        if self.sorumlu_id and self.sorumlu_id.employee_id and self.sorumlu_id.employee_id.magaza_id:
+            self.analitik_hesap_id = self.sorumlu_id.employee_id.magaza_id.id
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
