@@ -67,7 +67,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'teslim_tarihi': self.teslim_tarihi,
                 'teslim_saati': self.teslim_saati,
                 'teslim_eden': self.teslim_eden.id,
-                'teslim_alan': self.teslim_alan.upper(),
+                'teslim_alan': self.teslim_alan.upper() if self.teslim_alan else '',
                 'teslim_alan_tc': self.teslim_alan_tc,
                 'teslim_alan_telefon': self.teslim_alan_telefon,
                 'teslim_alan_imza': self.teslim_alan_imza,
