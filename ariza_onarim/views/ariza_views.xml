@@ -158,14 +158,14 @@
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
             <pivot string="Arıza Kayıtları">
-                <field name="state"/>
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
                 <field name="transfer_metodu"/>
                 <field name="marka_id"/>
                 <field name="sorumlu_id"/>
                 <field name="tarih"/>
-                <field name="company_id"/>
+                <field name="state"/>
+                <field name="id" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -173,9 +173,7 @@
         <field name="name">ariza.kayit.graph</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <graph string="Arıza Kayıtları" type="bar">
-                <field name="tarih" type="row"/>
-                <field name="state" type="col"/>
+            <graph string="Arıza Kayıtları">
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
                 <field name="transfer_metodu"/>
