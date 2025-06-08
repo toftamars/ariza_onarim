@@ -7,6 +7,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
+    ariza_tipi = fields.Selection([
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü'),
+        ('teknik', 'Teknik Servis Ürünü')
+    ], string='Arıza Tipi', readonly=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
@@ -47,6 +52,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'ariza_id': ariza.id,
                 'musteri_adi': ariza.partner_id.name,
                 'urun': ariza.urun,
+                'ariza_tipi': ariza.ariza_tipi,
                 'teslim_magazasi_id': ariza.teslim_magazasi_id.id,
                 'teslim_adresi': ariza.teslim_adresi,
             })
