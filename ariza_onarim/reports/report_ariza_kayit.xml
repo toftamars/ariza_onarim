@@ -67,14 +67,14 @@
                         </t>
                         <div class="row mt-4">
                             <div class="col-12">
-                                <strong>NOTLAR:</strong>
-                                <p t-field="doc.notlar"/>
+                                <strong>Gönderilen:</strong>
+                                <span t-esc="ctx.get('teknik_servis_adres','')"/>
                             </div>
                         </div>
                         <div class="row mt-4">
-                            <div class="col-12 text-center">
-                                <strong>İLETİŞİM:</strong>
-                                <p>0212 249 85 10 (Dahili: 153)</p>
+                            <div class="col-12">
+                                <strong>NOTLAR:</strong>
+                                <p t-field="doc.notlar"/>
                             </div>
                         </div>
                     </div>
@@ -82,7 +82,7 @@
             </t>
         </t>
         <xpath expr="//div[@class='footer']" position="replace">
-            <div class="footer" style="width:100%;text-align:center;font-size:12px;position:fixed;bottom:0;left:0;">
+            <div class="footer" style="width:100%;text-align:right;font-size:12px;position:fixed;bottom:0;right:0;">
                 <strong>İLETİŞİM:</strong> 0212 249 85 10 (Dahili: 153)
             </div>
         </xpath>

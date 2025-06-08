@@ -437,6 +437,10 @@ class ArizaKayit(models.Model):
                 'state': 'outgoing',
             })
             sms_obj.send()
+        # SMS ile birlikte mail de gönder
+        if self.partner_id and self.partner_id.email:
+            subject = "Arıza Kaydınız Hakkında Bilgilendirme"
+            self._send_email_to_customer(subject, message)
 
     def _send_email_to_customer(self, subject, body):
         """Müşteriye mail gönder"""
@@ -595,7 +599,10 @@ class ArizaKayit(models.Model):
             teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
         elif self.teknik_servis == 'dtl_okmeydani':
             teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-        # Rapor contextine adresi ekle
+        elif self.teknik_servis == 'zuhal_nefesli':
+            teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
+        elif self.teknik_servis == 'zuhal_ariza_depo':
+            teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
         ctx = dict(self.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
