@@ -115,6 +115,9 @@ class ArizaKayit(models.Model):
                 vals['ariza_tipi'] = 'musteri'
             if not vals.get('sorumlu_id'):
                 vals['sorumlu_id'] = self.env.user.id
+            # Teknik servis alanı boşsa varsayılan değer ata
+            if not vals.get('teknik_servis'):
+                vals['teknik_servis'] = 'DTL BEYOĞLU'  # Burada istenen varsayılanı değiştirebilirsin
         return super().create(vals_list)
 
     @api.depends('invoice_line_id')
