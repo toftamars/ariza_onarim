@@ -5,10 +5,6 @@
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
-                <div style="position:fixed; top: 70px; right: 40px; z-index: 1000; background: #fff; padding: 8px 16px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 15px;">
-                    <strong>GÖNDERİLEN:</strong>
-                    <field name="teknik_servis_adres" readonly="1"/>
-                </div>
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
                     <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'kabul'), ('state', '!=', 'onaylandi')]}" />
@@ -22,6 +18,10 @@
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <strong>GÖNDERİLEN:</strong>
+                        <field name="teknik_servis_adres" readonly="1"/>
                     </div>
                     <group>
                         <group>
@@ -53,7 +53,7 @@
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'invisible': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'MAĞAZA')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
-                        <field name="hedef_konum_id" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('islem_tipi', '=', 'kabul'), ('teknik_servis', '=', 'TEDARİKÇİ')], 'required': ['&amp;', ('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ'), ('teknik_servis', '!=', 'MAĞAZA')]}"/>
+                        <field name="hedef_konum_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
                         <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}"/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
