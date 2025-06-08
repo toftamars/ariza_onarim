@@ -29,18 +29,18 @@
                             <field name="magaza_ariza_tipi" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', False)]}"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="tarih"/>
-                            <field name="sorumlu_id"/>
+                            <field name="sorumlu_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                             <field name="transfer_id"/>
                         </group>
                         <group>
-                            <field name="partner_id" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
-                            <field name="analitik_hesap_id" required="1"/>
+                            <field name="partner_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza'])], 'required': [('ariza_tipi', '=', 'musteri')]}"/>
+                            <field name="analitik_hesap_id" options="{'no_create': True, 'no_open': True}" required="1"/>
                             <field name="invoice_line_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                            <field name="magaza_urun_id" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
-                            <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
+                            <field name="magaza_urun_id" options="{'no_create': True, 'no_open': True}" string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="marka_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
+                            <field name="tedarikci_id" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [('magaza_ariza_tipi', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_adresi" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_telefon" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
                             <field name="tedarikci_email" attrs="{'invisible': ['|', ('islem_tipi', '=', 'teslim'), ('teknik_servis', '!=', 'tedarikci')]}"/>
