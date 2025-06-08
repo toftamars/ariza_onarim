@@ -2,7 +2,7 @@ from odoo import models, fields, api, _
 
 class ArizaKayitTamamlaWizard(models.TransientModel):
     _name = 'ariza.kayit.tamamla.wizard'
-    _description = 'Arıza Kaydı Tamamlama'
+    _description = 'Arıza Kaydı Tamamlama Sihirbazı'
 
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
@@ -14,23 +14,43 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', required=True)
-    teslim_magazasi_adi = fields.Char(string='Mağaza Adı', compute='_compute_teslim_magazasi_adi')
+    teslim_adresi = fields.Char(string='Teslim Adresi', readonly=True)
+    teslim_tarihi = fields.Date(string='Teslim Tarihi', required=True, default=fields.Date.context_today)
+    teslim_saati = fields.Float(string='Teslim Saati', required=True)
+    teslim_eden = fields.Many2one('res.users', string='Teslim Eden', required=True, default=lambda self: self.env.user)
+    teslim_alan = fields.Char(string='Teslim Alan', required=True)
+    teslim_alan_tc = fields.Char(string='Teslim Alan TC', required=True)
+    teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon', required=True)
+    teslim_alan_imza = fields.Binary(string='Teslim Alan İmza', required=True)
+    teslim_eden_imza = fields.Binary(string='Teslim Eden İmza', required=True)
+    teslim_notu = fields.Text(string='Teslim Notu')
+    teslim_durumu = fields.Selection([
+        ('tamamlandi', 'Tamamlandı'),
+        ('iptal', 'İptal'),
+        ('beklemede', 'Beklemede')
+    ], string='Teslim Durumu', required=True, default='tamamlandi')
     sms_gonderildi_wizard = fields.Boolean(string='SMS Gönderildi', readonly=True, default=False)
 
     @api.onchange('teslim_magazasi_id')
-    def _onchange_teslim_magazasi_id(self):
-        if self.teslim_magazasi_id:
-            # Perakende ifadesini kaldır
-            self.teslim_magazasi_id.name = self.teslim_magazasi_id.name.replace('Perakende ', '')
+    def _onchange_teslim_magazasi(self):
+        if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+            self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+        else:
+            self.teslim_adresi = False
 
-    @api.depends('teslim_magazasi_id')
-    def _compute_teslim_magazasi_adi(self):
-        for rec in self:
-            name = rec.teslim_magazasi_id.name or ''
-            if '-' in name:
-                rec.teslim_magazasi_adi = name.split('-')[-1].strip().split()[0]
-            else:
-                rec.teslim_magazasi_adi = name.split()[-1] if name else ''
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if self._context.get('active_id'):
+            ariza = self.env['ariza.kayit'].browse(self._context['active_id'])
+            res.update({
+                'ariza_id': ariza.id,
+                'musteri_adi': ariza.partner_id.name,
+                'urun': ariza.urun,
+                'teslim_magazasi_id': ariza.teslim_magazasi_id.id,
+                'teslim_adresi': ariza.teslim_adresi,
+            })
+        return res
 
     def action_tamamla(self):
         self.ariza_id.write({

@@ -89,6 +89,7 @@ class ArizaKayit(models.Model):
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
+    teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -127,12 +128,17 @@ class ArizaKayit(models.Model):
             if not self.siparis_yok:
                 self.urun = False
                 self.model = False
+            self.teslim_magazasi_id = False
+            self.teslim_adresi = False
         elif self.ariza_tipi == 'magaza':
             self.partner_id = False
             self.siparis_yok = False
             self.invoice_line_id = False
             self.urun = False
             self.model = False
+            self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
+            if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+                self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.siparis_yok = False
@@ -658,6 +664,13 @@ class ArizaKayit(models.Model):
     def action_print_delivery(self):
         if self.transfer_id:
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+
+    @api.onchange('teslim_magazasi_id')
+    def _onchange_teslim_magazasi(self):
+        if self.teslim_magazasi_id and self.teslim_magazasi_id.name == 'DTL OKMEYDANI':
+            self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+        else:
+            self.teslim_adresi = False
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
