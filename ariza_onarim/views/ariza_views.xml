@@ -7,7 +7,6 @@
             <form string="Arıza Kaydı">
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft" options='{"no_open": true}'/>
-                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'kabul'), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="oe_highlight" states="tamamlandi" attrs="{'invisible': ['|', '|', ('islem_tipi', '!=', 'kabul'), ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" options='{"no_open": true}'/>
                     <button name="action_iptal" string="İptal" type="object" states="draft,onaylandi" options='{"no_open": true}'/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
