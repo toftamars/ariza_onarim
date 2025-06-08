@@ -377,45 +377,17 @@ class ArizaKayit(models.Model):
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
         if not self.analitik_hesap_id:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: analitik_hesap_id yok. Arıza No: {self.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            return
+            raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: kaynak veya hedef konum yok. Arıza No: {self.name} - Kaynak: {kaynak} - Hedef: {hedef}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            return
+            raise UserError(_("Transfer oluşturulamadı: Kaynak veya hedef konum eksik!"))
+        if not self.magaza_urun_id:
+            raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
         picking_type = self.env['stock.picking.type'].search([
             ('code', '=', 'internal'),
             ('warehouse_id', '=', kaynak.warehouse_id.id)
         ], limit=1)
         if not picking_type:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Transfer oluşturulamadı: picking_type yok. Arıza No: {self.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            raise UserError(_("Transfer tipi bulunamadı."))
+            raise UserError(_("Transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -429,19 +401,18 @@ class ArizaKayit(models.Model):
         }
         picking = self.env['stock.picking'].create(picking_vals)
         # Ürün hareketi ekle
-        if self.magaza_urun_id:
-            self.env['stock.move'].create({
-                'name': self.urun or self.magaza_urun_id.name,
-                'product_id': self.magaza_urun_id.id,
-                'product_uom_qty': 1,
-                'product_uom': self.magaza_urun_id.uom_id.id,
-                'picking_id': picking.id,
-                'location_id': kaynak.id,
-                'location_dest_id': hedef.id,
-                'company_id': self.env.company.id,
-                'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-                'quantity_done': 1,
-            })
+        self.env['stock.move'].create({
+            'name': self.urun or self.magaza_urun_id.name,
+            'product_id': self.magaza_urun_id.id,
+            'product_uom_qty': 1,
+            'product_uom': self.magaza_urun_id.uom_id.id,
+            'picking_id': picking.id,
+            'location_id': kaynak.id,
+            'location_dest_id': hedef.id,
+            'company_id': self.env.company.id,
+            'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
+            'quantity_done': 1,
+        })
         _logger.create({
             'name': 'ariza_onarim',
             'type': 'server',
