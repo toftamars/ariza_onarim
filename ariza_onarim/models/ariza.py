@@ -92,6 +92,7 @@ class ArizaKayit(models.Model):
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
+    musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -722,6 +723,21 @@ class ArizaKayit(models.Model):
         """Sorumlu değiştiğinde analitik hesabı güncelle"""
         if self.sorumlu_id and self.sorumlu_id.employee_id and self.sorumlu_id.employee_id.magaza_id:
             self.analitik_hesap_id = self.sorumlu_id.employee_id.magaza_id.id
+
+    @api.depends('partner_id')
+    def _get_musteri_faturalari(self):
+        for record in self:
+            if record.partner_id:
+                # Müşteriye ait gelen faturaları bul
+                faturalar = self.env['account.move'].search([
+                    ('partner_id', '=', record.partner_id.id),
+                    ('move_type', '=', 'in_invoice'),
+                    ('state', '=', 'posted'),
+                    ('invoice_line_ids.product_id.type', '=', 'product')  # Sadece stok ürünleri
+                ])
+                record.musteri_faturalari = faturalar
+            else:
+                record.musteri_faturalari = False
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
