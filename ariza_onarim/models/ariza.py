@@ -329,7 +329,9 @@ class ArizaKayit(models.Model):
             delivery_contact = self.tedarikci_id.child_ids.filtered(lambda c: c.type == 'delivery')
             self.contact_id = delivery_contact[0].id if delivery_contact else self.tedarikci_id.id
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id.property_stock_supplier:
+            if self.teknik_servis == 'TEDARİKÇİ':
+                if not self.tedarikci_id.property_stock_supplier:
+                    raise UserError(_('Seçilen tedarikçinin stok konumu tanımlı değil! Lütfen tedarikçi kartında "Satıcı Konumu" alanını doldurun.'))
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('islem_tipi')
