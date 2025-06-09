@@ -536,8 +536,9 @@ class ArizaKayit(models.Model):
             if self.onarim_bilgisi:
                 msg += f"<br/><b>Ek Onarım Bilgisi:</b> {self.onarim_bilgisi}"
             picking.message_post(body=msg)
-            # Hedef konumu tekrar güncelle (partner_id override'ını engelle)
-            picking.location_dest_id = hedef.id
+            # Hedef konumu tekrar ve kesin olarak güncelle (partner_id override'ını engelle)
+            if self.kaynak_konum_id:
+                picking.location_dest_id = self.kaynak_konum_id.id
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
