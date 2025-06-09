@@ -485,6 +485,7 @@ class ArizaKayit(models.Model):
         # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla
         if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             picking_vals['partner_id'] = self.contact_id.id
+        # Diğer durumlarda partner_id set edilmesin
 
         picking = self.env['stock.picking'].create(picking_vals)
 
