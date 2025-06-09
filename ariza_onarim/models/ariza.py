@@ -381,28 +381,12 @@ class ArizaKayit(models.Model):
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
         # Picking type belirleme
-        picking_type = None
-        if force_internal:
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Alımlar'),
-                ('warehouse_id', '=', kaynak.warehouse_id.id)
-            ], limit=1)
-            if not picking_type:
-                raise UserError(_("'Tamir Alımlar' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
-        elif self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ':
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Teslimatları'),
-                ('warehouse_id', '=', kaynak.warehouse_id.id)
-            ], limit=1)
-            if not picking_type:
-                raise UserError(_("'Tamir Teslimatları' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
-        else:
-            picking_type = self.env['stock.picking.type'].search([
-                ('code', '=', 'internal'),
-                ('warehouse_id', '=', kaynak.warehouse_id.id)
-            ], limit=1)
-            if not picking_type:
-                raise UserError(_("Transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        picking_type = self.env['stock.picking.type'].search([
+            ('code', '=', 'internal'),
+            ('warehouse_id', '=', kaynak.warehouse_id.id)
+        ], limit=1)
+        if not picking_type:
+            raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
