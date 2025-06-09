@@ -21,7 +21,7 @@
                         <group>
                             <group>
                                 <field name="ariza_tipi"/>
-                                <field name="partner_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                                <field name="partner_id" attrs='{"invisible": [["ariza_tipi", "!=", "musteri"]]}'/>
                                 <field name="urun"/>
                                 <field name="model"/>
                                 <field name="analitik_hesap_id"/>
@@ -30,7 +30,7 @@
                             </group>
                             <group>
                                 <field name="islem_tipi"/>
-                                <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
+                                <field name="ariza_kabul_id" attrs='{"invisible": [["islem_tipi", "!=", "teslim"]]}'/>
                                 <field name="transfer_id" readonly="1" widget="many2one"/>
                                 <field name="sms_gonderildi" readonly="1"/>
                                 <field name="create_date" readonly="1"/>
@@ -46,7 +46,7 @@
                                     <field name="ucret_bilgisi"/>
                                 </group>
                             </page>
-                            <page string="TESLİM BİLGİLERİ" attrs="{'invisible': [('state', 'not in', ['tamamlandi'])]}">
+                            <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
                                 <group>
                                     <field name="teslim_tarihi" readonly="1"/>
                                     <field name="teslim_saati" readonly="1"/>
