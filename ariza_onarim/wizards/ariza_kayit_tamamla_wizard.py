@@ -75,7 +75,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             # Konumları ters çevirerek yeni transfer oluştur
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+                hedef_konum=mevcut_kaynak,   # Önceki kaynak konum yeni hedef konum olur
+                force_internal=True
             )
             if yeni_transfer:
                 # Chatter'a tıklanabilir link ekle

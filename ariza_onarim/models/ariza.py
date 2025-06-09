@@ -367,7 +367,7 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
-    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None):
+    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
@@ -382,7 +382,14 @@ class ArizaKayit(models.Model):
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
         # Picking type belirleme
         picking_type = None
-        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ':
+        if force_internal:
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', kaynak.warehouse_id.id)
+            ], limit=1)
+            if not picking_type:
+                raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        elif self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', 'ilike', 'Tamir Teslimatları'),
                 ('warehouse_id', '=', kaynak.warehouse_id.id)
