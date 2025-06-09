@@ -91,7 +91,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             # Konumları ters çevirerek yeni transfer oluştur
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+                hedef_konum=mevcut_kaynak,   # Önceki kaynak konum yeni hedef konum olur
+                delivery_type='matbu'  # İkinci transferde matbu olarak ayarla
             )
             if yeni_transfer:
                 transfer_url = f"/web#id={yeni_transfer.id}&model=stock.picking&view_type=form"

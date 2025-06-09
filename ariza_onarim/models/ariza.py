@@ -367,7 +367,7 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
-    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False):
+    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False, delivery_type=None):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
@@ -473,6 +473,8 @@ class ArizaKayit(models.Model):
             'e_irsaliye_no': e_irsaliye_no,  # E-İrsaliye numarası
             'sender_unit': self.analitik_hesap_id.name if self.analitik_hesap_id else False,  # Gönderici birim
         }
+        if delivery_type:
+            picking_vals['delivery_type'] = delivery_type
 
         # Sürücü bilgisi ekle
         if self.vehicle_id:
