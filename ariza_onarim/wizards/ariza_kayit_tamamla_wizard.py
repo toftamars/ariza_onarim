@@ -36,6 +36,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         ('beklemede', 'BEKLEMEDE')
     ], string='TESLİM DURUMU', required=True, default='tamamlandi')
     sms_gonderildi_wizard = fields.Boolean(string='SMS Gönderildi', readonly=True, default=False)
+    contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)')
+    kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum')
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
@@ -57,17 +59,24 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'teslim_magazasi_id': ariza.teslim_magazasi_id.id,
                 'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
             })
+            # Mağaza ürünü işlemlerinde kontak ve kaynak konum otomatik dolsun
+            if ariza.ariza_tipi == 'magaza' and ariza.transfer_id:
+                res['contact_id'] = ariza.transfer_id.location_id.partner_id.id or False
+                res['kaynak_konum_id'] = ariza.transfer_id.location_dest_id.id or False
         return res
 
     def action_tamamla(self):
         ariza = self.ariza_id
-        # Eğer transfer yoksa ve gerekli bilgiler doluysa otomatik transfer oluştur
-        if not ariza.transfer_id and ariza.kaynak_konum_id and (ariza.hedef_konum_id or ariza.contact_id):
-            hedef = ariza.hedef_konum_id or (ariza.contact_id and (ariza.contact_id.property_stock_customer or ariza.contact_id.property_stock_supplier))
-            if hedef:
-                transfer = ariza._create_stock_transfer(kaynak_konum=ariza.kaynak_konum_id, hedef_konum=hedef)
-                if transfer:
-                    ariza.transfer_id = transfer.id
+        # Mağaza ürünü işlemlerinde kontak ve kaynak konum wizarddan alınsın
+        if ariza.ariza_tipi == 'magaza':
+            contact = self.contact_id or ariza.contact_id
+            kaynak_konum = self.kaynak_konum_id or ariza.kaynak_konum_id
+            if not ariza.transfer_id and kaynak_konum and contact:
+                hedef = contact.property_stock_customer or contact.property_stock_supplier
+                if hedef:
+                    transfer = ariza._create_stock_transfer(kaynak_konum=kaynak_konum, hedef_konum=hedef)
+                    if transfer:
+                        ariza.transfer_id = transfer.id
         # SMS gönderimi
         if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
             magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
