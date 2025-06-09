@@ -9,10 +9,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     musteri_adi = fields.Char(string='MÜŞTERİ ADI', readonly=True)
     urun = fields.Char(string='ÜRÜN', readonly=True)
     ariza_tipi = fields.Selection([
-        ('musteri', 'MÜŞTERİ ÜRÜNÜ'),
-        ('magaza', 'MAĞAZA ÜRÜNÜ'),
-        ('teknik', 'TEKNİK SERVİS ÜRÜNÜ')
-    ], string='ARIZA TİPİ', readonly=True)
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü'),
+        ('teknik', 'Teknik Servis Ürünü')
+    ], string='Arıza Tipi', readonly=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
