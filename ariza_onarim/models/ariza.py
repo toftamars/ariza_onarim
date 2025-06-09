@@ -384,11 +384,11 @@ class ArizaKayit(models.Model):
         picking_type = None
         if force_internal:
             picking_type = self.env['stock.picking.type'].search([
-                ('code', '=', 'internal'),
+                ('name', 'ilike', 'Tamir Alımları'),
                 ('warehouse_id', '=', kaynak.warehouse_id.id)
             ], limit=1)
             if not picking_type:
-                raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+                raise UserError(_("'Tamir Alımları' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         elif self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', 'ilike', 'Tamir Teslimatları'),
