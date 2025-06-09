@@ -775,21 +775,19 @@ class ArizaKayit(models.Model):
             rec.state = 'draft'
 
     def action_tamamla(self):
-        # Sadece kabul işlemlerinde tamamla butonu olsun
-        if self.islem_tipi == 'kabul':
-            return {
-                'name': 'Onarım Tamamlandı',
-                'type': 'ir.actions.act_window',
-                'res_model': 'ariza.kayit.tamamla.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name,
-                    'default_urun': self.urun,
-                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
-                }
+        return {
+            'name': 'Onarım Tamamlandı',
+            'type': 'ir.actions.act_window',
+            'res_model': 'ariza.kayit.tamamla.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_ariza_id': self.id,
+                'default_musteri_adi': self.partner_id.name,
+                'default_urun': self.urun,
+                'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
             }
+        }
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
