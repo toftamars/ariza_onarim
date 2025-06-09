@@ -33,9 +33,10 @@
                             <field name="teslim_magazasi_id" attrs='{"invisible": ["|", ["ariza_tipi", "!=", "musteri"], ["state", "not in", ["tamamlandi", "teslim_edildi"]]]}' options='{"no_open": true, "no_create": true}'/>
                         </group>
                         <group>
-                            <field name="partner_id" options='{"no_create": true, "no_open": true}' attrs='{"invisible": [["ariza_tipi", "in", ["magaza"]]], "required": [["ariza_tipi", "=", "musteri"]]}'/>
+                            <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
+                            <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
+                            <field name="invoice_line_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
                             <field name="analitik_hesap_id" options='{"no_create": true, "no_open": true}' required="1"/>
-                            <field name="invoice_line_id" options='{"no_create": true, "no_open": true}' attrs='{"invisible": ["|", ["ariza_tipi", "=", "magaza"], ["siparis_yok", "=", true]], "required": [["ariza_tipi", "=", "musteri"], ["siparis_yok", "=", false]]}'/>
                             <field name="magaza_urun_id" options='{"no_create": true, "no_open": true}' string="Ürün" attrs='{"invisible": [["ariza_tipi", "!=", "magaza"]]}'/>
                             <field name="marka_id" options='{"no_create": true, "no_open": true}' attrs='{"invisible": [["siparis_yok", "=", true]]}'/>
                             <field name="marka_manu" attrs='{"invisible": [["siparis_yok", "=", false]]}'/>
