@@ -371,28 +371,84 @@ class ArizaKayit(models.Model):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
+        
+        # Log the locations for debugging
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f"Transfer oluşturma başladı - Kaynak: {kaynak.display_name if kaynak else 'Yok'}, Hedef: {hedef.display_name if hedef else 'Yok'}",
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
+
         # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise hedef contact_id olsun
         if self.ariza_tipi == 'magaza' and self.islem_tipi == 'kabul' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             hedef = self.contact_id.property_stock_customer or self.contact_id.property_stock_supplier
+
         if not self.analitik_hesap_id:
             raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
             raise UserError(_("Transfer oluşturulamadı: Kaynak veya hedef konum eksik!"))
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
+
         # Picking type belirleme
-        picking_type = self.env['stock.picking.type'].search([
-            ('code', '=', 'internal'),
-            ('warehouse_id', '=', kaynak.warehouse_id.id)
-        ], limit=1)
-        if not picking_type:
-            # Eğer kaynak konumunun warehouse'ından picking type bulunamazsa, hedef konumun warehouse'ından dene
+        picking_type = False
+        
+        # Eğer mevcut bir transfer varsa, onun picking type'ını kullan
+        if self.transfer_id:
+            picking_type = self.transfer_id.picking_type_id
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Mevcut transferden picking type alındı - Picking Type: {picking_type.name if picking_type else 'Yok'}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        
+        # Eğer mevcut transferden picking type alınamadıysa, kaynak warehouse'dan dene
+        if not picking_type and kaynak.warehouse_id:
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', kaynak.warehouse_id.id)
+            ], limit=1)
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Kaynak warehouse için picking type arama - Warehouse: {kaynak.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+
+        # Eğer hala bulunamazsa, hedef warehouse'dan dene
+        if not picking_type and hedef.warehouse_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
                 ('warehouse_id', '=', hedef.warehouse_id.id)
             ], limit=1)
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Hedef warehouse için picking type arama - Warehouse: {hedef.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+
         if not picking_type:
             raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -404,13 +460,17 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
+
         # Sürücü bilgisi ekle
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
+
         # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla
         if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             picking_vals['partner_id'] = self.contact_id.id
+
         picking = self.env['stock.picking'].create(picking_vals)
+
         # Ürün hareketi ekle
         self.env['stock.move'].create({
             'name': self.urun or self.magaza_urun_id.name,
@@ -424,17 +484,19 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'quantity_done': 1,
         })
+
         _logger.create({
             'name': 'ariza_onarim',
             'type': 'server',
             'level': 'debug',
             'dbname': self._cr.dbname,
-            'message': f"Transfer OLUŞTURULDU! Arıza No: {self.name} - Picking ID: {picking.id}",
+            'message': f"Transfer OLUŞTURULDU! Arıza No: {self.name} - Picking ID: {picking.id} - Picking Type: {picking_type.name}",
             'path': __file__,
             'func': '_create_stock_transfer',
             'line': 0,
         })
-        # Chatter'a mesaj ekle (transfer no linkli, durum ve sms bilgisiyle)
+
+        # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
         durum = dict(self._fields['state'].selection).get(self.state, self.state)
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
