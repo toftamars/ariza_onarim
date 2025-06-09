@@ -362,6 +362,9 @@ class ArizaKayit(models.Model):
             self.tedarikci_adresi = self.tedarikci_id.street
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
+            # Kontak (Teslimat Adresi) otomatik gelsin
+            delivery_contact = self.tedarikci_id.child_ids.filtered(lambda c: c.type == 'delivery')
+            self.contact_id = delivery_contact[0].id if delivery_contact else self.tedarikci_id.id
             # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
             if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id.property_stock_supplier:
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
