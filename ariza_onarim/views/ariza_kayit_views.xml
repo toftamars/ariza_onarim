@@ -21,7 +21,9 @@
                         <group>
                             <group>
                                 <field name="ariza_tipi"/>
-                                <field name="partner_id" attrs='{"invisible": [["ariza_tipi", "!=", "musteri"]]}'/>
+                                <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
+                                <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
+                                <field name="invoice_line_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
                                 <field name="urun"/>
                                 <field name="model"/>
                                 <field name="analitik_hesap_id"/>
