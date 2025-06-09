@@ -386,6 +386,12 @@ class ArizaKayit(models.Model):
             ('warehouse_id', '=', kaynak.warehouse_id.id)
         ], limit=1)
         if not picking_type:
+            # Eğer kaynak konumunun warehouse'ından picking type bulunamazsa, hedef konumun warehouse'ından dene
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', hedef.warehouse_id.id)
+            ], limit=1)
+        if not picking_type:
             raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         picking_vals = {
             'location_id': kaynak.id,
