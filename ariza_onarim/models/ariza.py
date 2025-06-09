@@ -449,6 +449,17 @@ class ArizaKayit(models.Model):
         if not picking_type:
             raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
 
+        # E-İrsaliye numarası oluştur
+        e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
+        if not e_irsaliye_no:
+            e_irsaliye_no = self.env['ir.sequence'].create({
+                'name': 'E-İrsaliye Numarası',
+                'code': 'stock.picking.e.irsaliye',
+                'prefix': 'EIRS/%(year)s/',
+                'padding': 5,
+                'company_id': self.env.company.id,
+            }).next_by_code('stock.picking.e.irsaliye')
+
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -459,6 +470,8 @@ class ArizaKayit(models.Model):
             'origin': self.name,
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
+            'e_irsaliye_no': e_irsaliye_no,  # E-İrsaliye numarası
+            'sender_unit': self.analitik_hesap_id.name if self.analitik_hesap_id else False,  # Gönderici birim
         }
 
         # Sürücü bilgisi ekle
