@@ -522,6 +522,8 @@ class ArizaKayit(models.Model):
             msg += f"Model: {self.model or '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
+            if self.ariza_tanimi:
+                msg += f"<br/><b>Ek Arıza Tanımı:</b> {self.ariza_tanimi}"
             picking.message_post(body=msg)
         # 2. transferde chatter'a onarım bilgisi ve önemli bilgiler yaz + hedef konumu kesin olarak güncelle
         elif transfer_tipi == 'ikinci':
