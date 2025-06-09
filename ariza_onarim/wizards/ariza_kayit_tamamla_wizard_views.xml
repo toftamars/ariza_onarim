@@ -7,6 +7,7 @@
             <form string="Onarım Tamamlandı">
                 <group>
                     <field name="ariza_id" invisible="1"/>
+                    <field name="ariza_tipi" invisible="1"/>
                     <field name="musteri_adi"/>
                     <field name="urun"/>
                 </group>
