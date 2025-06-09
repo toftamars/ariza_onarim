@@ -212,48 +212,10 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
-
-        # Mağaza ürünü işlemleri için hedef konum ayarları
-        elif self.ariza_tipi == 'magaza':
-            if self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani']:
-                # DTL seçildiğinde dtl/stok konumu
-                dtl_konum = self.env['stock.location'].search([
-                    ('name', '=', 'dtl/stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == 'zuhal':
-                # Zuhal seçildiğinde arıza/stok konumu
-                ariza_konum = self.env['stock.location'].search([
-                    ('name', '=', 'arıza/stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-                if ariza_konum:
-                    self.hedef_konum_id = ariza_konum
-
-        # Teknik servis seçimine göre hedef konumu otomatik ata
-        if self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
-            dtl_konum = self.env['stock.location'].search([
-                ('name', '=', 'DTL/Stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if dtl_konum:
-                self.hedef_konum_id = dtl_konum
-        elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
-            ariza_konum = self.env['stock.location'].search([
-                ('name', '=', 'Arıza/Stok'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if ariza_konum:
-                self.hedef_konum_id = ariza_konum
-        elif self.teknik_servis == 'ZUHAL NEFESLİ':
-            nfsl_konum = self.env['stock.location'].search([
-                ('name', '=', 'Nfsl/Arızalı'),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if nfsl_konum:
-                self.hedef_konum_id = nfsl_konum
+        # Mağaza ürünü ve teknik servis tedarikçi ise hedef konum tedarikçi konumu
+        elif self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+            if self.tedarikci_id.property_stock_supplier:
+                self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
