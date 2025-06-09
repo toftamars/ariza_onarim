@@ -40,7 +40,7 @@
                             <field name="magaza_urun_id" options='{"no_create": true, "no_open": true}' string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
                             <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)]}"/>
-                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}' readonly="1"/>
+                            <field name="tedarikci_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('ariza_tipi', '=', 'magaza'), ('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}'/>
                         </group>
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
