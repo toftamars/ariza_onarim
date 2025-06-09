@@ -470,18 +470,13 @@ class ArizaKayit(models.Model):
             'origin': self.name,
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-            'e_irsaliye_no': e_irsaliye_no,  # E-İrsaliye numarası
-            'sender_unit': self.analitik_hesap_id.name if self.analitik_hesap_id else False,  # Gönderici birim
             'delivery_type': 'matbu',  # Teslimat Türü matbu olarak default
         }
-        # Güvenli alan ekleme
         stock_picking_fields = self.env['stock.picking'].fields_get()
         if 'e_irsaliye_no' in stock_picking_fields:
             picking_vals['e_irsaliye_no'] = e_irsaliye_no
         if 'sender_unit' in stock_picking_fields:
             picking_vals['sender_unit'] = self.analitik_hesap_id.name if self.analitik_hesap_id else False
-        if delivery_type:
-            picking_vals['delivery_type'] = delivery_type
 
         # Sürücü bilgisi ekle
         if self.vehicle_id:
