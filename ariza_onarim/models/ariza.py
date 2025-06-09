@@ -367,7 +367,7 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
-    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False, delivery_type=None):
+    def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False, delivery_type=None, transfer_tipi=None):
         _logger = self.env['ir.logging']
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
@@ -513,6 +513,26 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
+
+        # Chatter'a önemli bilgileri ekle
+        if transfer_tipi == 'ilk':
+            # İlk transfer: arıza sebebi ve önemli bilgiler
+            msg = f"<b>Arıza Transferi Oluşturuldu</b><br/>"
+            msg += f"Arıza Sebebi: {self.ariza_tanimi or '-'}<br/>"
+            msg += f"Ürün: {self.urun or '-'}<br/>"
+            msg += f"Model: {self.model or '-'}<br/>"
+            msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
+            msg += f"Tarih: {fields.Date.today()}<br/>"
+            picking.message_post(body=msg)
+        elif transfer_tipi == 'ikinci':
+            # İkinci transfer: onarım bilgisi ve önemli bilgiler
+            msg = f"<b>Onarım Sonrası Transfer Oluşturuldu</b><br/>"
+            msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
+            msg += f"Ürün: {self.urun or '-'}<br/>"
+            msg += f"Model: {self.model or '-'}<br/>"
+            msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
+            msg += f"Tarih: {fields.Date.today()}<br/>"
+            picking.message_post(body=msg)
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"

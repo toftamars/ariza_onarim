@@ -74,7 +74,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             contact = self.contact_id or ariza.contact_id
             hedef_konum = self.hedef_konum_id or ariza.hedef_konum_id
             if not ariza.transfer_id and ariza.kaynak_konum_id and hedef_konum:
-                transfer = ariza._create_stock_transfer(kaynak_konum=ariza.kaynak_konum_id, hedef_konum=self.hedef_konum_id)
+                transfer = ariza._create_stock_transfer(kaynak_konum=ariza.kaynak_konum_id, hedef_konum=self.hedef_konum_id, transfer_tipi='ilk')
                 if transfer:
                     ariza.transfer_id = transfer.id
         # SMS gönderimi
@@ -92,7 +92,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
                 hedef_konum=mevcut_kaynak,   # Önceki kaynak konum yeni hedef konum olur
-                delivery_type='matbu'  # Sadece ikinci transferde matbu olarak ayarla
+                delivery_type='matbu',
+                transfer_tipi='ikinci'  # Onarım sonrası transfer
             )
             if yeni_transfer:
                 transfer_url = f"/web#id={yeni_transfer.id}&model=stock.picking&view_type=form"
