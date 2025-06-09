@@ -19,7 +19,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         ('hayir', 'Hayır'),
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
-    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='TESLİM MAĞAZASI', required=True)
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='TESLİM MAĞAZASI')
     teslim_adresi = fields.Char(string='TESLİM ADRESİ', readonly=True)
     teslim_tarihi = fields.Date(string='TESLİM TARİHİ', required=True, default=fields.Date.context_today)
     teslim_saati = fields.Float(string='TESLİM SAATİ', required=True)
@@ -57,9 +57,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
                 'urun': ariza.urun.upper() if ariza.urun else '',
                 'ariza_tipi': ariza.ariza_tipi,
-                'teslim_magazasi_id': ariza.teslim_magazasi_id.id,
                 'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
             })
+            if ariza.ariza_tipi == 'musteri':
+                res['teslim_magazasi_id'] = ariza.teslim_magazasi_id.id
             # Mağaza ürünü işlemlerinde kontak ve hedef konum otomatik dolsun
             if ariza.ariza_tipi == 'magaza':
                 res['contact_id'] = ariza.contact_id.id if ariza.contact_id else False
