@@ -91,7 +91,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             # Konumları ters çevirerek yeni transfer oluştur
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                hedef_konum=mevcut_kaynak,   # Önceki kaynak konum yeni hedef konum olur
+                hedef_konum=ariza.kaynak_konum_id,   # Hedef konum arıza kaydındaki kaynak konum olur
                 delivery_type='matbu',
                 transfer_tipi='ikinci'  # Onarım sonrası transfer
             )
@@ -101,7 +101,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     body=f"<b>Onarım sonrası giriş transferi oluşturuldu!</b><br/>"
                          f"Transfer No: <a href='{transfer_url}'>{yeni_transfer.name}</a><br/>"
                          f"Kaynak: {mevcut_hedef.display_name}<br/>"
-                         f"Hedef: {mevcut_kaynak.display_name}<br/>"
+                         f"Hedef: {ariza.kaynak_konum_id.display_name}<br/>"
                 )
                 # Kullanıcıyı yeni transferin form ekranına yönlendir
                 return {
