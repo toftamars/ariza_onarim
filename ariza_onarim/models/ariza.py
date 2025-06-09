@@ -531,6 +531,8 @@ class ArizaKayit(models.Model):
             msg += f"Model: {self.model or '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
+            if self.onarim_bilgisi:
+                msg += f"<br/><b>Ek Onarım Bilgisi:</b> {self.onarim_bilgisi}"
             picking.message_post(body=msg)
             # Hedef konumu tekrar güncelle (partner_id override'ını engelle)
             picking.location_dest_id = hedef.id
