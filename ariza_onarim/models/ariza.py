@@ -777,8 +777,8 @@ class ArizaKayit(models.Model):
             rec.state = 'draft'
 
     def action_tamamla(self):
-        # Sadece kabul işlemlerinde tamamla butonu olsun
-        if self.islem_tipi == 'kabul':
+        # Sadece kabul işlemlerinde ve onaylandı durumunda tamamla butonu olsun
+        if self.islem_tipi == 'kabul' and self.state == 'onaylandi':
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
