@@ -597,8 +597,8 @@ class ArizaKayit(models.Model):
                     'view_mode': 'form',
                 }
         
-        # Müşteri ürünü işlemlerinde SMS gönder
-        if self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
+        # Sadece İşlem Tipi 'Arıza Kabul' ve Arıza Tipi 'Müşteri Ürünü' işlemlerinde SMS gönder
+        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
             message = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
             self._send_sms_to_customer(message)
             self.sms_gonderildi = True
