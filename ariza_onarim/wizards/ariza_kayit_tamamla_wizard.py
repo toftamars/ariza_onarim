@@ -61,6 +61,13 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
 
     def action_tamamla(self):
         ariza = self.ariza_id
+        # Eğer transfer yoksa ve gerekli bilgiler doluysa otomatik transfer oluştur
+        if not ariza.transfer_id and ariza.kaynak_konum_id and (ariza.hedef_konum_id or ariza.contact_id):
+            hedef = ariza.hedef_konum_id or (ariza.contact_id and (ariza.contact_id.property_stock_customer or ariza.contact_id.property_stock_supplier))
+            if hedef:
+                transfer = ariza._create_stock_transfer(kaynak_konum=ariza.kaynak_konum_id, hedef_konum=hedef)
+                if transfer:
+                    ariza.transfer_id = transfer.id
         # SMS gönderimi
         if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
             magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
