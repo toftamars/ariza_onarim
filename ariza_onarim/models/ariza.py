@@ -97,6 +97,7 @@ class ArizaKayit(models.Model):
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
+    vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -442,6 +443,9 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
+        # Sürücü bilgisi ekle
+        if self.vehicle_id:
+            picking_vals['vehicle_id'] = self.vehicle_id.id
         # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla
         if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             picking_vals['partner_id'] = self.contact_id.id
