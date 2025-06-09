@@ -8,8 +8,8 @@
                 <header>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="draft" options='{"no_open": true}'/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
-                    <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}'/>
-                    <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}'/>
+                    <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
+                    <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}"/>
                     <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': ['|', ('islem_tipi', '!=', 'kabul'), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
