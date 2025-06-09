@@ -489,9 +489,6 @@ class ArizaKayit(models.Model):
 
         picking = self.env['stock.picking'].create(picking_vals)
 
-        # Partner_id set edilse bile hedef konumun doğru kalması için tekrar güncelle
-        picking.location_dest_id = hedef.id
-
         # Ürün hareketi ekle
         self.env['stock.move'].create({
             'name': self.urun or self.magaza_urun_id.name,
@@ -517,18 +514,17 @@ class ArizaKayit(models.Model):
             'line': 0,
         })
 
-        # Chatter'a önemli bilgileri ekle
+        # 1. transferde chatter'a arıza tanımı ve önemli bilgiler yaz
         if transfer_tipi == 'ilk':
-            # İlk transfer: arıza sebebi ve önemli bilgiler
             msg = f"<b>Arıza Transferi Oluşturuldu</b><br/>"
-            msg += f"Arıza Sebebi: {self.ariza_tanimi or '-'}<br/>"
+            msg += f"Arıza Tanımı: {self.ariza_tanimi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             picking.message_post(body=msg)
+        # 2. transferde chatter'a onarım bilgisi ve önemli bilgiler yaz + hedef konumu kesin olarak güncelle
         elif transfer_tipi == 'ikinci':
-            # İkinci transfer: onarım bilgisi ve önemli bilgiler
             msg = f"<b>Onarım Sonrası Transfer Oluşturuldu</b><br/>"
             msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
@@ -536,6 +532,8 @@ class ArizaKayit(models.Model):
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             picking.message_post(body=msg)
+            # Hedef konumu tekrar güncelle (partner_id override'ını engelle)
+            picking.location_dest_id = hedef.id
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
@@ -632,7 +630,7 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
             if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
                 raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
+            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
             if picking:
                 self.transfer_id = picking.id
                 self.state = 'onaylandi'
@@ -653,7 +651,7 @@ class ArizaKayit(models.Model):
             return
         # Mağaza ürünü için transfer oluştur
         if self.ariza_tipi == 'magaza' and not self.transfer_id:
-            picking = self._create_stock_transfer(transfer_tipi='ilk')
+            picking = self._create_stock_transfer()
             if picking:
                 self.transfer_id = picking.id
                 self.state = 'onaylandi'
@@ -777,21 +775,19 @@ class ArizaKayit(models.Model):
             rec.state = 'draft'
 
     def action_tamamla(self):
-        # Sadece kabul işlemlerinde ve onaylandı durumunda tamamla butonu olsun
-        if self.islem_tipi == 'kabul' and self.state == 'onaylandi':
-            return {
-                'name': 'Onarım Tamamlandı',
-                'type': 'ir.actions.act_window',
-                'res_model': 'ariza.kayit.tamamla.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name,
-                    'default_urun': self.urun,
-                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
-                }
+        return {
+            'name': 'Onarım Tamamlandı',
+            'type': 'ir.actions.act_window',
+            'res_model': 'ariza.kayit.tamamla.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_ariza_id': self.id,
+                'default_musteri_adi': self.partner_id.name,
+                'default_urun': self.urun,
+                'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
             }
+        }
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
