@@ -64,41 +64,31 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         # SMS gönderimi
         if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
             magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
-            # SMS mesajı
             sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
             ariza._send_sms_to_customer(sms_mesaji)
-        
+
         # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        yeni_transfer = False
         if ariza.transfer_id:
             mevcut_kaynak = ariza.transfer_id.location_id
             mevcut_hedef = ariza.transfer_id.location_dest_id
-            
             # Konumları ters çevirerek yeni transfer oluştur
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
                 hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
             )
-            
             if yeni_transfer:
-                ariza.transfer_id = yeni_transfer.id
-                # Yeni transferin detaylarını logla
-                self.env['ir.logging'].create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'info',
-                    'dbname': self._cr.dbname,
-                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
-                    'path': __file__,
-                    'func': 'action_tamamla',
-                    'line': 0,
-                })
-            else:
-                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-        
+                # Chatter'a tıklanabilir link ekle
+                transfer_url = f"/web#id={yeni_transfer.id}&model=stock.picking&view_type=form"
+                ariza.message_post(
+                    body=f"<b>Onarım sonrası giriş transferi oluşturuldu!</b><br/>"
+                         f"Transfer No: <a href='{transfer_url}'>{yeni_transfer.name}</a><br/>"
+                         f"Kaynak: {mevcut_hedef.display_name}<br/>"
+                         f"Hedef: {mevcut_kaynak.display_name}<br/>"
+                )
         # Arıza kaydını güncelle
         ariza.write({
             'state': 'tamamlandi',
             'teslim_notu': self.teslim_notu if hasattr(self, 'teslim_notu') else False
         })
-        
         return {'type': 'ir.actions.act_window_close'} 
