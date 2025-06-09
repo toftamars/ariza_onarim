@@ -605,6 +605,8 @@ class ArizaKayit(models.Model):
             self.analitik_hesap_id = self.ariza_kabul_id.analitik_hesap_id
 
         self.state = 'onaylandi'
+        # Onaylama sonrası otomatik kilitle
+        self.action_lock()
 
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
