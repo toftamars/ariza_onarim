@@ -16,3 +16,19 @@ class StockPicking(models.Model):
                 if vehicle_id is not None:
                     # vehicle_id string değilse boş string olarak ayarla
                     vehicle_id.text = str(self.vehicle_id) if self.vehicle_id else '' 
+
+    def button_validate(self):
+        res = super().button_validate()
+        # Origin alanı üzerinden arıza kaydını bul
+        for picking in self:
+            if picking.origin:
+                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                if ariza:
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ariza.kayit',
+                        'res_id': ariza.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
+        return res 
