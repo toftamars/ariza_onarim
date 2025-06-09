@@ -24,8 +24,6 @@ class StockPicking(models.Model):
             if picking.origin:
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
                 if ariza:
-                    # Arıza kaydını otomatik olarak kilitli duruma getir
-                    ariza.action_lock()
                     return {
                         'type': 'ir.actions.act_window',
                         'res_model': 'ariza.kayit',
