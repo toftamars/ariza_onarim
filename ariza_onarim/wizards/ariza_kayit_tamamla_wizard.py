@@ -64,7 +64,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             # Mağaza ürünü işlemlerinde kontak ve hedef konum otomatik dolsun
             if ariza.ariza_tipi == 'magaza':
                 res['contact_id'] = ariza.contact_id.id if ariza.contact_id else False
-                res['hedef_konum_id'] = ariza.hedef_konum_id.id if ariza.hedef_konum_id else False
+                res['hedef_konum_id'] = ariza.kaynak_konum_id.id if ariza.kaynak_konum_id else False
         return res
 
     def action_tamamla(self):
