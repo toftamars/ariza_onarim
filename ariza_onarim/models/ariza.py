@@ -489,6 +489,9 @@ class ArizaKayit(models.Model):
 
         picking = self.env['stock.picking'].create(picking_vals)
 
+        # Partner_id set edilse bile hedef konumun doğru kalması için tekrar güncelle
+        picking.location_dest_id = hedef.id
+
         # Ürün hareketi ekle
         self.env['stock.move'].create({
             'name': self.urun or self.magaza_urun_id.name,
