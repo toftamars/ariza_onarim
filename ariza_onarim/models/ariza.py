@@ -539,6 +539,9 @@ class ArizaKayit(models.Model):
             # Hedef konumu tekrar ve kesin olarak güncelle (partner_id override'ını engelle)
             if self.kaynak_konum_id:
                 picking.location_dest_id = self.kaynak_konum_id.id
+                # Tüm hareketlerin hedef konumunu da güncelle
+                for move in picking.move_lines:
+                    move.location_dest_id = self.kaynak_konum_id.id
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
