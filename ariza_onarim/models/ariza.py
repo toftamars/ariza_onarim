@@ -506,10 +506,56 @@ class ArizaKayit(models.Model):
         if not picking_type and transfer_tipi == 'ilk':
             # Analitik hesap adından "Perakende -" kısmını çıkar
             analitik_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Orijinal analitik hesap adı: '{analitik_adi}' (uzunluk: {len(analitik_adi)})",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
             if analitik_adi.startswith("Perakende - "):
                 analitik_adi = analitik_adi.replace("Perakende - ", "")
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Perakende çıkarıldıktan sonra: '{analitik_adi}' (uzunluk: {len(analitik_adi)})",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
             
             picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
+            
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Aranacak operasyon türü adı: '{picking_type_name}' (uzunluk: {len(picking_type_name)})",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Mevcut operasyon türlerini listele
+            all_picking_types = self.env['stock.picking.type'].search([])
+            picking_type_names = [pt.name for pt in all_picking_types]
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Mevcut operasyon türleri: {picking_type_names}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
             
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', picking_type_name)
