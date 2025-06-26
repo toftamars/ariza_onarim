@@ -529,42 +529,12 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # Eğer hala bulunamazsa, kaynak warehouse'dan internal picking type dene
-        if not picking_type and kaynak.warehouse_id:
-            picking_type = self.env['stock.picking.type'].search([
-                ('code', '=', 'internal'),
-                ('warehouse_id', '=', kaynak.warehouse_id.id)
-            ], limit=1)
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Kaynak warehouse için internal picking type arama - Warehouse: {kaynak.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-
-        # Eğer hala bulunamazsa, hedef warehouse'dan internal picking type dene
-        if not picking_type and hedef.warehouse_id:
-            picking_type = self.env['stock.picking.type'].search([
-                ('code', '=', 'internal'),
-                ('warehouse_id', '=', hedef.warehouse_id.id)
-            ], limit=1)
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Hedef warehouse için internal picking type arama - Warehouse: {hedef.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-
+        # Eğer ilgili operasyon türü bulunamazsa hata ver
         if not picking_type:
-            raise UserError(_("'Tamir Teslimatları', 'Tamir Alımlar' veya 'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+            if transfer_tipi == 'ilk':
+                raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+            elif transfer_tipi == 'ikinci':
+                raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
 
         # E-İrsaliye numarası oluştur
         e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
