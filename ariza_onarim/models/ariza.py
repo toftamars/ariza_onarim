@@ -484,6 +484,10 @@ class ArizaKayit(models.Model):
         # Picking type belirleme
         picking_type = False
         
+        # transfer_tipi None ise varsayılan olarak 'ilk' kullan
+        if transfer_tipi is None:
+            transfer_tipi = 'ilk'
+        
         # Eğer mevcut bir transfer varsa, onun picking type'ını kullan
         if self.transfer_id:
             picking_type = self.transfer_id.picking_type_id
@@ -535,6 +539,8 @@ class ArizaKayit(models.Model):
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
             elif transfer_tipi == 'ikinci':
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+            else:
+                raise UserError(_("Geçersiz transfer tipi: %s") % transfer_tipi)
 
         # E-İrsaliye numarası oluştur
         e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
