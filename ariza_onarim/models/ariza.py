@@ -561,6 +561,24 @@ class ArizaKayit(models.Model):
                 ('name', '=', picking_type_name)
             ], limit=1)
             
+            # Eğer tam eşleşme bulunamazsa, "Tamir Teslimatları" içeren operasyon türünü ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'%{analitik_adi}%'),
+                    ('name', 'ilike', '%Tamir Teslimatları%')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Kısmi eşleşme bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
