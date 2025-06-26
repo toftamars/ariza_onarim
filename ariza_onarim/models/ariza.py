@@ -502,17 +502,19 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # 1. transfer için sadece "Tamir Teslimatları" picking type'ı
+        # 1. transfer için analitik hesap adına göre dinamik picking type
         if not picking_type and transfer_tipi == 'ilk':
+            analitik_hesap_adi = self.analitik_hesap_id.name if self.analitik_hesap_id else 'Bilinmeyen'
+            picking_type_name = f"{analitik_hesap_adi}: Tamir Teslimatları"
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Teslimatları')
+                ('name', '=', picking_type_name)
             ], limit=1)
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"{picking_type_name} picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
@@ -536,7 +538,9 @@ class ArizaKayit(models.Model):
         # Eğer ilgili operasyon türü bulunamazsa hata ver
         if not picking_type:
             if transfer_tipi == 'ilk':
-                raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+                analitik_hesap_adi = self.analitik_hesap_id.name if self.analitik_hesap_id else 'Bilinmeyen'
+                picking_type_name = f"{analitik_hesap_adi}: Tamir Teslimatları"
+                raise UserError(_("'%s' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % picking_type_name)
             elif transfer_tipi == 'ikinci':
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
             else:
