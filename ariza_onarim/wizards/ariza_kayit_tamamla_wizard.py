@@ -25,7 +25,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     teslim_saati = fields.Float(string='TESLİM SAATİ', required=False)
     teslim_eden = fields.Many2one('res.users', string='TESLİM EDEN', required=True, default=lambda self: self.env.user)
     teslim_alan = fields.Char(string='TESLİM ALAN')
-    teslim_alan_tc = fields.Char(string='TESLİM ALAN TC', required=True)
+    teslim_alan_tc = fields.Char(string='TESLİM ALAN TC')
     teslim_alan_telefon = fields.Char(string='TESLİM ALAN TELEFON', required=True)
     teslim_alan_imza = fields.Binary(string='TESLİM ALAN İMZA', required=True)
     teslim_eden_imza = fields.Binary(string='TESLİM EDEN İMZA', required=True)
