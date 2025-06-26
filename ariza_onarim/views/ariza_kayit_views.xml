@@ -50,14 +50,10 @@
                             </page>
                             <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
                                 <group>
-                                    <field name="teslim_tarihi" readonly="1"/>
-                                    <field name="teslim_saati" readonly="1"/>
-                                    <field name="teslim_eden" readonly="1"/>
                                     <field name="teslim_alan" readonly="1"/>
                                     <field name="teslim_alan_tc" readonly="1"/>
                                     <field name="teslim_alan_telefon" readonly="1"/>
                                     <field name="teslim_alan_imza" readonly="1"/>
-                                    <field name="teslim_eden_imza" readonly="1"/>
                                     <field name="teslim_notu" readonly="1"/>
                                 </group>
                             </page>
