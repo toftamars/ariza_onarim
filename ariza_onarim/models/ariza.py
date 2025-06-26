@@ -502,19 +502,28 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # 1. transfer için sadece adı 'Tamir Teslimatları' olan operasyon türü
+        # 1. transfer için mağaza adıyla başlayan ve 'Tamir Teslimatları' ile biten operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
+            magaza_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
+            if magaza_adi.startswith("Perakende - "):
+                magaza_adi = magaza_adi.replace("Perakende - ", "")
+            # Önce tam olarak mağaza adıyla başlayan ve 'Tamir Teslimatları' ile biten türü ara
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Teslimatları')
+                ('name', '=', f'{magaza_adi}: Tamir Teslimatları')
             ], limit=1)
+            # Eğer bulunamazsa, 'Tamir Teslimatları' geçen ilk operasyon türünü fallback olarak seç
             if not picking_type:
-                raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
+            if not picking_type:
+                raise UserError(_("'%s: Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % magaza_adi)
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"{magaza_adi}: Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
@@ -524,6 +533,10 @@ class ArizaKayit(models.Model):
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Alımlar')
             ], limit=1)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Alımlar')
+                ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
             _logger.create({
