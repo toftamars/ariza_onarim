@@ -495,18 +495,26 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
-        # 1. transfer için sadece adı 'Tamir Teslimatları' olan operasyon türü
+        # 1. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Teslimatları' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Teslimatları')
             ], limit=1)
             if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
+            if not picking_type:
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
-        # 2. transfer için sadece adı 'Tamir Alımlar' olan operasyon türü
+        # 2. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Alımlar' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Alımlar')
             ], limit=1)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Alımlar')
+                ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         # Son kontrol: picking_type kesinlikle bulunmuş olmalı
