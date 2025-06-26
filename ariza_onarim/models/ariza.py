@@ -595,6 +595,8 @@ class ArizaKayit(models.Model):
                 'company_id': self.env.company.id,
             }).next_by_code('stock.picking.e.irsaliye')
 
+        # Her durumda teslimat türü matbu olsun
+        delivery_type = 'matbu'
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
@@ -605,7 +607,7 @@ class ArizaKayit(models.Model):
             'origin': self.name,
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-            'delivery_type': 'matbu',  # Teslimat Türü matbu olarak default
+            'delivery_type': delivery_type,  # Her zaman matbu
         }
         stock_picking_fields = self.env['stock.picking'].fields_get()
         if 'e_irsaliye_no' in stock_picking_fields:
