@@ -507,11 +507,9 @@ class ArizaKayit(models.Model):
             magaza_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
             if magaza_adi.startswith("Perakende - "):
                 magaza_adi = magaza_adi.replace("Perakende - ", "")
-            # Önce tam olarak mağaza adıyla başlayan ve 'Tamir Teslimatları' ile biten türü ara
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', f'{magaza_adi}: Tamir Teslimatları')
             ], limit=1)
-            # Eğer bulunamazsa, 'Tamir Teslimatları' geçen ilk operasyon türünü fallback olarak seç
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', 'Tamir Teslimatları')
@@ -528,15 +526,11 @@ class ArizaKayit(models.Model):
                 'func': '_create_stock_transfer',
                 'line': 0,
             })
-        # 2. transfer için sadece adı 'Tamir Alımlar' olan operasyon türü
+        # 2. transfer için sadece adı 'Tamir Alımlar' olan operasyon türü (fallback yok!)
         if not picking_type and transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Alımlar')
             ], limit=1)
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Alımlar')
-                ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
             _logger.create({
