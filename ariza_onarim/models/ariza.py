@@ -499,7 +499,7 @@ class ArizaKayit(models.Model):
             })
         
         # 2. transfer (onarım sonrası) için "Tamir Alımlar" picking type'ını ara
-        if transfer_tipi == 'ikinci':
+        if not picking_type and transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Alımlar')
             ], limit=1)
@@ -515,7 +515,7 @@ class ArizaKayit(models.Model):
             })
         
         # 1. transfer için "Tamir Teslimatları" picking type'ını ara
-        if not picking_type and transfer_tipi == 'ilk':
+        if not picking_type:
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Teslimatları')
             ], limit=1)
@@ -524,7 +524,7 @@ class ArizaKayit(models.Model):
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"Tamir Teslimatları picking type arama - Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
