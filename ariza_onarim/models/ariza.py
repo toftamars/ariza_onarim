@@ -484,117 +484,31 @@ class ArizaKayit(models.Model):
         # Picking type belirleme
         picking_type = False
         
-        # transfer_tipi None ise varsayılan olarak 'ilk' kullan
-        if transfer_tipi is None:
-            transfer_tipi = 'ilk'
-        
-        # Eğer mevcut bir transfer varsa, onun picking type'ını kullan
-        if self.transfer_id:
-            picking_type = self.transfer_id.picking_type_id
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Mevcut transferden picking type alındı - Picking Type: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-        
-        # 1. transfer için mağaza adıyla başlayan ve 'Tamir Teslimatları' ile biten operasyon türü
+        # transfer_tipi logla
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f'_create_stock_transfer çağrısı: transfer_tipi={transfer_tipi}',
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
+        # 1. transfer için sadece adı 'Tamir Teslimatları' olan operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
-            magaza_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
-            if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi.replace("Perakende - ", "")
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', f'{magaza_adi}: Tamir Teslimatları')
+                ('name', '=', 'Tamir Teslimatları')
             ], limit=1)
             if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Teslimatları')
-                ], limit=1)
-            if not picking_type:
-                raise UserError(_("'%s: Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % magaza_adi)
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"{magaza_adi}: Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-        # 2. transfer için sadece adı 'Tamir Alımlar' olan operasyon türü (fallback yok!)
+                raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        # 2. transfer için sadece adı 'Tamir Alımlar' olan operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Alımlar')
             ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Tamir Alımlar picking type arama (2. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-        
-        # Eğer ilgili operasyon türü bulunamazsa hata ver
-        if not picking_type:
-            if transfer_tipi == 'ilk':
-                analitik_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
-                if analitik_adi.startswith("Perakende - "):
-                    analitik_adi = analitik_adi.replace("Perakende - ", "")
-                picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
-                
-                # Fallback: Varsayılan transfer operasyon türünü kullan
-                _logger.create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'warning',
-                    'dbname': self._cr.dbname,
-                    'message': f"'{picking_type_name}' operasyon türü bulunamadı, varsayılan transfer operasyon türü kullanılıyor",
-                    'path': __file__,
-                    'func': '_create_stock_transfer',
-                    'line': 0,
-                })
-                
-                # Varsayılan transfer operasyon türünü bul
-                picking_type = self.env['stock.picking.type'].search([
-                    ('code', '=', 'internal'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-                
-                if not picking_type:
-                    # Herhangi bir internal operasyon türü bul
-                    picking_type = self.env['stock.picking.type'].search([
-                        ('code', '=', 'internal')
-                    ], limit=1)
-                
-                if not picking_type:
-                    raise UserError(_("Transfer operasyon türü bulunamadı. Lütfen stok konfigürasyonunu kontrol edin."))
-                    
-            elif transfer_tipi == 'ikinci':
-                raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
-            else:
-                raise UserError(_("Geçersiz transfer tipi: %s") % transfer_tipi)
-
-        # E-İrsaliye numarası oluştur
-        e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
-        if not e_irsaliye_no:
-            e_irsaliye_no = self.env['ir.sequence'].create({
-                'name': 'E-İrsaliye Numarası',
-                'code': 'stock.picking.e.irsaliye',
-                'prefix': 'EIRS/%(year)s/',
-                'padding': 5,
-                'company_id': self.env.company.id,
-            }).next_by_code('stock.picking.e.irsaliye')
-
         # Her durumda teslimat türü matbu olsun
         delivery_type = 'matbu'
         picking_vals = {
@@ -611,7 +525,7 @@ class ArizaKayit(models.Model):
         }
         stock_picking_fields = self.env['stock.picking'].fields_get()
         if 'e_irsaliye_no' in stock_picking_fields:
-            picking_vals['e_irsaliye_no'] = e_irsaliye_no
+            picking_vals['e_irsaliye_no'] = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
         if 'sender_unit' in stock_picking_fields:
             picking_vals['sender_unit'] = self.analitik_hesap_id.name if self.analitik_hesap_id else False
 
