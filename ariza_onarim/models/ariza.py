@@ -504,8 +504,11 @@ class ArizaKayit(models.Model):
         
         # 1. transfer için analitik hesap adına göre dinamik picking type
         if not picking_type and transfer_tipi == 'ilk':
-            # Analitik hesap adına göre operasyon türü adı oluştur
+            # Analitik hesap adından "Perakende -" kısmını çıkar
             analitik_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
+            if analitik_adi.startswith("Perakende - "):
+                analitik_adi = analitik_adi.replace("Perakende - ", "")
+            
             picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
             
             picking_type = self.env['stock.picking.type'].search([
@@ -542,6 +545,8 @@ class ArizaKayit(models.Model):
         if not picking_type:
             if transfer_tipi == 'ilk':
                 analitik_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
+                if analitik_adi.startswith("Perakende - "):
+                    analitik_adi = analitik_adi.replace("Perakende - ", "")
                 picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
                 raise UserError(_("'%s' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % picking_type_name)
             elif transfer_tipi == 'ikinci':
