@@ -498,8 +498,24 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # Önce "Tamir Teslimatları" picking type'ını ara
-        if not picking_type:
+        # 2. transfer (onarım sonrası) için "Tamir Alımlar" picking type'ını ara
+        if transfer_tipi == 'ikinci':
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Alımlar')
+            ], limit=1)
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Tamir Alımlar picking type arama (2. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        
+        # 1. transfer için "Tamir Teslimatları" picking type'ını ara
+        if not picking_type and transfer_tipi == 'ilk':
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Teslimatları')
             ], limit=1)
@@ -508,7 +524,7 @@ class ArizaKayit(models.Model):
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Tamir Teslimatları picking type arama - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"Tamir Teslimatları picking type arama (1. transfer) - Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
@@ -549,7 +565,7 @@ class ArizaKayit(models.Model):
             })
 
         if not picking_type:
-            raise UserError(_("'Tamir Teslimatları' veya 'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+            raise UserError(_("'Tamir Teslimatları', 'Tamir Alımlar' veya 'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
 
         # E-İrsaliye numarası oluştur
         e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
