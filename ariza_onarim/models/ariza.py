@@ -427,7 +427,23 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # Eğer mevcut transferden picking type alınamadıysa, kaynak warehouse'dan dene
+        # Önce "Tamir Teslimatları" picking type'ını ara
+        if not picking_type:
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Teslimatları')
+            ], limit=1)
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Tamir Teslimatları picking type arama - Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        
+        # Eğer "Tamir Teslimatları" bulunamazsa, kaynak warehouse'dan internal picking type dene
         if not picking_type and kaynak.warehouse_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
@@ -438,13 +454,13 @@ class ArizaKayit(models.Model):
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Kaynak warehouse için picking type arama - Warehouse: {kaynak.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"Kaynak warehouse için internal picking type arama - Warehouse: {kaynak.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
             })
 
-        # Eğer hala bulunamazsa, hedef warehouse'dan dene
+        # Eğer hala bulunamazsa, hedef warehouse'dan internal picking type dene
         if not picking_type and hedef.warehouse_id:
             picking_type = self.env['stock.picking.type'].search([
                 ('code', '=', 'internal'),
@@ -455,14 +471,14 @@ class ArizaKayit(models.Model):
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Hedef warehouse için picking type arama - Warehouse: {hedef.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"Hedef warehouse için internal picking type arama - Warehouse: {hedef.warehouse_id.name}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
             })
 
         if not picking_type:
-            raise UserError(_("'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+            raise UserError(_("'Tamir Teslimatları' veya 'İç Transfer' transfer tipi bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
 
         # E-İrsaliye numarası oluştur
         e_irsaliye_no = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
