@@ -4,6 +4,11 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 
+class AccountAnalyticAccount(models.Model):
+    _inherit = 'account.analytic.account'
+    
+    partner_id = fields.Many2one('res.partner', string='Partner')
+
 class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
     _description = 'Arıza Kayıtları'
