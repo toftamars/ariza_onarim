@@ -509,6 +509,9 @@ class ArizaKayit(models.Model):
             ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        # Son kontrol: picking_type kesinlikle bulunmuş olmalı
+        if not picking_type:
+            raise UserError(_("Operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         # Her durumda teslimat türü matbu olsun
         delivery_type = 'matbu'
         picking_vals = {
