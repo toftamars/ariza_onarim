@@ -116,7 +116,6 @@
                     <group>
                         <field name="musteri_adi"/>
                         <field name="urun"/>
-                        <field name="onay_mesaji"/>
                     </group>
                     <footer>
                         <button name="action_tamamla" string="Evet, Tamamla" type="object" class="btn-primary"/>
