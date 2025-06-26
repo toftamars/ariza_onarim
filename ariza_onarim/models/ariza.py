@@ -109,7 +109,22 @@ class ArizaKayit(models.Model):
                     vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
             # Varsayılan değerleri ayarla
             if not vals.get('name'):
-                vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                try:
+                    vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                except:
+                    # Sequence bulunamazsa manuel numara oluştur
+                    import datetime
+                    current_year = datetime.datetime.now().year
+                    last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
+                    if last_record and last_record.name != 'New':
+                        try:
+                            last_number = int(last_record.name.split('/')[-1])
+                            new_number = last_number + 1
+                        except:
+                            new_number = 1
+                    else:
+                        new_number = 1
+                    vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
             if not vals.get('state'):
                 vals['state'] = 'draft'
             if not vals.get('islem_tipi'):

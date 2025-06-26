@@ -25,6 +25,7 @@
         'analytic',
     ],
     'data': [
+        'data/sequence.xml',
         'security/ir.model.access.csv',
         'views/ariza_views.xml',
         'views/menu_views.xml',
