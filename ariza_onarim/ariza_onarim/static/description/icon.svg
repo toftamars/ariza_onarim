@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Arka plan daire -->
+    <circle cx="70" cy="70" r="65" fill="#875A7B"/>
+    
+    <!-- Anahtar -->
+    <path d="M85 45L95 35L105 45L95 55L85 45Z" fill="white"/>
+    <path d="M95 35L105 45L115 35L105 25L95 35Z" fill="white"/>
+    
+    <!-- Çark -->
+    <circle cx="70" cy="70" r="25" stroke="white" stroke-width="4" fill="none"/>
+    <circle cx="70" cy="70" r="15" stroke="white" stroke-width="4" fill="none"/>
+    <path d="M70 45L70 55M70 85L70 95M45 70L55 70M85 70L95 70" stroke="white" stroke-width="4"/>
+    
+    <!-- Çekiç -->
+    <path d="M45 85L55 95L65 85L55 75L45 85Z" fill="white"/>
+    <path d="M55 75L65 85L75 75L65 65L55 75Z" fill="white"/>
+</svg> 
