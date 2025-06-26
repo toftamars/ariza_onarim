@@ -495,6 +495,7 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
+        
         # 1. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Teslimatları' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
             picking_type = self.env['stock.picking.type'].search([
@@ -506,6 +507,7 @@ class ArizaKayit(models.Model):
                 ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
         # 2. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Alımlar' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
@@ -517,9 +519,52 @@ class ArizaKayit(models.Model):
                 ], limit=1)
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
+        # transfer_tipi belirtilmemişse veya bulunamadıysa, genel arama yap
+        if not picking_type:
+            # Önce 'Tamir Teslimatları' ara
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Teslimatları')
+            ], limit=1)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
+            
+            # 'Tamir Teslimatları' bulunamazsa 'Tamir Alımlar' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Alımlar')
+                ], limit=1)
+                if not picking_type:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Alımlar')
+                    ], limit=1)
+            
+            # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene
+            if not picking_type and kaynak and kaynak.warehouse_id:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal'),
+                    ('warehouse_id', '=', kaynak.warehouse_id.id)
+                ], limit=1)
+            
+            # Hala bulunamazsa, hedef konumun warehouse'undan internal picking type dene
+            if not picking_type and hedef and hedef.warehouse_id:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal'),
+                    ('warehouse_id', '=', hedef.warehouse_id.id)
+                ], limit=1)
+            
+            # Son çare: herhangi bir internal picking type bul
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal')
+                ], limit=1)
+        
         # Son kontrol: picking_type kesinlikle bulunmuş olmalı
         if not picking_type:
             raise UserError(_("Operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
         # Her durumda teslimat türü matbu olsun
         delivery_type = 'matbu'
         picking_vals = {
