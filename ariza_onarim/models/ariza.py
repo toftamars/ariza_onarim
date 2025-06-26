@@ -504,81 +504,27 @@ class ArizaKayit(models.Model):
         
         # 1. transfer için analitik hesap adına göre dinamik picking type
         if not picking_type and transfer_tipi == 'ilk':
-            # Analitik hesap adından "Perakende -" kısmını çıkar
             analitik_adi = self.analitik_hesap_id.name.strip() if self.analitik_hesap_id else ""
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Orijinal analitik hesap adı: '{analitik_adi}' (uzunluk: {len(analitik_adi)})",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            
             if analitik_adi.startswith("Perakende - "):
                 analitik_adi = analitik_adi.replace("Perakende - ", "")
-                _logger.create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'debug',
-                    'dbname': self._cr.dbname,
-                    'message': f"Perakende çıkarıldıktan sonra: '{analitik_adi}' (uzunluk: {len(analitik_adi)})",
-                    'path': __file__,
-                    'func': '_create_stock_transfer',
-                    'line': 0,
-                })
-            
             picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
-            
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Aranacak operasyon türü adı: '{picking_type_name}' (uzunluk: {len(picking_type_name)})",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            
-            # Mevcut operasyon türlerini listele
-            all_picking_types = self.env['stock.picking.type'].search([])
-            picking_type_names = [pt.name for pt in all_picking_types]
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Mevcut operasyon türleri: {picking_type_names}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-            
+            # Önce tam eşleşme
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', picking_type_name)
             ], limit=1)
-            
-            # Eğer tam eşleşme bulunamazsa, "Tamir Teslimatları" içeren operasyon türünü ara
+            # Eğer tam eşleşme yoksa, analitik ad ile başlayıp 'Tamir Teslimatları' ile biten türü ara
+            if not picking_type and analitik_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'like', f'{analitik_adi}: Tamir Teslimatları')
+                ], limit=1)
+            # Hala yoksa, sadece 'Tamir Teslimatları' olanı ara
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', f'%{analitik_adi}%'),
-                    ('name', 'ilike', '%Tamir Teslimatları%')
+                    ('name', '=', 'Tamir Teslimatları')
                 ], limit=1)
-                if picking_type:
-                    _logger.create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'debug',
-                        'dbname': self._cr.dbname,
-                        'message': f"Kısmi eşleşme bulundu: {picking_type.name}",
-                        'path': __file__,
-                        'func': '_create_stock_transfer',
-                        'line': 0,
-                    })
-            
+            # Hiçbiri yoksa hata ver
+            if not picking_type:
+                raise UserError(_("'%s' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % picking_type_name)
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
