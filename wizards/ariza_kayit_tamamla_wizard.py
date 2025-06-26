@@ -8,7 +8,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='ARIZA KAYDI', required=True)
     musteri_adi = fields.Char(string='MÜŞTERİ ADI', readonly=True)
     urun = fields.Char(string='ÜRÜN', readonly=True)
-    onay_mesaji = fields.Text(string='ONAY MESAJI', default='Onarım tamamlandı. Ürün teslim edilmeye hazırdır.')
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü'),
