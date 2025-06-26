@@ -1,1 +1,175 @@
- 
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_ariza_kayit">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="ariza_onarim.report_ariza_kayit_document" t-lang="o.env.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_ariza_kayit_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <!-- Başlık -->
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <h2 class="mb-4">ARIZA KAYIT FORMU</h2>
+                    </div>
+                </div>
+
+                <!-- Arıza No ve Tarih -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <strong>Arıza No:</strong> <span t-field="o.name"/>
+                    </div>
+                    <div class="col-6 text-right">
+                        <strong>Tarih:</strong> <span t-field="o.tarih"/>
+                    </div>
+                </div>
+
+                <!-- Müşteri Bilgileri -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Müşteri Bilgileri</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td width="30%"><strong>Müşteri:</strong></td>
+                                <td><span t-field="o.partner_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Analitik Hesap:</strong></td>
+                                <td><span t-field="o.analitik_hesap_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Teslim Adresi:</strong></td>
+                                <td>
+                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-field="o.analitik_hesap_id.adres"/>
+                                    <span t-else="" t-field="o.teslim_adresi"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Telefon:</strong></td>
+                                <td>
+                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon" t-field="o.analitik_hesap_id.telefon"/>
+                                    <span t-else="" t-field="o.tedarikci_telefon"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>E-posta:</strong></td>
+                                <td>
+                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.email" t-field="o.analitik_hesap_id.email"/>
+                                    <span t-else="" t-field="o.tedarikci_email"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Ürün Bilgileri -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Ürün Bilgileri</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td width="30%"><strong>Ürün:</strong></td>
+                                <td><span t-field="o.urun"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Model:</strong></td>
+                                <td><span t-field="o.model"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Marka:</strong></td>
+                                <td>
+                                    <span t-if="o.marka_id" t-field="o.marka_id.name"/>
+                                    <span t-else="" t-field="o.marka_manu"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tedarikçi:</strong></td>
+                                <td><span t-field="o.tedarikci_id.name"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Arıza Bilgileri -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Arıza Bilgileri</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td width="30%"><strong>Arıza Tipi:</strong></td>
+                                <td><span t-field="o.ariza_tipi"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Teknik Servis:</strong></td>
+                                <td><span t-field="o.teknik_servis"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Arıza Tanımı:</strong></td>
+                                <td><span t-field="o.ariza_tanimi"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Garanti Kapsamında:</strong></td>
+                                <td><span t-field="o.garanti_kapsaminda_mi"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Onarım Ücreti:</strong></td>
+                                <td><span t-field="o.onarim_ucreti"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transfer Bilgileri -->
+                <div class="row mb-4" t-if="o.transfer_id">
+                    <div class="col-12">
+                        <h5>Transfer Bilgileri</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td width="30%"><strong>Transfer No:</strong></td>
+                                <td><span t-field="o.transfer_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transfer Durumu:</strong></td>
+                                <td><span t-field="o.transfer_id.state"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transfer Metodu:</strong></td>
+                                <td><span t-field="o.transfer_metodu"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Notlar -->
+                <div class="row mb-4" t-if="o.notlar">
+                    <div class="col-12">
+                        <h5>Notlar</h5>
+                        <div class="border p-3">
+                            <span t-field="o.notlar"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İmza Alanları -->
+                <div class="row mt-5">
+                    <div class="col-6">
+                        <div class="border-top pt-3">
+                            <strong>Müşteri İmzası:</strong>
+                            <div class="mt-3" style="height: 60px; border-bottom: 1px solid #ccc;"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border-top pt-3">
+                            <strong>Yetkili İmzası:</strong>
+                            <div class="mt-3" style="height: 60px; border-bottom: 1px solid #ccc;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo> 
