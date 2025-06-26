@@ -499,6 +499,32 @@ class ArizaKayit(models.Model):
         # Analitik hesap adını al
         magaza_adi = self.analitik_hesap_id.name if self.analitik_hesap_id else ""
         
+        # Önce kaynak konumun warehouse'undan mağaza adını almayı dene
+        if kaynak and kaynak.warehouse_id and kaynak.warehouse_id.name:
+            magaza_adi = kaynak.warehouse_id.name
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Kaynak konumdan mağaza adı alındı: {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        elif self.analitik_hesap_id and self.analitik_hesap_id.name:
+            magaza_adi = self.analitik_hesap_id.name
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Analitik hesaptan mağaza adı alındı: {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        
         # 1. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Teslimatları' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
             # Önce "Mağaza Adı: Tamir Teslimatları" formatında ara

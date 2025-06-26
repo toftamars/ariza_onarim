@@ -103,6 +103,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                          f"Kaynak: {mevcut_hedef.display_name}<br/>"
                          f"Hedef: {ariza.kaynak_konum_id.display_name}<br/>"
                 )
+                # 2. transfer oluşturulduktan sonra işlemi kilitle
+                ariza.write({
+                    'state': 'kilitli',
+                    'teslim_notu': self.teslim_notu if hasattr(self, 'teslim_notu') else False
+                })
                 # Kullanıcıyı yeni transferin form ekranına yönlendir
                 return {
                     'type': 'ir.actions.act_window',
@@ -112,7 +117,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'view_mode': 'form',
                     'target': 'current',
                 }
-        # Arıza kaydını güncelle
+        # Arıza kaydını güncelle (eğer transfer oluşturulmadıysa)
         ariza.write({
             'state': 'tamamlandi',
             'teslim_notu': self.teslim_notu if hasattr(self, 'teslim_notu') else False
