@@ -1,0 +1,27 @@
+ANADOLU YAKASI
+
+Pazartesi:Maltepe, Kartal, Pendik, Tuzla
+
+Salı:Üsküdar, Kadıköy, Ataşehir, Ümraniye
+
+Çarşamba:Üsküdar, Kadıköy, Atasehir, Ümraniye
+
+Perşembe:Üsküdar, Kadıköy, Atasehir, Ümraniye
+
+Cuma:Maltepe, Kartal, Pendik
+
+Cumartesi:Sancaktepe, Çekmeköy, Sultanbeyli, Beykoz, Şile
+
+AVRUPA YAKASI
+
+Pazartesi:Beyoğlu, Şişli, Beşiktaş, Kağıthane
+
+Salı:Sarıyer, Bakırköy, Bahçelievler, Güngören, Esenler, Bağıclar
+
+Çarşamba:Beyoğlu, Şişli, Beşiktaş, Kağıthane
+
+Perşembe:Eyüpsultan, Gaziosmanpaşa, Küçükçekmece, Avcılar, Başakşehir, Sultangazi, Arnavutköy
+
+Cuma:Fatih, Zeytinburnu, Bayrampaşa
+
+Cumartesi:Esenyurt, Beylikdüzü, Silivri, Çatalca

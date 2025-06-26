@@ -1,0 +1,1 @@
+from . import ariza_kayit_tamamla_wizard 
