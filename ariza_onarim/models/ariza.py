@@ -522,24 +522,79 @@ class ArizaKayit(models.Model):
         
         # transfer_tipi belirtilmemişse veya bulunamadıysa, genel arama yap
         if not picking_type:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"transfer_tipi belirtilmemiş, genel arama başlıyor",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
             # Önce 'Tamir Teslimatları' ara
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Tamir Teslimatları')
             ], limit=1)
-            if not picking_type:
+            if picking_type:
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Tam eşleşme ile 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
+            else:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', 'Tamir Teslimatları')
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"İlike ile 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
             # 'Tamir Teslimatları' bulunamazsa 'Tamir Alımlar' ara
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', '=', 'Tamir Alımlar')
                 ], limit=1)
-                if not picking_type:
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tam eşleşme ile 'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                else:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', 'Tamir Alımlar')
                     ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"İlike ile 'Tamir Alımlar' bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
             
             # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene
             if not picking_type and kaynak and kaynak.warehouse_id:
@@ -547,6 +602,17 @@ class ArizaKayit(models.Model):
                     ('code', '=', 'internal'),
                     ('warehouse_id', '=', kaynak.warehouse_id.id)
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Kaynak warehouse internal picking type bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
             # Hala bulunamazsa, hedef konumun warehouse'undan internal picking type dene
             if not picking_type and hedef and hedef.warehouse_id:
@@ -554,12 +620,48 @@ class ArizaKayit(models.Model):
                     ('code', '=', 'internal'),
                     ('warehouse_id', '=', hedef.warehouse_id.id)
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Hedef warehouse internal picking type bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
             # Son çare: herhangi bir internal picking type bul
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal')
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Son çare internal picking type bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                else:
+                    # Tüm picking type'ları listele
+                    all_picking_types = self.env['stock.picking.type'].search([])
+                    picking_type_names = [pt.name for pt in all_picking_types]
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'error',
+                        'dbname': self._cr.dbname,
+                        'message': f"Hiçbir picking type bulunamadı! Mevcut picking type'lar: {picking_type_names}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
         
         # Son kontrol: picking_type kesinlikle bulunmuş olmalı
         if not picking_type:
