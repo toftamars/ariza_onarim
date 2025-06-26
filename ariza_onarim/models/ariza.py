@@ -594,7 +594,34 @@ class ArizaKayit(models.Model):
                 if analitik_adi.startswith("Perakende - "):
                     analitik_adi = analitik_adi.replace("Perakende - ", "")
                 picking_type_name = f"{analitik_adi}: Tamir Teslimatları" if analitik_adi else "Tamir Teslimatları"
-                raise UserError(_("'%s' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin.") % picking_type_name)
+                
+                # Fallback: Varsayılan transfer operasyon türünü kullan
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'warning',
+                    'dbname': self._cr.dbname,
+                    'message': f"'{picking_type_name}' operasyon türü bulunamadı, varsayılan transfer operasyon türü kullanılıyor",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
+                
+                # Varsayılan transfer operasyon türünü bul
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                
+                if not picking_type:
+                    # Herhangi bir internal operasyon türü bul
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('code', '=', 'internal')
+                    ], limit=1)
+                
+                if not picking_type:
+                    raise UserError(_("Transfer operasyon türü bulunamadı. Lütfen stok konfigürasyonunu kontrol edin."))
+                    
             elif transfer_tipi == 'ikinci':
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
             else:
