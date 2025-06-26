@@ -22,7 +22,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='TESLİM MAĞAZASI')
     teslim_adresi = fields.Char(string='TESLİM ADRESİ', readonly=True)
     teslim_tarihi = fields.Date(string='TESLİM TARİHİ', required=True, default=fields.Date.context_today)
-    teslim_saati = fields.Float(string='TESLİM SAATİ', required=True)
+    teslim_saati = fields.Float(string='TESLİM SAATİ', required=False)
     teslim_eden = fields.Many2one('res.users', string='TESLİM EDEN', required=True, default=lambda self: self.env.user)
     teslim_alan = fields.Char(string='TESLİM ALAN', required=True)
     teslim_alan_tc = fields.Char(string='TESLİM ALAN TC', required=True)

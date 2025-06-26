@@ -183,5 +183,17 @@
                   parent="menu_ariza_kayit"
                   action="action_ariza_kayit_tamamla_wizard"
                   sequence="20"/>
+
+        <!-- Arıza Kayıt Raporu -->
+        <record id="action_report_ariza_kayit" model="ir.actions.report">
+            <field name="name">Arıza Kayıt Raporu</field>
+            <field name="model">ariza.kayit</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">ariza_onarim.report_ariza_kayit</field>
+            <field name="report_file">ariza_onarim.report_ariza_kayit</field>
+            <field name="print_report_name">'Arıza Kayıt - %s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_ariza_kayit"/>
+            <field name="binding_type">report</field>
+        </record>
     </data>
 </odoo> 
