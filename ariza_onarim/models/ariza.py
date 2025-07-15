@@ -937,6 +937,18 @@ class ArizaKayit(models.Model):
         if not picking_type:
             raise UserError(_("Operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         
+        # Seçilen operasyon türünü logla
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f"SON SEÇİLEN OPERASYON TÜRÜ: {picking_type.name} (ID: {picking_type.id})",
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
+        
         # Her durumda teslimat türü matbu olsun
         delivery_type = 'matbu'
         picking_vals = {
@@ -967,6 +979,18 @@ class ArizaKayit(models.Model):
         # Diğer durumlarda partner_id set edilmesin
 
         picking = self.env['stock.picking'].create(picking_vals)
+        
+        # Transfer oluşturulduktan sonra operasyon türünü kontrol et
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f"TRANSFER OLUŞTURULDU - Picking ID: {picking.id}, Operasyon Türü: {picking.picking_type_id.name} (ID: {picking.picking_type_id.id})",
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
 
         # Ürün hareketi ekle
         self.env['stock.move'].create({
