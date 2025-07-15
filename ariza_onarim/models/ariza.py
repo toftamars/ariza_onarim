@@ -514,6 +514,9 @@ class ArizaKayit(models.Model):
             })
         elif self.analitik_hesap_id and self.analitik_hesap_id.name:
             magaza_adi = self.analitik_hesap_id.name
+            # "Perakende -" önekini kaldır
+            if magaza_adi.startswith('Perakende - '):
+                magaza_adi = magaza_adi.replace('Perakende - ', '')
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
