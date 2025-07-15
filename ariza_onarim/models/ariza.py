@@ -863,11 +863,12 @@ class ArizaKayit(models.Model):
                         'line': 0,
                     })
             
-            # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene
+            # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene (Arıza: öneki olmayan)
             if not picking_type and kaynak and kaynak.warehouse_id:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal'),
-                    ('warehouse_id', '=', kaynak.warehouse_id.id)
+                    ('warehouse_id', '=', kaynak.warehouse_id.id),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -875,17 +876,18 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Kaynak warehouse internal picking type bulundu: {picking_type.name}",
+                        'message': f"Kaynak warehouse internal picking type bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
             
-            # Hala bulunamazsa, hedef konumun warehouse'undan internal picking type dene
+            # Hala bulunamazsa, hedef konumun warehouse'undan internal picking type dene (Arıza: öneki olmayan)
             if not picking_type and hedef and hedef.warehouse_id:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal'),
-                    ('warehouse_id', '=', hedef.warehouse_id.id)
+                    ('warehouse_id', '=', hedef.warehouse_id.id),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -893,16 +895,17 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Hedef warehouse internal picking type bulundu: {picking_type.name}",
+                        'message': f"Hedef warehouse internal picking type bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
             
-            # Son çare: herhangi bir internal picking type bul
+            # Son çare: herhangi bir internal picking type bul (Arıza: öneki olmayan)
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
-                    ('code', '=', 'internal')
+                    ('code', '=', 'internal'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -910,7 +913,7 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Son çare internal picking type bulundu: {picking_type.name}",
+                        'message': f"Son çare internal picking type bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
