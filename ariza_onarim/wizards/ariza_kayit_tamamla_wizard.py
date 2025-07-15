@@ -44,7 +44,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     def _onchange_teslim_magazasi(self):
         if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
             self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-            else:
+        else:
             self.teslim_adresi = False
 
     @api.model
