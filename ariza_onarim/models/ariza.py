@@ -527,20 +527,34 @@ class ArizaKayit(models.Model):
         
         # 1. transfer için 'Tamir Teslimatları' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
-            # Sadece "Tamir Teslimatları" ara
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Teslimatları')
-            ], limit=1)
+            # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                ], limit=1)
+            
+            # Bulunamazsa genel 'Tamir Teslimatları' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
             
             if not picking_type:
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
         
         # 2. transfer için 'Tamir Alımlar' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
-            # Sadece "Tamir Alımlar" ara
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Alımlar')
-            ], limit=1)
+            # Önce analitik hesap adı ile eşleşen 'Tamir Alımlar' ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Alımlar')
+                ], limit=1)
+            
+            # Bulunamazsa genel 'Tamir Alımlar' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Alımlar')
+                ], limit=1)
             
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
@@ -558,23 +572,58 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Önce 'Tamir Teslimatları' ara
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Teslimatları')
-            ], limit=1)
-            if picking_type:
-                _logger.create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'debug',
-                    'dbname': self._cr.dbname,
-                    'message': f"'Tamir Teslimatları' bulundu: {picking_type.name}",
-                    'path': __file__,
-                    'func': '_create_stock_transfer',
-                    'line': 0,
-                })
+            # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
-            # 'Tamir Teslimatları' bulunamazsa 'Tamir Alımlar' ara
+            # Analitik hesap ile eşleşen bulunamazsa genel 'Tamir Teslimatları' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # 'Tamir Teslimatları' bulunamazsa analitik hesap ile eşleşen 'Tamir Alımlar' ara
+            if not picking_type and magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Alımlar')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen 'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Analitik hesap ile eşleşen bulunamazsa genel 'Tamir Alımlar' ara
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', 'Tamir Alımlar')
@@ -585,7 +634,7 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'message': f"Genel 'Tamir Alımlar' bulundu: {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
