@@ -151,7 +151,6 @@ class ArizaKayit(models.Model):
     lot_id = fields.Many2one(
         'stock.lot',
         string='Lot/Seri Numarası',
-        domain="[('product_id', '=', magaza_urun_id)]",
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
@@ -1059,6 +1058,13 @@ class ArizaKayit(models.Model):
                 self.tedarikci_adresi = False
                 self.tedarikci_telefon = False
                 self.tedarikci_email = False
+        
+        # Lot/Seri numarası için domain güncelle
+        return {
+            'domain': {
+                'lot_id': [('product_id', '=', self.magaza_urun_id.id if self.magaza_urun_id else False)]
+            }
+        }
 
     def action_print_delivery(self):
         if self.transfer_id:
