@@ -116,7 +116,7 @@ class ArizaKayit(models.Model):
         ('iptal', 'İptal'),
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
-    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi',
+    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
         domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product')]",
         tracking=True)
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
@@ -146,11 +146,6 @@ class ArizaKayit(models.Model):
     magaza_urun_id = fields.Many2one(
         'product.product',
         string='Ürün',
-        tracking=True
-    )
-    lot_id = fields.Many2one(
-        'stock.lot',
-        string='Lot/Seri Numarası',
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
@@ -214,8 +209,8 @@ class ArizaKayit(models.Model):
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == 'musteri':
             self.partner_id = False
-            self.urun = False
-            self.model = False
+                self.urun = False
+                self.model = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
             self.transfer_id = False
@@ -337,7 +332,7 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
-        
+
         # Analitik hesaptan adres bilgilerini al
         if self.analitik_hesap_id:
             if self.analitik_hesap_id.adres:
@@ -490,16 +485,16 @@ class ArizaKayit(models.Model):
         picking_type = False
         
         # transfer_tipi logla
-        _logger.create({
-            'name': 'ariza_onarim',
-            'type': 'server',
-            'level': 'debug',
-            'dbname': self._cr.dbname,
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
             'message': f'_create_stock_transfer çağrısı: transfer_tipi={transfer_tipi}, analitik_hesap={self.analitik_hesap_id.name if self.analitik_hesap_id else "Yok"}',
-            'path': __file__,
-            'func': '_create_stock_transfer',
-            'line': 0,
-        })
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
         
         # Analitik hesap adını al
         magaza_adi = self.analitik_hesap_id.name if self.analitik_hesap_id else ""
@@ -609,10 +604,10 @@ class ArizaKayit(models.Model):
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
-                else:
+            else:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
-                    ], limit=1)
+                ], limit=1)
                     if picking_type:
                         _logger.create({
                             'name': 'ariza_onarim',
@@ -629,18 +624,18 @@ class ArizaKayit(models.Model):
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', '=', 'Tamir Teslimatları')
-                ], limit=1)
+            ], limit=1)
                 if picking_type:
-                    _logger.create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'debug',
-                        'dbname': self._cr.dbname,
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
                         'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
-                        'path': __file__,
-                        'func': '_create_stock_transfer',
-                        'line': 0,
-                    })
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
                 else:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', 'Tamir Teslimatları')
@@ -723,10 +718,10 @@ class ArizaKayit(models.Model):
             
             # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene
             if not picking_type and kaynak and kaynak.warehouse_id:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('code', '=', 'internal'),
+        picking_type = self.env['stock.picking.type'].search([
+            ('code', '=', 'internal'),
                     ('warehouse_id', '=', kaynak.warehouse_id.id)
-                ], limit=1)
+        ], limit=1)
                 if picking_type:
                     _logger.create({
                         'name': 'ariza_onarim',
@@ -758,21 +753,21 @@ class ArizaKayit(models.Model):
                     })
             
             # Son çare: herhangi bir internal picking type bul
-            if not picking_type:
+        if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal')
                 ], limit=1)
                 if picking_type:
-                    _logger.create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'debug',
-                        'dbname': self._cr.dbname,
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
                         'message': f"Son çare internal picking type bulundu: {picking_type.name}",
-                        'path': __file__,
-                        'func': '_create_stock_transfer',
-                        'line': 0,
-                    })
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
                 else:
                     # Tüm picking type'ları listele
                     all_picking_types = self.env['stock.picking.type'].search([])
@@ -824,7 +819,7 @@ class ArizaKayit(models.Model):
         picking = self.env['stock.picking'].create(picking_vals)
 
         # Ürün hareketi ekle
-        move_vals = {
+        self.env['stock.move'].create({
             'name': self.urun or self.magaza_urun_id.name,
             'product_id': self.magaza_urun_id.id,
             'product_uom_qty': 1,
@@ -835,13 +830,7 @@ class ArizaKayit(models.Model):
             'company_id': self.env.company.id,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'quantity_done': 1,
-        }
-        
-        # Lot/Seri numarası varsa ekle
-        if self.lot_id:
-            move_vals['lot_ids'] = [(6, 0, [self.lot_id.id])]
-        
-        self.env['stock.move'].create(move_vals)
+        })
 
         _logger.create({
             'name': 'ariza_onarim',
@@ -860,7 +849,6 @@ class ArizaKayit(models.Model):
             msg += f"Arıza Tanımı: {self.ariza_tanimi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
-            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.ariza_tanimi:
@@ -872,7 +860,6 @@ class ArizaKayit(models.Model):
             msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
-            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.onarim_bilgisi:
@@ -1041,8 +1028,6 @@ class ArizaKayit(models.Model):
         if self.magaza_urun_id:
             self.urun = self.magaza_urun_id.name or ''
             self.model = self.magaza_urun_id.default_code or ''
-            # Lot/Seri numarasını temizle (yeni ürün seçildiğinde)
-            self.lot_id = False
             # Ürün seçilince marka otomatik gelsin
             if hasattr(self.magaza_urun_id, 'brand_id') and self.magaza_urun_id.brand_id:
                 self.marka_id = self.magaza_urun_id.brand_id.id
@@ -1058,17 +1043,10 @@ class ArizaKayit(models.Model):
                 self.tedarikci_adresi = False
                 self.tedarikci_telefon = False
                 self.tedarikci_email = False
-        
-        # Lot/Seri numarası için domain güncelle
-        return {
-            'domain': {
-                'lot_id': [('product_id', '=', self.magaza_urun_id.id if self.magaza_urun_id else False)]
-            }
-        }
 
     def action_print_delivery(self):
         if self.transfer_id:
-            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id) 
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
@@ -1176,21 +1154,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
-    lot_id = fields.Many2one('stock.lot', string='LOT/SERİ NUMARASI', readonly=True)
     onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
-
-    @api.model
-    def default_get(self, fields_list):
-        res = super().default_get(fields_list)
-        if self._context.get('active_id'):
-            ariza = self.env['ariza.kayit'].browse(self._context['active_id'])
-            res.update({
-                'ariza_id': ariza.id,
-                'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
-                'urun': ariza.urun.upper() if ariza.urun else '',
-                'lot_id': ariza.lot_id.id if ariza.lot_id else False,
-            })
-        return res
 
     def action_tamamla(self):
         ariza = self.ariza_id

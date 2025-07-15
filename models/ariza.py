@@ -148,12 +148,6 @@ class ArizaKayit(models.Model):
         string='Ürün',
         tracking=True
     )
-    lot_id = fields.Many2one(
-        'stock.lot',
-        string='Lot/Seri Numarası',
-        domain="[('product_id', '=', magaza_urun_id)]",
-        tracking=True
-    )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
@@ -533,65 +527,164 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
         
-        # 2. transfer (onarım sonrası) için "Mağaza: Tamir Alımlar" picking type'ını ara
-        if not picking_type and transfer_tipi == 'ikinci':
-            # Önce "Mağaza: Tamir Alımlar" formatında ara
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', f"{magaza_adi}: Tamir Alımlar")
-            ], limit=1)
-            
-            if not picking_type:
-                # Bulunamazsa "Mağaza Tamir Alımlar" formatında ara
+        # 1. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Teslimatları' geçen ilk operasyon türü
+        if not picking_type and transfer_tipi == 'ilk':
+            # Önce "Mağaza Adı: Tamir Teslimatları" formatında ara
+            if magaza_adi:
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', f"{magaza_adi} Tamir Alımlar")
+                    ('name', '=', f'{magaza_adi}: Tamir Teslimatları')
                 ], limit=1)
+                if not picking_type:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                    ], limit=1)
             
+            # Bulunamazsa sadece "Tamir Teslimatları" ara
             if not picking_type:
-                # Bulunamazsa sadece "Tamir Alımlar" ara
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar')
-                ], limit=1)
-            
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
-                'message': f"Tamir Alımlar picking type arama (2. transfer) - Mağaza: {magaza_adi}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
-        
-        # 1. transfer için "Mağaza: Tamir Teslimatları" picking type'ını ara
-        if not picking_type:
-            # Önce "Mağaza: Tamir Teslimatları" formatında ara
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', f"{magaza_adi}: Tamir Teslimatları")
-            ], limit=1)
-            
-            if not picking_type:
-                # Bulunamazsa "Mağaza Tamir Teslimatları" formatında ara
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', f"{magaza_adi} Tamir Teslimatları")
-                ], limit=1)
-            
-            if not picking_type:
-                # Bulunamazsa sadece "Tamir Teslimatları" ara
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', '=', 'Tamir Teslimatları')
                 ], limit=1)
+                if not picking_type:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Teslimatları')
+                    ], limit=1)
             
+            if not picking_type:
+                raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
+        # 2. transfer için önce tam eşleşme, yoksa ilike ile 'Tamir Alımlar' geçen ilk operasyon türü
+        if not picking_type and transfer_tipi == 'ikinci':
+            # Önce "Mağaza Adı: Tamir Alımlar" formatında ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', f'{magaza_adi}: Tamir Alımlar')
+                ], limit=1)
+                if not picking_type:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', f'{magaza_adi}: Tamir Alımlar')
+                    ], limit=1)
+            
+            # Bulunamazsa sadece "Tamir Alımlar" ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Alımlar')
+                ], limit=1)
+                if not picking_type:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Alımlar')
+                    ], limit=1)
+            
+            if not picking_type:
+                raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
+        # transfer_tipi belirtilmemişse veya bulunamadıysa, genel arama yap
+        if not picking_type:
             _logger.create({
                 'name': 'ariza_onarim',
                 'type': 'server',
                 'level': 'debug',
                 'dbname': self._cr.dbname,
-                'message': f"Tamir Teslimatları picking type arama - Mağaza: {magaza_adi}, Bulunan: {picking_type.name if picking_type else 'Yok'}",
+                'message': f"transfer_tipi belirtilmemiş, genel arama başlıyor - Mağaza: {magaza_adi}",
                 'path': __file__,
                 'func': '_create_stock_transfer',
                 'line': 0,
             })
+            
+            # Önce mağaza adı ile 'Tamir Teslimatları' ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', f'{magaza_adi}: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Mağaza adı ile 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                else:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Mağaza adı ile ilike 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+            
+            # Mağaza adı ile bulunamazsa genel 'Tamir Teslimatları' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                else:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Teslimatları')
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Genel ilike 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+            
+            # 'Tamir Teslimatları' bulunamazsa mağaza adı ile 'Tamir Alımlar' ara
+            if not picking_type and magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', f'{magaza_adi}: Tamir Alımlar')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Mağaza adı ile 'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                else:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', f'{magaza_adi}: Tamir Alımlar')
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Mağaza adı ile ilike 'Tamir Alımlar' bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
         
         # Eğer "Tamir Teslimatları" bulunamazsa, kaynak warehouse'dan internal picking type dene
         if not picking_type and kaynak.warehouse_id:
@@ -671,7 +764,7 @@ class ArizaKayit(models.Model):
         picking = self.env['stock.picking'].create(picking_vals)
 
         # Ürün hareketi ekle
-        move_vals = {
+        self.env['stock.move'].create({
             'name': self.urun or self.magaza_urun_id.name,
             'product_id': self.magaza_urun_id.id,
             'product_uom_qty': 1,
@@ -682,13 +775,7 @@ class ArizaKayit(models.Model):
             'company_id': self.env.company.id,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'quantity_done': 1,
-        }
-        
-        # Lot/Seri numarası varsa ekle
-        if self.lot_id:
-            move_vals['lot_ids'] = [(6, 0, [self.lot_id.id])]
-        
-        self.env['stock.move'].create(move_vals)
+        })
 
         _logger.create({
             'name': 'ariza_onarim',
@@ -707,7 +794,6 @@ class ArizaKayit(models.Model):
             msg += f"Arıza Tanımı: {self.ariza_tanimi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
-            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.ariza_tanimi:
@@ -719,7 +805,6 @@ class ArizaKayit(models.Model):
             msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
-            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.onarim_bilgisi:
@@ -888,8 +973,6 @@ class ArizaKayit(models.Model):
         if self.magaza_urun_id:
             self.urun = self.magaza_urun_id.name or ''
             self.model = self.magaza_urun_id.default_code or ''
-            # Lot/Seri numarasını temizle (yeni ürün seçildiğinde)
-            self.lot_id = False
             # Ürün seçilince marka otomatik gelsin
             if hasattr(self.magaza_urun_id, 'brand_id') and self.magaza_urun_id.brand_id:
                 self.marka_id = self.magaza_urun_id.brand_id.id

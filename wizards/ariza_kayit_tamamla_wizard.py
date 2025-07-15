@@ -8,7 +8,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='ARIZA KAYDI', required=True)
     musteri_adi = fields.Char(string='MÜŞTERİ ADI', readonly=True)
     urun = fields.Char(string='ÜRÜN', readonly=True)
-    lot_id = fields.Many2one('stock.lot', string='LOT/SERİ NUMARASI', readonly=True)
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü'),
@@ -57,7 +56,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'ariza_id': ariza.id,
                 'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
                 'urun': ariza.urun.upper() if ariza.urun else '',
-                'lot_id': ariza.lot_id.id if ariza.lot_id else False,
                 'ariza_tipi': ariza.ariza_tipi,
                 'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
             })
