@@ -163,6 +163,15 @@ class ArizaKayit(models.Model):
     teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
+    teslim_tarihi = fields.Date(string='Teslim Tarihi', tracking=True)
+    teslim_saati = fields.Float(string='Teslim Saati', tracking=True)
+    teslim_eden = fields.Char(string='Teslim Eden', tracking=True)
+    teslim_eden_imza = fields.Binary(string='Teslim Eden İmza')
+    teslim_durumu = fields.Selection([
+        ('bekliyor', 'Bekliyor'),
+        ('teslim_edildi', 'Teslim Edildi'),
+        ('iptal', 'İptal')
+    ], string='Teslim Durumu', default='bekliyor', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
 
@@ -1177,6 +1186,15 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
     lot_id = fields.Many2one('stock.lot', string='LOT/SERİ NUMARASI', readonly=True)
+    teslim_tarihi = fields.Date(string='Teslim Tarihi', readonly=True)
+    teslim_saati = fields.Float(string='Teslim Saati', readonly=True)
+    teslim_eden = fields.Char(string='Teslim Eden', readonly=True)
+    teslim_alan = fields.Char(string='Teslim Alan', readonly=True)
+    teslim_durumu = fields.Selection([
+        ('bekliyor', 'Bekliyor'),
+        ('teslim_edildi', 'Teslim Edildi'),
+        ('iptal', 'İptal')
+    ], string='Teslim Durumu', readonly=True)
     onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
 
     @api.model
@@ -1189,6 +1207,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
                 'urun': ariza.urun.upper() if ariza.urun else '',
                 'lot_id': ariza.lot_id.id if ariza.lot_id else False,
+                'teslim_tarihi': ariza.teslim_tarihi,
+                'teslim_saati': ariza.teslim_saati,
+                'teslim_eden': ariza.teslim_eden,
+                'teslim_alan': ariza.teslim_alan,
+                'teslim_durumu': ariza.teslim_durumu,
                 'ariza_tipi': ariza.ariza_tipi,
                 'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
             })
