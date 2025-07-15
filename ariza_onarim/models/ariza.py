@@ -545,7 +545,7 @@ class ArizaKayit(models.Model):
             })
             
             # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Teslimatları" ara
-            if magaza_adi and magaza_adi.lower() == 'tünel':
+            if magaza_adi and ('tünel' in magaza_adi.lower()):
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
@@ -675,7 +675,7 @@ class ArizaKayit(models.Model):
         # 2. transfer için 'Tamir Alımlar' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
             # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Alımlar" ara
-            if magaza_adi and magaza_adi.lower() == 'tünel':
+            if magaza_adi and ('tünel' in magaza_adi.lower()):
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
