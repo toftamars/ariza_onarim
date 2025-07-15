@@ -978,7 +978,7 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
             if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
                 raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
+            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
             if picking:
                 self.transfer_id = picking.id
                 self.state = 'onaylandi'
@@ -999,7 +999,7 @@ class ArizaKayit(models.Model):
             return
         # Mağaza ürünü için transfer oluştur
         if self.ariza_tipi == 'magaza' and not self.transfer_id:
-            picking = self._create_stock_transfer()
+            picking = self._create_stock_transfer(transfer_tipi='ilk')
             if picking:
                 self.transfer_id = picking.id
                 self.state = 'onaylandi'
