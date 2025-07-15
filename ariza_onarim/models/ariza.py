@@ -148,6 +148,12 @@ class ArizaKayit(models.Model):
         string='Ürün',
         tracking=True
     )
+    lot_id = fields.Many2one(
+        'stock.lot',
+        string='Lot/Seri Numarası',
+        domain="[('product_id', '=', magaza_urun_id)]",
+        tracking=True
+    )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
@@ -819,7 +825,7 @@ class ArizaKayit(models.Model):
         picking = self.env['stock.picking'].create(picking_vals)
 
         # Ürün hareketi ekle
-        self.env['stock.move'].create({
+        move_vals = {
             'name': self.urun or self.magaza_urun_id.name,
             'product_id': self.magaza_urun_id.id,
             'product_uom_qty': 1,
@@ -830,7 +836,13 @@ class ArizaKayit(models.Model):
             'company_id': self.env.company.id,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'quantity_done': 1,
-        })
+        }
+        
+        # Lot/Seri numarası varsa ekle
+        if self.lot_id:
+            move_vals['lot_ids'] = [(6, 0, [self.lot_id.id])]
+        
+        self.env['stock.move'].create(move_vals)
 
         _logger.create({
             'name': 'ariza_onarim',
@@ -849,6 +861,7 @@ class ArizaKayit(models.Model):
             msg += f"Arıza Tanımı: {self.ariza_tanimi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
+            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.ariza_tanimi:
@@ -860,6 +873,7 @@ class ArizaKayit(models.Model):
             msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
             msg += f"Ürün: {self.urun or '-'}<br/>"
             msg += f"Model: {self.model or '-'}<br/>"
+            msg += f"Lot/Seri: {self.lot_id.name if self.lot_id else '-'}<br/>"
             msg += f"Müşteri: {self.partner_id.display_name if self.partner_id else '-'}<br/>"
             msg += f"Tarih: {fields.Date.today()}<br/>"
             if self.onarim_bilgisi:
@@ -1028,6 +1042,8 @@ class ArizaKayit(models.Model):
         if self.magaza_urun_id:
             self.urun = self.magaza_urun_id.name or ''
             self.model = self.magaza_urun_id.default_code or ''
+            # Lot/Seri numarasını temizle (yeni ürün seçildiğinde)
+            self.lot_id = False
             # Ürün seçilince marka otomatik gelsin
             if hasattr(self.magaza_urun_id, 'brand_id') and self.magaza_urun_id.brand_id:
                 self.marka_id = self.magaza_urun_id.brand_id.id
@@ -1154,7 +1170,23 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
+    lot_id = fields.Many2one('stock.lot', string='LOT/SERİ NUMARASI', readonly=True)
     onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if self._context.get('active_id'):
+            ariza = self.env['ariza.kayit'].browse(self._context['active_id'])
+            res.update({
+                'ariza_id': ariza.id,
+                'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
+                'urun': ariza.urun.upper() if ariza.urun else '',
+                'lot_id': ariza.lot_id.id if ariza.lot_id else False,
+                'ariza_tipi': ariza.ariza_tipi,
+                'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
+            })
+        return res
 
     def action_tamamla(self):
         ariza = self.ariza_id
