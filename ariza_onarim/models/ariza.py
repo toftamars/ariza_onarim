@@ -991,6 +991,48 @@ class ArizaKayit(models.Model):
             'func': '_create_stock_transfer',
             'line': 0,
         })
+        
+        # Eğer yanlış operasyon türü atandıysa, doğru olanı zorla ata
+        if picking.picking_type_id.name == 'Arıza: Tamir Teslimatları' and magaza_adi and ('tünel' in magaza_adi.lower()):
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"YANLIŞ OPERASYON TÜRÜ ATANDI! Doğru operasyon türü aranıyor...",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Tünel: Tamir Teslimatları ara
+            correct_picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tünel: Tamir Teslimatları')
+            ], limit=1)
+            
+            if correct_picking_type:
+                picking.picking_type_id = correct_picking_type.id
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"OPERASYON TÜRÜ DÜZELTİLDİ! Yeni: {correct_picking_type.name}",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
+            else:
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'error',
+                    'dbname': self._cr.dbname,
+                    'message': f"Tünel: Tamir Teslimatları bulunamadı!",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
 
         # Ürün hareketi ekle
         self.env['stock.move'].create({
