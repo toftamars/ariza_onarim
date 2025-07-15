@@ -88,6 +88,19 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         if ariza.transfer_id:
             mevcut_kaynak = ariza.transfer_id.location_id
             mevcut_hedef = ariza.transfer_id.location_dest_id
+            
+            # Debug log ekle
+            self.env['ir.logging'].create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Wizard: İkinci transfer oluşturuluyor - Analitik hesap: {ariza.analitik_hesap_id.name if ariza.analitik_hesap_id else 'Yok'}",
+                'path': __file__,
+                'func': 'action_tamamla',
+                'line': 0,
+            })
+            
             # Konumları ters çevirerek yeni transfer oluştur
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
