@@ -597,20 +597,22 @@ class ArizaKayit(models.Model):
                             'line': 0,
                         })
             
-            # Bulunamazsa genel 'Tamir Teslimatları' ara
+            # Bulunamazsa genel 'Tamir Teslimatları' ara (Arıza: öneki olmayan)
             if not picking_type:
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
                     'level': 'debug',
                     'dbname': self._cr.dbname,
-                    'message': f"Genel 'Tamir Teslimatları' aranıyor...",
+                    'message': f"Genel 'Tamir Teslimatları' aranıyor (Arıza: öneki olmayan)...",
                     'path': __file__,
                     'func': '_create_stock_transfer',
                     'line': 0,
                 })
+                # Önce Arıza: öneki olmayan Tamir Teslimatları ara
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Teslimatları')
+                    ('name', 'ilike', 'Tamir Teslimatları'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -618,11 +620,27 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Genel operasyon türü bulundu: {picking_type.name}",
+                        'message': f"Arıza: öneki olmayan operasyon türü bulundu: {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
+                else:
+                    # Son çare olarak herhangi bir Tamir Teslimatları ara
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Teslimatları')
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Son çare operasyon türü bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
             
             if not picking_type:
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
@@ -656,20 +674,22 @@ class ArizaKayit(models.Model):
                         'line': 0,
                     })
             
-            # Bulunamazsa genel 'Tamir Alımlar' ara
+            # Bulunamazsa genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
             if not picking_type:
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
                     'level': 'debug',
                     'dbname': self._cr.dbname,
-                    'message': f"İkinci transfer için genel 'Tamir Alımlar' aranıyor...",
+                    'message': f"İkinci transfer için genel 'Tamir Alımlar' aranıyor (Arıza: öneki olmayan)...",
                     'path': __file__,
                     'func': '_create_stock_transfer',
                     'line': 0,
                 })
+                # Önce Arıza: öneki olmayan Tamir Alımlar ara
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Alımlar')
+                    ('name', 'ilike', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -677,11 +697,27 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"İkinci transfer için genel operasyon türü bulundu: {picking_type.name}",
+                        'message': f"İkinci transfer için Arıza: öneki olmayan operasyon türü bulundu: {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
+                else:
+                    # Son çare olarak herhangi bir Tamir Alımlar ara
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tamir Alımlar')
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"İkinci transfer için son çare operasyon türü bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
             
             if not picking_type:
                 raise UserError(_("'Tamir Alımlar' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
