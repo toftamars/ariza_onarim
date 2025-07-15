@@ -209,8 +209,8 @@ class ArizaKayit(models.Model):
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == 'musteri':
             self.partner_id = False
-                self.urun = False
-                self.model = False
+            self.urun = False
+            self.model = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
             self.transfer_id = False
@@ -485,16 +485,16 @@ class ArizaKayit(models.Model):
         picking_type = False
         
         # transfer_tipi logla
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
             'message': f'_create_stock_transfer çağrısı: transfer_tipi={transfer_tipi}, analitik_hesap={self.analitik_hesap_id.name if self.analitik_hesap_id else "Yok"}',
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
         
         # Analitik hesap adını al
         magaza_adi = self.analitik_hesap_id.name if self.analitik_hesap_id else ""
@@ -604,10 +604,10 @@ class ArizaKayit(models.Model):
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
-            else:
+                else:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
-                ], limit=1)
+                    ], limit=1)
                     if picking_type:
                         _logger.create({
                             'name': 'ariza_onarim',
@@ -624,18 +624,18 @@ class ArizaKayit(models.Model):
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', '=', 'Tamir Teslimatları')
-            ], limit=1)
+                ], limit=1)
                 if picking_type:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
                         'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
                 else:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', 'Tamir Teslimatları')
@@ -718,10 +718,10 @@ class ArizaKayit(models.Model):
             
             # Hala bulunamazsa, kaynak konumun warehouse'undan internal picking type dene
             if not picking_type and kaynak and kaynak.warehouse_id:
-        picking_type = self.env['stock.picking.type'].search([
-            ('code', '=', 'internal'),
+                picking_type = self.env['stock.picking.type'].search([
+                    ('code', '=', 'internal'),
                     ('warehouse_id', '=', kaynak.warehouse_id.id)
-        ], limit=1)
+                ], limit=1)
                 if picking_type:
                     _logger.create({
                         'name': 'ariza_onarim',
@@ -753,21 +753,21 @@ class ArizaKayit(models.Model):
                     })
             
             # Son çare: herhangi bir internal picking type bul
-        if not picking_type:
+            if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
                     ('code', '=', 'internal')
                 ], limit=1)
                 if picking_type:
-            _logger.create({
-                'name': 'ariza_onarim',
-                'type': 'server',
-                'level': 'debug',
-                'dbname': self._cr.dbname,
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
                         'message': f"Son çare internal picking type bulundu: {picking_type.name}",
-                'path': __file__,
-                'func': '_create_stock_transfer',
-                'line': 0,
-            })
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
                 else:
                     # Tüm picking type'ları listele
                     all_picking_types = self.env['stock.picking.type'].search([])
