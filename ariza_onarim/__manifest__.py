@@ -1,4 +1,5 @@
-{
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
     'name': 'Arıza Onarım',
     'version': '1.0',
     'category': 'Services',
@@ -11,7 +12,7 @@
         - SMS bildirimleri
         - Raporlama
     """,
-    'author': 'Alper Tafta',
+    'author': 'Alper Tofta',
     'website': 'https://www.ariza.com',
     'depends': [
         'base',
@@ -38,4 +39,4 @@
     'application': True,
     'auto_install': False,
     'license': 'LGPL-3',
-}
+</odoo>

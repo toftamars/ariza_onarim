@@ -26,6 +26,8 @@
                                 <field name="invoice_line_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
                                 <field name="urun"/>
                                 <field name="model"/>
+                                <field name="magaza_urun_id" attrs="{'invisible': [['ariza_tipi', '!=', 'magaza']]}"/>
+                                <field name="lot_id" attrs="{'invisible': [['ariza_tipi', '!=', 'magaza']]}"/>
                                 <field name="analitik_hesap_id"/>
                                 <field name="teslim_magazasi_id"/>
                                 <field name="teslim_adresi"/>
@@ -78,6 +80,7 @@
                     <field name="ariza_tipi"/>
                     <field name="partner_id"/>
                     <field name="urun"/>
+                    <field name="lot_id"/>
                     <field name="analitik_hesap_id"/>
                     <field name="state"/>
                     <field name="create_date"/>
@@ -94,6 +97,7 @@
                     <field name="name"/>
                     <field name="partner_id"/>
                     <field name="urun"/>
+                    <field name="lot_id"/>
                     <field name="analitik_hesap_id"/>
                     <filter string="TASLAK" name="draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="ONAYLANDI" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
@@ -116,6 +120,7 @@
                     <group>
                         <field name="musteri_adi"/>
                         <field name="urun"/>
+                        <field name="lot_id"/>
                     </group>
                     <footer>
                         <button name="action_tamamla" string="Evet, Tamamla" type="object" class="btn-primary"/>
@@ -134,6 +139,7 @@
                     <field name="ariza_id"/>
                     <field name="musteri_adi"/>
                     <field name="urun"/>
+                    <field name="lot_id"/>
                     <field name="teslim_tarihi"/>
                     <field name="teslim_saati"/>
                     <field name="teslim_eden"/>
