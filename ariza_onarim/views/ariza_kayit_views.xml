@@ -52,14 +52,10 @@
                             </page>
                             <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
                                 <group>
-                                    <field name="teslim_tarihi" readonly="1"/>
-                                    <field name="teslim_saati" readonly="1"/>
-                                    <field name="teslim_eden" readonly="1"/>
                                     <field name="teslim_alan" readonly="1"/>
                                     <field name="teslim_alan_tc" readonly="1"/>
                                     <field name="teslim_alan_telefon" readonly="1"/>
                                     <field name="teslim_alan_imza" readonly="1"/>
-                                    <field name="teslim_eden_imza" readonly="1"/>
                                     <field name="teslim_notu" readonly="1"/>
                                 </group>
                             </page>
@@ -144,11 +140,6 @@
                     <field name="musteri_adi"/>
                     <field name="urun"/>
                     <field name="lot_id"/>
-                    <field name="teslim_tarihi"/>
-                    <field name="teslim_saati"/>
-                    <field name="teslim_eden"/>
-                    <field name="teslim_alan"/>
-                    <field name="teslim_durumu"/>
                 </tree>
             </field>
         </record>
@@ -162,13 +153,8 @@
                     <field name="ariza_id"/>
                     <field name="musteri_adi"/>
                     <field name="urun"/>
-                    <field name="teslim_tarihi"/>
-                    <field name="teslim_eden"/>
-                    <field name="teslim_alan"/>
-                    <field name="teslim_durumu"/>
                     <group expand="0" string="GRUPLA">
-                        <filter string="TESLİM DURUMU" name="teslim_durumu" context="{'group_by': 'teslim_durumu'}"/>
-                        <filter string="TESLİM EDEN" name="teslim_eden" context="{'group_by': 'teslim_eden'}"/>
+                        <filter string="ARIZA TİPİ" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
                     </group>
                 </search>
             </field>
