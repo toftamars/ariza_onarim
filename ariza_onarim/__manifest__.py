@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
+{
     'name': 'Arıza Onarım',
     'version': '1.0',
     'category': 'Services',
@@ -39,4 +38,4 @@
     'application': True,
     'auto_install': False,
     'license': 'LGPL-3',
-</odoo>
+}
