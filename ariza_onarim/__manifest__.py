@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
+{
     'name': 'Arıza Onarım',
     'version': '1.0',
     'category': 'Services',
@@ -29,6 +28,7 @@
         'data/sequence.xml',
         'security/ir.model.access.csv',
         'views/ariza_views.xml',
+        'views/ariza_kayit_views.xml',
         'views/menu_views.xml',
         'reports/report_ariza_kayit.xml',
         'wizards/ariza_kayit_tamamla_wizard_views.xml',
@@ -39,4 +39,4 @@
     'application': True,
     'auto_install': False,
     'license': 'LGPL-3',
-</odoo>
+}
