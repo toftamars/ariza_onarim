@@ -556,9 +556,15 @@ class ArizaKayit(models.Model):
                     'func': '_create_stock_transfer',
                     'line': 0,
                 })
+                # Önce tam eşleşme ara
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', '=', 'Tünel: Tamir Teslimatları')
                 ], limit=1)
+                if not picking_type:
+                    # Bulamazsa ilike ile ara
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Tünel: Tamir Teslimatları')
+                    ], limit=1)
                 if picking_type:
                     _logger.create({
                         'name': 'ariza_onarim',
