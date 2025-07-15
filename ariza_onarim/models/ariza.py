@@ -544,8 +544,35 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
-            if magaza_adi:
+            # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Teslimatları" ara
+            if magaza_adi and magaza_adi.lower() == 'tünel':
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Analitik hesap Tünel olduğu için 'Tünel: Tamir Teslimatları' aranıyor...",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tünel: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel: Tamir Teslimatları bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Tünel değilse veya bulunamazsa, analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
+            if not picking_type and magaza_adi:
                 search_criteria = f'{magaza_adi}: Tamir Teslimatları'
                 _logger.create({
                     'name': 'ariza_onarim',
@@ -647,8 +674,35 @@ class ArizaKayit(models.Model):
         
         # 2. transfer için 'Tamir Alımlar' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ikinci':
-            # Önce analitik hesap adı ile eşleşen 'Tamir Alımlar' ara
-            if magaza_adi:
+            # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Alımlar" ara
+            if magaza_adi and magaza_adi.lower() == 'tünel':
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Analitik hesap Tünel olduğu için 'Tünel: Tamir Alımlar' aranıyor...",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tünel: Tamir Alımlar')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel: Tamir Alımlar bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Tünel değilse veya bulunamazsa, analitik hesap adı ile eşleşen 'Tamir Alımlar' ara
+            if not picking_type and magaza_adi:
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
