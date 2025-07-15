@@ -1189,8 +1189,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 'musteri_adi': ariza.partner_id.name.upper() if ariza.partner_id.name else '',
                 'urun': ariza.urun.upper() if ariza.urun else '',
                 'lot_id': ariza.lot_id.id if ariza.lot_id else False,
-                'ariza_tipi': ariza.ariza_tipi,
-                'teslim_adresi': ariza.teslim_adresi.upper() if ariza.teslim_adresi else '',
             })
         return res
 
