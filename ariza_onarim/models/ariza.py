@@ -532,15 +532,57 @@ class ArizaKayit(models.Model):
         if not picking_type and transfer_tipi == 'ilk':
             # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
             if magaza_adi:
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"İlk transfer için '{magaza_adi}: Tamir Teslimatları' aranıyor...",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen operasyon türü bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
             # Bulunamazsa genel 'Tamir Teslimatları' ara
             if not picking_type:
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Genel 'Tamir Teslimatları' aranıyor...",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', 'Tamir Teslimatları')
                 ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Genel operasyon türü bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
             
             if not picking_type:
                 raise UserError(_("'Tamir Teslimatları' operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
