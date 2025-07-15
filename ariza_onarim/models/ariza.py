@@ -530,20 +530,35 @@ class ArizaKayit(models.Model):
         
         # 1. transfer için 'Tamir Teslimatları' geçen ilk operasyon türü
         if not picking_type and transfer_tipi == 'ilk':
+            # Tüm mevcut operasyon türlerini listele
+            all_picking_types = self.env['stock.picking.type'].search([])
+            picking_type_names = [pt.name for pt in all_picking_types]
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"İlk transfer - Tüm operasyon türleri: {picking_type_names}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
             # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
             if magaza_adi:
+                search_criteria = f'{magaza_adi}: Tamir Teslimatları'
                 _logger.create({
                     'name': 'ariza_onarim',
                     'type': 'server',
                     'level': 'debug',
                     'dbname': self._cr.dbname,
-                    'message': f"İlk transfer için '{magaza_adi}: Tamir Teslimatları' aranıyor...",
+                    'message': f"İlk transfer için tam eşleşme aranıyor: '{search_criteria}'",
                     'path': __file__,
                     'func': '_create_stock_transfer',
                     'line': 0,
                 })
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                    ('name', '=', search_criteria)
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -551,11 +566,36 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Analitik hesap ile eşleşen operasyon türü bulundu: {picking_type.name}",
+                        'message': f"Tam eşleşme bulundu: {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
+                else:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tam eşleşme bulunamadı, ilike arama yapılıyor: '{search_criteria}'",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', search_criteria)
+                    ], limit=1)
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"İlike eşleşme bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
             
             # Bulunamazsa genel 'Tamir Teslimatları' ara
             if not picking_type:
