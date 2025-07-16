@@ -205,6 +205,44 @@ class ArizaKayit(models.Model):
             else:
                 record.fatura_tarihi = False
 
+    @api.depends('invoice_line_id', 'fatura_tarihi')
+    def _compute_garanti_suresi(self):
+        for record in self:
+            if record.invoice_line_id and record.fatura_tarihi:
+                # Fatura tarihinden itibaren garanti süresini hesapla
+                # Varsayılan garanti süresi 2 yıl (24 ay)
+                garanti_ay = 24
+                
+                # Ürünün garanti süresi varsa onu kullan
+                if record.invoice_line_id.product_id and hasattr(record.invoice_line_id.product_id, 'garanti_suresi'):
+                    garanti_ay = record.invoice_line_id.product_id.garanti_suresi or 24
+                
+                # Garanti bitiş tarihini hesapla
+                from dateutil.relativedelta import relativedelta
+                garanti_bitis = record.fatura_tarihi + relativedelta(months=garanti_ay)
+                record.garanti_bitis_tarihi = garanti_bitis
+                
+                # Garanti süresini metin olarak ayarla
+                record.garanti_suresi = f"{garanti_ay} ay"
+                
+                # Kalan garanti süresini hesapla
+                from datetime import datetime
+                bugun = datetime.now().date()
+                if garanti_bitis > bugun:
+                    kalan_gun = (garanti_bitis - bugun).days
+                    kalan_ay = kalan_gun // 30
+                    kalan_gun_kalan = kalan_gun % 30
+                    if kalan_ay > 0:
+                        record.kalan_garanti = f"{kalan_ay} ay {kalan_gun_kalan} gün"
+                    else:
+                        record.kalan_garanti = f"{kalan_gun} gün"
+                else:
+                    record.kalan_garanti = "Garanti süresi dolmuş"
+            else:
+                record.garanti_suresi = False
+                record.garanti_bitis_tarihi = False
+                record.kalan_garanti = False
+
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == 'musteri':
