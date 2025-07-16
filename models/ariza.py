@@ -566,9 +566,9 @@ class ArizaKayit(models.Model):
             
             # Bulunamazsa sadece "Tamir Alımlar" ara
             if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar')
-                ], limit=1)
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Alımlar')
+            ], limit=1)
                 if not picking_type:
                     picking_type = self.env['stock.picking.type'].search([
                         ('name', 'ilike', 'Tamir Alımlar')
@@ -589,7 +589,7 @@ class ArizaKayit(models.Model):
                 'func': '_create_stock_transfer',
                 'line': 0,
             })
-            
+        
             # Önce mağaza adı ile 'Tamir Teslimatları' ara
             if magaza_adi:
                 picking_type = self.env['stock.picking.type'].search([
@@ -623,16 +623,16 @@ class ArizaKayit(models.Model):
                         })
             
             # Mağaza adı ile bulunamazsa genel 'Tamir Teslimatları' ara
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Teslimatları')
-                ], limit=1)
+        if not picking_type:
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Teslimatları')
+            ], limit=1)
                 if picking_type:
-                    _logger.create({
-                        'name': 'ariza_onarim',
-                        'type': 'server',
-                        'level': 'debug',
-                        'dbname': self._cr.dbname,
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
                         'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
@@ -681,10 +681,10 @@ class ArizaKayit(models.Model):
                             'level': 'debug',
                             'dbname': self._cr.dbname,
                             'message': f"Mağaza adı ile ilike 'Tamir Alımlar' bulundu: {picking_type.name}",
-                            'path': __file__,
-                            'func': '_create_stock_transfer',
-                            'line': 0,
-                        })
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
         
         # Eğer "Tamir Teslimatları" bulunamazsa, kaynak warehouse'dan internal picking type dene
         if not picking_type and kaynak.warehouse_id:
