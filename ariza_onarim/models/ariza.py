@@ -502,6 +502,20 @@ class ArizaKayit(models.Model):
         # Operasyon tipi seçimi - analitik hesap ile uyumlu
         picking_type = False
         
+        # Tüm operasyon tiplerini listele (debug için)
+        all_picking_types = self.env['stock.picking.type'].search([])
+        picking_type_names = [pt.name for pt in all_picking_types]
+        _logger.create({
+            'name': 'ariza_onarim',
+            'type': 'server',
+            'level': 'debug',
+            'dbname': self._cr.dbname,
+            'message': f"TÜM OPERASYON TİPLERİ: {picking_type_names}",
+            'path': __file__,
+            'func': '_create_stock_transfer',
+            'line': 0,
+        })
+        
         # 1. transfer için analitik hesap ile uyumlu 'Tamir Teslimatları' ara
         if transfer_tipi == 'ilk':
             _logger.create({
@@ -515,10 +529,11 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Analitik hesap "Tünel" ise direkt "Tamir Teslimatları" ara
+            # Analitik hesap "Tünel" ise direkt "Tamir Teslimatları" ara (Arıza: öneki olmayan)
             if magaza_adi and ('tünel' in magaza_adi.lower()):
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Teslimatları')
+                    ('name', '=', 'Tamir Teslimatları'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -526,16 +541,17 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Tamir Teslimatları bulundu: {picking_type.name}",
+                        'message': f"Tamir Teslimatları bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
             
-            # Tünel bulunamazsa, genel 'Tamir Teslimatları' ara
+            # Tünel bulunamazsa, genel 'Tamir Teslimatları' ara (Arıza: öneki olmayan)
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Teslimatları')
+                    ('name', 'ilike', 'Tamir Teslimatları'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -543,7 +559,7 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'message': f"Genel 'Tamir Teslimatları' bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
@@ -562,10 +578,11 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Analitik hesap "Tünel" ise direkt "Tamir Alımlar" ara
+            # Analitik hesap "Tünel" ise direkt "Tamir Alımlar" ara (Arıza: öneki olmayan)
             if magaza_adi and ('tünel' in magaza_adi.lower()):
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar')
+                    ('name', '=', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -573,16 +590,17 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Tamir Alımlar bulundu: {picking_type.name}",
+                        'message': f"Tamir Alımlar bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
                     })
             
-            # Tünel bulunamazsa, genel 'Tamir Alımlar' ara
+            # Tünel bulunamazsa, genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
-                    ('name', 'ilike', 'Tamir Alımlar')
+                    ('name', 'ilike', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:')
                 ], limit=1)
                 if picking_type:
                     _logger.create({
@@ -590,7 +608,7 @@ class ArizaKayit(models.Model):
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Genel 'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'message': f"Genel 'Tamir Alımlar' bulundu (Arıza: öneki olmayan): {picking_type.name}",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
@@ -609,9 +627,10 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Genel 'Tamir Teslimatları' ara
+            # Genel 'Tamir Teslimatları' ara (Arıza: öneki olmayan)
             picking_type = self.env['stock.picking.type'].search([
-                ('name', 'ilike', 'Tamir Teslimatları')
+                ('name', 'ilike', 'Tamir Teslimatları'),
+                ('name', 'not ilike', 'Arıza:')
             ], limit=1)
             if picking_type:
                 _logger.create({
@@ -619,7 +638,7 @@ class ArizaKayit(models.Model):
                     'type': 'server',
                     'level': 'debug',
                     'dbname': self._cr.dbname,
-                    'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                    'message': f"Genel 'Tamir Teslimatları' bulundu (Arıza: öneki olmayan): {picking_type.name}",
                     'path': __file__,
                     'func': '_create_stock_transfer',
                     'line': 0,
