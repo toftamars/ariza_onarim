@@ -105,7 +105,7 @@ class ArizaKayit(models.Model):
     tedarikci_adresi = fields.Text(string='Teslim Adresi', tracking=True)
     tedarikci_telefon = fields.Char(string='Tedarikçi Telefon', tracking=True)
     tedarikci_email = fields.Char(string='Tedarikçi E-posta', tracking=True)
-    sorumlu_id = fields.Many2one('res.users', string='Sorumlu', default=lambda self: self.env.user, tracking=True)
+    sorumlu_id = fields.Many2one('res.users', string='Sorumlu', default=lambda self: self.env.user, tracking=True, domain="[('id', 'in', sorumlu_domain_ids)]")
     tarih = fields.Date(string='Tarih', default=fields.Date.context_today, tracking=True)
     state = fields.Selection([
         ('draft', 'Taslak'),
@@ -160,6 +160,33 @@ class ArizaKayit(models.Model):
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
+    
+    @api.depends('analitik_hesap_id')
+    def _compute_sorumlu_domain(self):
+        for record in self:
+            sorumlu_domain = []
+            if record.analitik_hesap_id:
+                # Çalışanları analitik hesaba göre filtrele
+                employees = self.env['hr.employee'].search([
+                    ('magaza_id', '=', record.analitik_hesap_id.id)
+                ])
+                
+                # Bu çalışanların kullanıcı ID'lerini al
+                user_ids = employees.mapped('user_id.id')
+                if user_ids:
+                    sorumlu_domain = user_ids
+                else:
+                    # Eğer hiç kullanıcı bulunamazsa, tüm aktif kullanıcıları göster
+                    all_users = self.env['res.users'].search([('active', '=', True)])
+                    sorumlu_domain = all_users.ids
+            else:
+                # Analitik hesap seçili değilse tüm aktif kullanıcıları göster
+                all_users = self.env['res.users'].search([('active', '=', True)])
+                sorumlu_domain = all_users.ids
+            
+            record.sorumlu_domain_ids = [(6, 0, sorumlu_domain)]
+    
+    sorumlu_domain_ids = fields.Many2many('res.users', compute='_compute_sorumlu_domain', store=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -296,6 +323,37 @@ class ArizaKayit(models.Model):
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
+        # Sorumlu alanı için domain oluştur
+        sorumlu_domain = []
+        
+        if self.analitik_hesap_id:
+            # Analitik hesap adına göre uygun sorumlu kişileri bul
+            hesap_adi = self.analitik_hesap_id.name.strip()
+            
+            # "Perakende -" önekini temizle
+            if hesap_adi.startswith("Perakende - "):
+                hesap_adi = hesap_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+            
+            # Çalışanları analitik hesaba göre filtrele
+            employees = self.env['hr.employee'].search([
+                ('magaza_id', '=', self.analitik_hesap_id.id)
+            ])
+            
+            # Bu çalışanların kullanıcı ID'lerini al
+            user_ids = employees.mapped('user_id.id')
+            if user_ids:
+                sorumlu_domain = user_ids
+            
+            # Eğer hiç kullanıcı bulunamazsa, tüm aktif kullanıcıları göster
+            if not sorumlu_domain:
+                all_users = self.env['res.users'].search([('active', '=', True)])
+                sorumlu_domain = all_users.ids
+            
+            # Eğer mevcut sorumlu seçili değilse, ilk uygun kişiyi seç
+            if not self.sorumlu_id or self.sorumlu_id.id not in sorumlu_domain:
+                if sorumlu_domain:
+                    self.sorumlu_id = sorumlu_domain[0]
+        
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             # Dosya yolu
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
