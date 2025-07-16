@@ -534,12 +534,28 @@ class ArizaKayit(models.Model):
                 # Mağaza adından depo adını çıkar
                 magaza_adi_clean = magaza_adi.lower()
                 
-                # Tüm mağaza isimlerini kontrol et
-                magaza_isimleri = [
-                    'tünel', 'hilltown', 'uniq', 'akasya', 'kanyon', 'bursa', 
-                    'temaworld', 'outlet', 'izmir', 'bodrum', 'mavibahçe', 
-                    'adana', 'antalya', 'ankara', 'kentpark'
-                ]
+                # Sistemdeki analitik hesaplardan mağaza isimlerini al
+                analitik_hesaplar = self.env['account.analytic.account'].search([
+                    ('name', 'ilike', 'Perakende -')
+                ])
+                
+                # Analitik hesap adlarından mağaza isimlerini çıkar
+                magaza_isimleri = []
+                for hesap in analitik_hesaplar:
+                    if hesap.name.startswith('Perakende - '):
+                        magaza_ismi = hesap.name[12:].lower()  # "Perakende - " önekini kaldır
+                        magaza_isimleri.append(magaza_ismi)
+                
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Sistemdeki mağaza isimleri: {magaza_isimleri}",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
                 
                 bulunan_magaza = None
                 for magaza_ismi in magaza_isimleri:
@@ -653,12 +669,28 @@ class ArizaKayit(models.Model):
                 # Mağaza adından depo adını çıkar
                 magaza_adi_clean = magaza_adi.lower()
                 
-                # Tüm mağaza isimlerini kontrol et
-                magaza_isimleri = [
-                    'tünel', 'hilltown', 'uniq', 'akasya', 'kanyon', 'bursa', 
-                    'temaworld', 'outlet', 'izmir', 'bodrum', 'mavibahçe', 
-                    'adana', 'antalya', 'ankara', 'kentpark'
-                ]
+                # Sistemdeki analitik hesaplardan mağaza isimlerini al
+                analitik_hesaplar = self.env['account.analytic.account'].search([
+                    ('name', 'ilike', 'Perakende -')
+                ])
+                
+                # Analitik hesap adlarından mağaza isimlerini çıkar
+                magaza_isimleri = []
+                for hesap in analitik_hesaplar:
+                    if hesap.name.startswith('Perakende - '):
+                        magaza_ismi = hesap.name[12:].lower()  # "Perakende - " önekini kaldır
+                        magaza_isimleri.append(magaza_ismi)
+                
+                _logger.create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'debug',
+                    'dbname': self._cr.dbname,
+                    'message': f"Sistemdeki mağaza isimleri: {magaza_isimleri}",
+                    'path': __file__,
+                    'func': '_create_stock_transfer',
+                    'line': 0,
+                })
                 
                 bulunan_magaza = None
                 for magaza_ismi in magaza_isimleri:
