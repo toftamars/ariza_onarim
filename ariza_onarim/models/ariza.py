@@ -529,19 +529,61 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Analitik hesap "Tünel" ise direkt "Tamir Teslimatları" ara (Arıza: öneki olmayan)
+            # Analitik hesap "Tünel" ise Tünel deposundan "Tamir Teslimatları" ara (Arıza: öneki olmayan)
             if magaza_adi and ('tünel' in magaza_adi.lower()):
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Teslimatları'),
-                    ('name', 'not ilike', 'Arıza:')
+                # Önce Tünel deposunu bul
+                tunnel_warehouse = self.env['stock.warehouse'].search([
+                    ('name', 'ilike', 'Tünel')
                 ], limit=1)
-                if picking_type:
+                
+                if tunnel_warehouse:
                     _logger.create({
                         'name': 'ariza_onarim',
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Tamir Teslimatları bulundu (Arıza: öneki olmayan): {picking_type.name}",
+                        'message': f"Tünel deposu bulundu: {tunnel_warehouse.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                    
+                    # Tünel deposundan "Tamir Teslimatları" ara (Arıza: öneki olmayan)
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', '=', 'Tamir Teslimatları'),
+                        ('name', 'not ilike', 'Arıza:'),
+                        ('warehouse_id', '=', tunnel_warehouse.id)
+                    ], limit=1)
+                    
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Tünel deposundan Tamir Teslimatları bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+                    else:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Tünel deposunda Tamir Teslimatları bulunamadı",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+                else:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel deposu bulunamadı",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
@@ -578,19 +620,61 @@ class ArizaKayit(models.Model):
                 'line': 0,
             })
             
-            # Analitik hesap "Tünel" ise direkt "Tamir Alımlar" ara (Arıza: öneki olmayan)
+            # Analitik hesap "Tünel" ise Tünel deposundan "Tamir Alımlar" ara (Arıza: öneki olmayan)
             if magaza_adi and ('tünel' in magaza_adi.lower()):
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar'),
-                    ('name', 'not ilike', 'Arıza:')
+                # Önce Tünel deposunu bul
+                tunnel_warehouse = self.env['stock.warehouse'].search([
+                    ('name', 'ilike', 'Tünel')
                 ], limit=1)
-                if picking_type:
+                
+                if tunnel_warehouse:
                     _logger.create({
                         'name': 'ariza_onarim',
                         'type': 'server',
                         'level': 'debug',
                         'dbname': self._cr.dbname,
-                        'message': f"Tamir Alımlar bulundu (Arıza: öneki olmayan): {picking_type.name}",
+                        'message': f"Tünel deposu bulundu: {tunnel_warehouse.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+                    
+                    # Tünel deposundan "Tamir Alımlar" ara (Arıza: öneki olmayan)
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', '=', 'Tamir Alımlar'),
+                        ('name', 'not ilike', 'Arıza:'),
+                        ('warehouse_id', '=', tunnel_warehouse.id)
+                    ], limit=1)
+                    
+                    if picking_type:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Tünel deposundan Tamir Alımlar bulundu: {picking_type.name}",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+                    else:
+                        _logger.create({
+                            'name': 'ariza_onarim',
+                            'type': 'server',
+                            'level': 'debug',
+                            'dbname': self._cr.dbname,
+                            'message': f"Tünel deposunda Tamir Alımlar bulunamadı",
+                            'path': __file__,
+                            'func': '_create_stock_transfer',
+                            'line': 0,
+                        })
+                else:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel deposu bulunamadı",
                         'path': __file__,
                         'func': '_create_stock_transfer',
                         'line': 0,
