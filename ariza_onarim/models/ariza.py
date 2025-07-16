@@ -481,29 +481,179 @@ class ArizaKayit(models.Model):
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
 
-        # Operasyon tipi seçimini devre dışı bırak - boş bırak
+        # Analitik hesap adını al ve "Perakende -" önekini temizle
+        magaza_adi = ""
+        if self.analitik_hesap_id and self.analitik_hesap_id.name:
+            magaza_adi = self.analitik_hesap_id.name
+            # "Perakende -" önekini temizle
+            if magaza_adi.startswith("Perakende - "):
+                magaza_adi = magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"Analitik hesap adı işlendi: {self.analitik_hesap_id.name} -> {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        
+        # Operasyon tipi seçimi - analitik hesap ile uyumlu
         picking_type = False
         
+        # 1. transfer için analitik hesap ile uyumlu 'Tamir Teslimatları' ara
+        if transfer_tipi == 'ilk':
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"İlk transfer için analitik hesap ile uyumlu operasyon tipi aranıyor: {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Teslimatları" ara
+            if magaza_adi and ('tünel' in magaza_adi.lower()):
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tünel: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel: Tamir Teslimatları bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Tünel bulunamazsa, analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
+            if not picking_type and magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+        
+        # 2. transfer için analitik hesap ile uyumlu 'Tamir Alımlar' ara
+        elif transfer_tipi == 'ikinci':
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"İkinci transfer için analitik hesap ile uyumlu operasyon tipi aranıyor: {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Analitik hesap "Tünel" ise direkt "Tünel: Tamir Alımlar" ara
+            if magaza_adi and ('tünel' in magaza_adi.lower()):
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tünel: Tamir Alımlar')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Tünel: Tamir Alımlar bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Tünel bulunamazsa, analitik hesap adı ile eşleşen 'Tamir Alımlar' ara
+            if not picking_type and magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Alımlar')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen 'Tamir Alımlar' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+        
+        # transfer_tipi belirtilmemişse, genel arama yap
+        else:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"transfer_tipi belirtilmemiş, genel arama başlıyor - Mağaza: {magaza_adi}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Önce analitik hesap adı ile eşleşen 'Tamir Teslimatları' ara
+            if magaza_adi:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', f'{magaza_adi}: Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Analitik hesap ile eşleşen 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+            
+            # Analitik hesap ile eşleşen bulunamazsa genel 'Tamir Teslimatları' ara
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Tamir Teslimatları')
+                ], limit=1)
+                if picking_type:
+                    _logger.create({
+                        'name': 'ariza_onarim',
+                        'type': 'server',
+                        'level': 'debug',
+                        'dbname': self._cr.dbname,
+                        'message': f"Genel 'Tamir Teslimatları' bulundu: {picking_type.name}",
+                        'path': __file__,
+                        'func': '_create_stock_transfer',
+                        'line': 0,
+                    })
+        
+        # Son kontrol: picking_type kesinlikle bulunmuş olmalı
+        if not picking_type:
+            raise UserError(_("Analitik hesap ile uyumlu operasyon türü bulunamadı. Lütfen depo ve konum ayarlarınızı kontrol edin."))
+        
+        # Seçilen operasyon türünü logla
         _logger.create({
             'name': 'ariza_onarim',
             'type': 'server',
             'level': 'debug',
             'dbname': self._cr.dbname,
-            'message': f'Operasyon tipi seçimi devre dışı bırakıldı - picking_type=False',
-            'path': __file__,
-            'func': '_create_stock_transfer',
-            'line': 0,
-        })
-        
-        # İkinci transfer için de operasyon tipi seçimini devre dışı bırak
-        # picking_type zaten False olarak ayarlandı, ek işlem yapmaya gerek yok
-        
-        _logger.create({
-            'name': 'ariza_onarim',
-            'type': 'server',
-            'level': 'debug',
-            'dbname': self._cr.dbname,
-            'message': f'İkinci transfer için de operasyon tipi seçimi devre dışı bırakıldı - picking_type=False',
+            'message': f"SEÇİLEN OPERASYON TÜRÜ: {picking_type.name} (ID: {picking_type.id})",
             'path': __file__,
             'func': '_create_stock_transfer',
             'line': 0,
@@ -514,7 +664,7 @@ class ArizaKayit(models.Model):
         picking_vals = {
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
-            'picking_type_id': False,  # Operasyon tipi boş bırakıldı
+            'picking_type_id': picking_type.id,  # Analitik hesap ile uyumlu operasyon tipi
             'move_type': 'direct',
             'immediate_transfer': True,
             'company_id': self.env.company.id,
@@ -546,7 +696,7 @@ class ArizaKayit(models.Model):
             'type': 'server',
             'level': 'debug',
             'dbname': self._cr.dbname,
-            'message': f"TRANSFER OLUŞTURULDU - Picking ID: {picking.id}, Operasyon Türü: Boş (False)",
+            'message': f"TRANSFER OLUŞTURULDU - Picking ID: {picking.id}, Operasyon Türü: {picking.picking_type_id.name} (ID: {picking.picking_type_id.id})",
             'path': __file__,
             'func': '_create_stock_transfer',
             'line': 0,
@@ -571,7 +721,7 @@ class ArizaKayit(models.Model):
             'type': 'server',
             'level': 'debug',
             'dbname': self._cr.dbname,
-            'message': f"Transfer OLUŞTURULDU! Arıza No: {self.name} - Picking ID: {picking.id} - Picking Type: Boş (False)",
+            'message': f"Transfer OLUŞTURULDU! Arıza No: {self.name} - Picking ID: {picking.id} - Picking Type: {picking_type.name}",
             'path': __file__,
             'func': '_create_stock_transfer',
             'line': 0,
