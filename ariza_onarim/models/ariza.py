@@ -691,17 +691,42 @@ class ArizaKayit(models.Model):
 
         picking = self.env['stock.picking'].create(picking_vals)
         
-        # Transfer oluşturulduktan sonra operasyon türünü logla
-        _logger.create({
-            'name': 'ariza_onarim',
-            'type': 'server',
-            'level': 'debug',
-            'dbname': self._cr.dbname,
-            'message': f"TRANSFER OLUŞTURULDU - Picking ID: {picking.id}, Operasyon Türü: {picking.picking_type_id.name} (ID: {picking.picking_type_id.id})",
-            'path': __file__,
-            'func': '_create_stock_transfer',
-            'line': 0,
-        })
+        # Transfer oluşturulduktan sonra operasyon türünü zorla güncelle
+        if picking.picking_type_id.name != picking_type.name:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"OPERASYON TÜRÜ YANLIŞ ATANDI! Beklenen: {picking_type.name}, Atanan: {picking.picking_type_id.name}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+            
+            # Operasyon türünü zorla güncelle
+            picking.picking_type_id = picking_type.id
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"OPERASYON TÜRÜ DÜZELTİLDİ! Yeni: {picking.picking_type_id.name}",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
+        else:
+            _logger.create({
+                'name': 'ariza_onarim',
+                'type': 'server',
+                'level': 'debug',
+                'dbname': self._cr.dbname,
+                'message': f"TRANSFER OLUŞTURULDU - Picking ID: {picking.id}, Operasyon Türü: {picking.picking_type_id.name} (ID: {picking.picking_type_id.id})",
+                'path': __file__,
+                'func': '_create_stock_transfer',
+                'line': 0,
+            })
 
         # Ürün hareketi ekle
         self.env['stock.move'].create({
