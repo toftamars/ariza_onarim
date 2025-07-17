@@ -3,6 +3,9 @@ from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import os
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class AccountAnalyticAccount(models.Model):
     _inherit = 'account.analytic.account'
@@ -163,16 +166,39 @@ class ArizaKayit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        for vals in vals_list:
+        records = super().create(vals_list)
+        
+        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
+        for record in records:
+            record._send_new_ariza_notification()
+        
+        return records
+
+    def _send_new_ariza_notification(self):
+        """Yeni arıza kaydı oluşturulduğunda e-posta bildirimi gönder"""
+        try:
+            # E-posta şablonunu bul
+            template = self.env.ref('ariza_onarim.email_template_yeni_ariza_bildirimi')
+            if template:
+                # E-postayı gönder
+                template.send_mail(self.id, force_send=True)
+                _logger.info(f"Yeni arıza kaydı bildirimi gönderildi: {self.name}")
+        except Exception as e:
+            _logger.error(f"E-posta bildirimi gönderilemedi: {str(e)}")
+
+    @api.model
+    def _create_ariza_record(self, vals):
+        """Arıza kaydı oluşturma işlemi"""
+        for vals_item in [vals]:
             # Sorumlu kişinin analitik bilgisini al
-            if not vals.get('analitik_hesap_id') and vals.get('sorumlu_id'):
-                sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
+            if not vals_item.get('analitik_hesap_id') and vals_item.get('sorumlu_id'):
+                sorumlu = self.env['res.users'].browse(vals_item['sorumlu_id'])
                 if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
-                    vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
+                    vals_item['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
             # Varsayılan değerleri ayarla
-            if not vals.get('name'):
+            if not vals_item.get('name'):
                 try:
-                    vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                    vals_item['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
                 except:
                     # Sequence bulunamazsa manuel numara oluştur
                     import datetime
@@ -186,16 +212,16 @@ class ArizaKayit(models.Model):
                             new_number = 1
                     else:
                         new_number = 1
-                    vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
-            if not vals.get('state'):
-                vals['state'] = 'draft'
-            if not vals.get('islem_tipi'):
-                vals['islem_tipi'] = 'kabul'
-            if not vals.get('ariza_tipi'):
-                vals['ariza_tipi'] = 'musteri'
-            if not vals.get('sorumlu_id'):
-                vals['sorumlu_id'] = self.env.user.id
-        return super().create(vals_list)
+                    vals_item['name'] = f"ARZ/{current_year}/{new_number:05d}"
+            if not vals_item.get('state'):
+                vals_item['state'] = 'draft'
+            if not vals_item.get('islem_tipi'):
+                vals_item['islem_tipi'] = 'kabul'
+            if not vals_item.get('ariza_tipi'):
+                vals_item['ariza_tipi'] = 'musteri'
+            if not vals_item.get('sorumlu_id'):
+                vals_item['sorumlu_id'] = self.env.user.id
+        return vals
 
     @api.depends('invoice_line_id')
     def _compute_fatura_tarihi(self):
