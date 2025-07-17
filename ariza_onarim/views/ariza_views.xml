@@ -344,4 +344,180 @@
             </graph>
         </field>
     </record>
+
+    <!-- Yönetici için Özel Dashboard View -->
+    <record id="view_ariza_kayit_dashboard_manager" model="ir.ui.view">
+        <field name="name">ariza.kayit.dashboard.manager</field>
+        <field name="model">ariza.kayit</field>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <kanban string="Arıza Kayıtları - Yönetici Dashboard" 
+                    class="o_kanban_dashboard" 
+                    create="true" 
+                    edit="true"
+                    groups="ariza_onarim.group_ariza_manager">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="tarih"/>
+                <field name="ariza_tipi"/>
+                <field name="teknik_servis"/>
+                <field name="sorumlu_id"/>
+                <field name="state"/>
+                <field name="ariza_tanimi"/>
+                <field name="partner_id"/>
+                <field name="onarim_durumu"/>
+                <field name="kalan_is_gunu"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_kanban_record_top_right">
+                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state.raw_value == 'draft' ? 'info' : record.state.raw_value == 'personel_onay' ? 'warning' : record.state.raw_value == 'teknik_onarim' ? 'primary' : record.state.raw_value == 'onaylandi' ? 'success' : record.state.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
+                                            <field name="state"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Tarih:</strong> <field name="tarih"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Tip:</strong> <field name="ariza_tipi"/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Teknik Servis:</strong> <field name="teknik_servis"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Sorumlu:</strong> <field name="sorumlu_id"/>
+                                        </div>
+                                    </div>
+                                    <div class="row" t-if="record.partner_id.raw_value">
+                                        <div class="col-12">
+                                            <strong>Müşteri:</strong> <field name="partner_id"/>
+                                        </div>
+                                    </div>
+                                    <div class="row" t-if="record.ariza_tanimi.raw_value">
+                                        <div class="col-12">
+                                            <strong>Arıza:</strong> <field name="ariza_tanimi"/>
+                                        </div>
+                                    </div>
+                                    <div class="row" t-if="record.onarim_durumu.raw_value">
+                                        <div class="col-6">
+                                            <strong>Onarım Durumu:</strong> <field name="onarim_durumu"/>
+                                        </div>
+                                        <div class="col-6" t-if="record.kalan_is_gunu.raw_value">
+                                            <strong>Kalan Gün:</strong> <field name="kalan_is_gunu"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <button name="action_personel_onayla" 
+                                                string="ONAYLA" 
+                                                type="object" 
+                                                class="btn btn-sm btn-warning" 
+                                                states="draft"
+                                                t-att-disabled="record.state.raw_value != 'draft'"/>
+                                        <button name="action_teknik_onarim_baslat" 
+                                                string="ONARIMI BAŞLAT" 
+                                                type="object" 
+                                                class="btn btn-sm btn-primary" 
+                                                states="personel_onay"
+                                                t-att-disabled="record.state.raw_value != 'personel_onay'"/>
+                                        <button name="action_onayla" 
+                                                string="ONAYLA" 
+                                                type="object" 
+                                                class="btn btn-sm btn-success" 
+                                                states="teknik_onarim"
+                                                t-att-disabled="record.state.raw_value != 'teknik_onarim'"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <button name="action_print" 
+                                                string="Yazdır" 
+                                                type="object" 
+                                                class="btn btn-sm btn-info"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Yönetici için Özel Search View -->
+    <record id="view_ariza_kayit_search_manager" model="ir.ui.view">
+        <field name="name">ariza.kayit.search.manager</field>
+        <field name="model">ariza.kayit</field>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <search string="Arıza Kayıtları - Yönetici Arama" groups="ariza_onarim.group_ariza_manager">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="ariza_tanimi"/>
+                <field name="teknik_servis"/>
+                <field name="sorumlu_id"/>
+                <field name="tarih"/>
+                <separator/>
+                <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Personel Onayı Bekleyen" name="personel_onay" domain="[('state', '=', 'personel_onay')]"/>
+                <filter string="Teknik Onarımda" name="teknik_onarim" domain="[('state', '=', 'teknik_onarim')]"/>
+                <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
+                <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
+                <filter string="Geciken Onarımlar" name="geciken" domain="[('kalan_is_gunu', '&lt;', 0)]"/>
+                <filter string="Bugün Bitecek" name="bugun_bitecek" domain="[('kalan_is_gunu', '=', 0)]"/>
+                <separator/>
+                <filter string="Müşteri Ürünleri" name="musteri" domain="[('ariza_tipi', '=', 'musteri')]"/>
+                <filter string="Mağaza Ürünleri" name="magaza" domain="[('ariza_tipi', '=', 'magaza')]"/>
+                <separator/>
+                <filter string="Beklemede" name="beklemede" domain="[('onarim_durumu', '=', 'beklemede')]"/>
+                <filter string="Devam Ediyor" name="devam_ediyor" domain="[('onarim_durumu', '=', 'devam_ediyor')]"/>
+                <filter string="Tamamlandı" name="onarim_tamamlandi" domain="[('onarim_durumu', '=', 'tamamlandi')]"/>
+                <filter string="Gecikti" name="gecikti" domain="[('onarim_durumu', '=', 'gecikti')]"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
+                    <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
+                    <filter string="Sorumlu" name="sorumlu_id" context="{'group_by': 'sorumlu_id'}"/>
+                    <filter string="Onarım Durumu" name="onarim_durumu" context="{'group_by': 'onarim_durumu'}"/>
+                    <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
+                    <filter string="Hafta" name="hafta" context="{'group_by': 'tarih:week'}"/>
+                    <filter string="Ay" name="ay" context="{'group_by': 'tarih:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Yönetici için Özel Action -->
+    <record id="action_ariza_kayit_manager" model="ir.actions.act_window">
+        <field name="name">Arıza Kayıtları - Yönetici Dashboard</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">kanban,tree,form,pivot,graph</field>
+        <field name="view_id" ref="view_ariza_kayit_dashboard_manager"/>
+        <field name="search_view_id" ref="view_ariza_kayit_search_manager"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Yönetici dashboard'u - Tüm arıza kayıtlarını kolayca yönetin
+            </p>
+        </field>
+        <field name="context">{'search_default_personel_onay': 1, 'order': 'tarih desc'}</field>
+    </record>
+
+    <!-- Yönetici için Özel Menu -->
+    <menuitem id="menu_ariza_kayit_manager" 
+              name="Yönetici Dashboard" 
+              parent="menu_ariza_root" 
+              action="action_ariza_kayit_manager" 
+              sequence="5"
+              groups="ariza_onarim.group_ariza_manager"/>
 </odoo> 
