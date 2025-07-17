@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Teknik Ekip Grubu -->
+        <record id="group_teknik_ekip" model="res.groups">
+            <field name="name">Teknik Ekip</field>
+            <field name="category_id" ref="base.module_category_human_resources"/>
+            <field name="comment">Teknik ekip üyeleri arıza kayıtlarını inceleyebilir, onaylayabilir ve reddedebilir.</field>
+        </record>
+
+        <!-- Mağaza Personeli Grubu -->
+        <record id="group_magaza_personeli" model="res.groups">
+            <field name="name">Mağaza Personeli</field>
+            <field name="category_id" ref="base.module_category_human_resources"/>
+            <field name="comment">Mağaza personeli sadece arıza kabul oluşturabilir.</field>
+        </record>
+
+        <!-- Arıza Kayıt Modeli İzinleri -->
+        <record id="ariza_kayit_rule_teknik_ekip" model="ir.rule">
+            <field name="name">Teknik Ekip: Tüm Arıza Kayıtları</field>
+            <field name="model_id" ref="model_ariza_kayit"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_teknik_ekip'))]"/>
+        </record>
+
+        <record id="ariza_kayit_rule_magaza_personeli" model="ir.rule">
+            <field name="name">Mağaza Personeli: Kendi Oluşturdukları</field>
+            <field name="model_id" ref="model_ariza_kayit"/>
+            <field name="domain_force">[('sorumlu_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_magaza_personeli'))]"/>
+        </record>
+    </data>
+</odoo> 
