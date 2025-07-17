@@ -179,6 +179,43 @@ class ArizaKayit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        # Her kayıt için numara oluşturma ve varsayılan değerleri ayarlama
+        for vals in vals_list:
+            # Sorumlu kişinin analitik bilgisini al
+            if not vals.get('analitik_hesap_id') and vals.get('sorumlu_id'):
+                sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
+                if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
+                    vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
+            
+            # Arıza numarası oluştur
+            if not vals.get('name'):
+                try:
+                    vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
+                except:
+                    # Sequence bulunamazsa manuel numara oluştur
+                    import datetime
+                    current_year = datetime.datetime.now().year
+                    last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
+                    if last_record and last_record.name != 'New':
+                        try:
+                            last_number = int(last_record.name.split('/')[-1])
+                            new_number = last_number + 1
+                        except:
+                            new_number = 1
+                    else:
+                        new_number = 1
+                    vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
+            
+            # Varsayılan değerleri ayarla
+            if not vals.get('state'):
+                vals['state'] = 'draft'
+            if not vals.get('islem_tipi'):
+                vals['islem_tipi'] = 'kabul'
+            if not vals.get('ariza_tipi'):
+                vals['ariza_tipi'] = 'musteri'
+            if not vals.get('sorumlu_id'):
+                vals['sorumlu_id'] = self.env.user.id
+        
         records = super().create(vals_list)
         
         # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
@@ -274,42 +311,7 @@ class ArizaKayit(models.Model):
                 kayit._send_onarim_hatirlatma()
                 _logger.info(f"Onarım hatırlatma gönderildi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
 
-    @api.model
-    def _create_ariza_record(self, vals):
-        """Arıza kaydı oluşturma işlemi"""
-        for vals_item in [vals]:
-            # Sorumlu kişinin analitik bilgisini al
-            if not vals_item.get('analitik_hesap_id') and vals_item.get('sorumlu_id'):
-                sorumlu = self.env['res.users'].browse(vals_item['sorumlu_id'])
-                if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
-                    vals_item['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
-            # Varsayılan değerleri ayarla
-            if not vals_item.get('name'):
-                try:
-                    vals_item['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                except:
-                    # Sequence bulunamazsa manuel numara oluştur
-                    import datetime
-                    current_year = datetime.datetime.now().year
-                    last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
-                    if last_record and last_record.name != 'New':
-                        try:
-                            last_number = int(last_record.name.split('/')[-1])
-                            new_number = last_number + 1
-                        except:
-                            new_number = 1
-                    else:
-                        new_number = 1
-                    vals_item['name'] = f"ARZ/{current_year}/{new_number:05d}"
-            if not vals_item.get('state'):
-                vals_item['state'] = 'draft'
-            if not vals_item.get('islem_tipi'):
-                vals_item['islem_tipi'] = 'kabul'
-            if not vals_item.get('ariza_tipi'):
-                vals_item['ariza_tipi'] = 'musteri'
-            if not vals_item.get('sorumlu_id'):
-                vals_item['sorumlu_id'] = self.env.user.id
-        return vals
+
 
     @api.depends('invoice_line_id')
     def _compute_fatura_tarihi(self):
