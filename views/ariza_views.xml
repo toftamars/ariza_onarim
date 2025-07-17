@@ -151,15 +151,7 @@
         </field>
     </record>
     
-    <menuitem id="menu_ariza_onarim_root" 
-              name="Arıza Onarım" 
-              sequence="10"/>
-              
-    <menuitem id="menu_ariza_kayit" 
-              name="Arıza Kayıtları" 
-              parent="menu_ariza_onarim_root" 
-              action="action_ariza_kayit" 
-              sequence="10"/>
+
               
     <record id="view_ariza_kayit_pivot" model="ir.ui.view">
         <field name="name">ariza.kayit.pivot</field>
