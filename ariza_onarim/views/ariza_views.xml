@@ -155,8 +155,7 @@
               name="Teknik Ekip Arıza Kayıtları" 
               parent="menu_ariza_onarim_root" 
               action="action_ariza_kayit_teknik_ekip" 
-              sequence="15"
-              groups="ariza_onarim.group_teknik_ekip"/>
+              sequence="15"/>
 
     <!-- Mevcut view'ları güncelle - Teknik Ekip gruplarına göre butonları gizle -->
     <record id="view_ariza_kayit_form" model="ir.ui.view">
