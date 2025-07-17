@@ -8,8 +8,8 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false">
                 <header>
-                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
-                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_teknik_ekip"/>
+                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                 </header>
@@ -57,9 +57,9 @@
                         <page string="Arıza Tanımı" name="ariza_tanimi">
                             <group>
                                 <field name="ariza_tanimi" readonly="1"/>
-                                <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_teknik_ekip"/>
-                                <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_teknik_ekip"/>
-                                <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_teknik_ekip"/>
+                                <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
+                                <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
+                                <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
                                 <field name="notlar" readonly="1"/>
                             </group>
                         </page>
@@ -155,12 +155,7 @@
               name="Arıza ve Onarım Yönetimi" 
               sequence="10"/>
               
-    <!-- Teknik Ekip için Özel Menu -->
-    <menuitem id="menu_ariza_kayit_teknik_ekip" 
-              name="Teknik Ekip Arıza Kayıtları" 
-              parent="menu_ariza_root" 
-              action="action_ariza_kayit_teknik_ekip" 
-              sequence="15"/>
+
 
     <!-- Mevcut view'ları güncelle - Teknik Ekip gruplarına göre butonları gizle -->
     <record id="view_ariza_kayit_form" model="ir.ui.view">
@@ -169,13 +164,13 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
                 <header>
-                    <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_kullanici"/>
-                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
-                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_teknik_ekip"/>
+                    <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_user"/>
+                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
-                    <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_yonetici"/>
-                    <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_yonetici"/>
-                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}" options='{"no_open": true}' groups="ariza_onarim.group_ariza_yonetici"/>
+                    <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}" options='{"no_open": true}' groups="ariza_onarim.group_ariza_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>

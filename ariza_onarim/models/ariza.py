@@ -189,15 +189,14 @@ class ArizaKayit(models.Model):
         for record in self:
             current_user = self.env.user
             
-            # Onaylayabilen kullanıcılar (personel + teknik ekip)
+            # Onaylayabilen kullanıcılar (personel + yönetici)
             approve_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'personel1', 'personel2']  # Personel kullanıcıları
             record.can_approve = (current_user.login in approve_users or 
                                 current_user.has_group('base.group_system') or
-                                current_user.has_group('ariza_onarim.group_ariza_manager') or
-                                current_user.has_group('ariza_onarim.group_ariza_technician'))
+                                current_user.has_group('ariza_onarim.group_ariza_manager'))
             
-            # Onarımı başlatabilen kullanıcılar (sadece teknik ekip)
-            repair_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'teknik_kullanici_adi']  # Teknik ekip kullanıcıları
+            # Onarımı başlatabilen kullanıcılar (sadece yönetici)
+            repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Yönetici kullanıcıları
             record.can_start_repair = (current_user.login in repair_users or 
                                      current_user.has_group('base.group_system') or
                                      current_user.has_group('ariza_onarim.group_ariza_technician'))

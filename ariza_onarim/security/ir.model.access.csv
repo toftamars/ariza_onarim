@@ -1,6 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ariza_kayit_user,ariza.kayit.user,model_ariza_kayit,ariza_onarim.group_ariza_user,1,1,1,0
 access_ariza_kayit_manager,ariza.kayit.manager,model_ariza_kayit,ariza_onarim.group_ariza_manager,1,1,1,1
-access_ariza_kayit_technician,ariza.kayit.technician,model_ariza_kayit,ariza_onarim.group_ariza_technician,1,1,1,0
+
 access_ariza_kayit_tamamla_wizard_user,ariza.kayit.tamamla.wizard.user,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_user,1,1,1,0
 access_ariza_kayit_tamamla_wizard_manager,ariza.kayit.tamamla.wizard.manager,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_manager,1,1,1,1

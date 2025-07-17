@@ -16,12 +16,6 @@
             <field name="implied_ids" eval="[(4, ref('group_ariza_user'))]"/>
         </record>
 
-        <!-- Arıza Onarım Teknik Ekip Grubu -->
-        <record id="group_ariza_technician" model="res.groups">
-            <field name="name">Arıza Onarım / Teknik Ekip</field>
-            <field name="category_id" ref="base.module_category_hidden"/>
-            <field name="comment">Teknik onarım işlemlerini yapabilir.</field>
-            <field name="implied_ids" eval="[(4, ref('group_ariza_user'))]"/>
-        </record>
+
     </data>
 </odoo> 
