@@ -199,15 +199,13 @@ class ArizaKayit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        # Her kayıt için numara oluşturma ve varsayılan değerleri ayarlama
         for vals in vals_list:
             # Sorumlu kişinin analitik bilgisini al
             if not vals.get('analitik_hesap_id') and vals.get('sorumlu_id'):
                 sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
                 if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
                     vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
-            
-            # Arıza numarası oluştur
+            # Varsayılan değerleri ayarla
             if not vals.get('name'):
                 try:
                     vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
@@ -225,8 +223,6 @@ class ArizaKayit(models.Model):
                     else:
                         new_number = 1
                     vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
-            
-            # Varsayılan değerleri ayarla
             if not vals.get('state'):
                 vals['state'] = 'draft'
             if not vals.get('islem_tipi'):
@@ -235,17 +231,7 @@ class ArizaKayit(models.Model):
                 vals['ariza_tipi'] = 'musteri'
             if not vals.get('sorumlu_id'):
                 vals['sorumlu_id'] = self.env.user.id
-        
-        records = super().create(vals_list)
-        
-        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
-        for record in records:
-            try:
-                record._send_new_ariza_notification()
-            except Exception as e:
-                _logger.error(f"E-posta gönderimi başarısız: {record.name} - {str(e)}")
-        
-        return records
+        return super().create(vals_list)
 
     def _send_new_ariza_notification(self):
         """Yeni arıza kaydı oluşturulduğunda e-posta bildirimi gönder"""
