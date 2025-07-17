@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false">
                 <header>
-                    <button name="action_teknik_onarim_baslat" string="TEKNİK ONARIM BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
+                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
                     <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_teknik_ekip"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
@@ -145,7 +145,7 @@
                 Teknik ekip için arıza kayıtları
             </p>
         </field>
-        <field name="context">{'default_state': 'personel_onay'}</field>
+        <field name="context">{'default_state': 'personel_onay', 'search_default_personel_onay': 1, 'order': 'tarih asc'}</field>
     </record>
 
     <!-- Teknik Ekip için Özel Menu -->
@@ -163,8 +163,8 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
                 <header>
-                    <button name="action_personel_onayla" string="PERSONEL ONAYLA" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_kullanici"/>
-                    <button name="action_teknik_onarim_baslat" string="TEKNİK ONARIM BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
+                    <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_kullanici"/>
+                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_teknik_ekip"/>
                     <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_teknik_ekip"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_yonetici"/>
