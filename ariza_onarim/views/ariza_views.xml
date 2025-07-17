@@ -24,6 +24,7 @@
                     <group string="Teknik Bilgiler" name="teknik_bilgiler">
                         <group>
                             <field name="ariza_tipi" readonly="1"/>
+                            <field name="islem_tipi" readonly="1"/>
                             <field name="teknik_servis" readonly="1"/>
                             <field name="tarih" readonly="1"/>
                             <field name="sorumlu_id" readonly="1" options='{"no_create": true, "no_open": true}'/>
