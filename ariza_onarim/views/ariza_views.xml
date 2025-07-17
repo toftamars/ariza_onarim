@@ -461,7 +461,7 @@
         <field name="model">ariza.kayit</field>
         <field name="priority" eval="30"/>
         <field name="arch" type="xml">
-            <search string="Arıza Kayıtları - Yönetici Arama" groups="ariza_onarim.group_ariza_manager">
+            <search string="Arıza Kayıtları - Yönetici Arama">
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="ariza_tanimi"/>
