@@ -109,6 +109,8 @@ class ArizaKayit(models.Model):
     tarih = fields.Date(string='Tarih', default=fields.Date.context_today, tracking=True)
     state = fields.Selection([
         ('draft', 'Taslak'),
+        ('personel_onay', 'Personel Onayı'),
+        ('teknik_onarim', 'Teknik Onarım'),
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
@@ -907,57 +909,97 @@ class ArizaKayit(models.Model):
             return picking
         return False
 
+    def action_personel_onayla(self):
+        """Personel onaylama işlemi"""
+        for record in self:
+            if record.state == 'draft':
+                record.state = 'personel_onay'
+                # Personel onayı sonrası SMS gönder
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
+                    record._send_sms_to_customer(message)
+                    record.sms_gonderildi = True
+                # Personel onayında e-posta gönder
+                mail_to = 'alper.tofta@zuhalmuzik.com'
+                subject = f"Arıza Kaydı Personel Onayı: {record.name}"
+                body = f"""
+Arıza Kaydı Personel Onaylandı.<br/>
+<b>Arıza No:</b> {record.name}<br/>
+<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
+<b>Ürün:</b> {record.urun}<br/>
+<b>Model:</b> {record.model}<br/>
+<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
+<b>Tarih:</b> {record.tarih or '-'}<br/>
+<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
+<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
+"""
+                record.env['mail.mail'].create({
+                    'subject': subject,
+                    'body_html': body,
+                    'email_to': mail_to,
+                }).send()
+
+    def action_teknik_onarim_baslat(self):
+        """Teknik ekip onarım başlatma işlemi"""
+        for record in self:
+            if record.state == 'personel_onay':
+                record.state = 'teknik_onarim'
+                # Teknik onarım başlatma bildirimi
+                record.message_post(
+                    body=f"Teknik onarım süreci başlatıldı. Sorumlu: {record.sorumlu_id.name}",
+                    subject="Teknik Onarım Başlatıldı"
+                )
+
     def action_onayla(self):
-        # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
-        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and not self.transfer_id:
-            if not self.tedarikci_id or not self.tedarikci_id.property_stock_supplier:
-                raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-            picking = self._create_stock_transfer(hedef_konum=self.tedarikci_id.property_stock_supplier)
-            if picking:
-                self.transfer_id = picking.id
-                self.state = 'onaylandi'
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Transfer Belgesi',
-                    'res_model': 'stock.picking',
-                    'res_id': picking.id,
-                    'view_mode': 'form',
-                }
-        # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
-        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'MAĞAZA':
-            self.state = 'onaylandi'
-            return
-        # Mağaza ürünü için transfer oluşturma kontrolü
-        if self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEKNİK SERVİS':
-            self.state = 'onaylandi'
-            return
-        # Mağaza ürünü için transfer oluştur
-        if self.ariza_tipi == 'magaza' and not self.transfer_id:
-            picking = self._create_stock_transfer()
-            if picking:
-                self.transfer_id = picking.id
-                self.state = 'onaylandi'
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Transfer Belgesi',
-                    'res_model': 'stock.picking',
-                    'res_id': picking.id,
-                    'view_mode': 'form',
-                }
-        
-        # Sadece İşlem Tipi 'Arıza Kabul' ve Arıza Tipi 'Müşteri Ürünü' işlemlerinde SMS gönder
-        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'musteri' and not self.sms_gonderildi:
-            message = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
-            self._send_sms_to_customer(message)
-            self.sms_gonderildi = True
+        """Final onaylama işlemi - Sadece teknik_onarim durumundan çalışır"""
+        for record in self:
+            if record.state != 'teknik_onarim':
+                raise UserError('Sadece teknik onarım aşamasındaki kayıtlar onaylanabilir!')
+            
+            # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
+            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'TEDARİKÇİ' and not record.transfer_id:
+                if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
+                    raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
+                picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier)
+                if picking:
+                    record.transfer_id = picking.id
+                    record.state = 'onaylandi'
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Transfer Belgesi',
+                        'res_model': 'stock.picking',
+                        'res_id': picking.id,
+                        'view_mode': 'form',
+                    }
+            # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
+            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'MAĞAZA':
+                record.state = 'onaylandi'
+                return
+            # Mağaza ürünü için transfer oluşturma kontrolü
+            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'TEKNİK SERVİS':
+                record.state = 'onaylandi'
+                return
+            # Mağaza ürünü için transfer oluştur
+            if record.ariza_tipi == 'magaza' and not record.transfer_id:
+                picking = record._create_stock_transfer()
+                if picking:
+                    record.transfer_id = picking.id
+                    record.state = 'onaylandi'
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Transfer Belgesi',
+                        'res_model': 'stock.picking',
+                        'res_id': picking.id,
+                        'view_mode': 'form',
+                    }
+            
+            # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
+            if record.islem_tipi == 'teslim' and record.ariza_kabul_id:
+                record.analitik_hesap_id = record.ariza_kabul_id.analitik_hesap_id
 
-        # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
-        if self.islem_tipi == 'teslim' and self.ariza_kabul_id:
-            self.analitik_hesap_id = self.ariza_kabul_id.analitik_hesap_id
-
-        self.state = 'onaylandi'
-        # Onaylama sonrası otomatik kilitle
-        self.action_lock()
+            record.state = 'onaylandi'
+            # Onaylama sonrası otomatik kilitle
+            record.action_lock()
 
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:

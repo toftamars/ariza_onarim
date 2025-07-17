@@ -6,10 +6,16 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
                 <header>
-                    <!-- Kullanıcı Bazlı Onay Butonu -->
+                    <!-- Onay Butonu (Personel + Teknik Ekip) -->
                     <button name="action_onayla_kullanici_bazli" string="Onayla" type="object" class="oe_highlight" 
                             states="draft" 
                             attrs="{'invisible': [('can_approve', '=', False)]}"
+                            options='{"no_open": true}'/>
+                    
+                    <!-- Onarım Başlat Butonu (Sadece Teknik Ekip) -->
+                    <button name="action_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" 
+                            states="onaylandi" 
+                            attrs="{'invisible': [('can_start_repair', '=', False)]}"
                             options='{"no_open": true}'/>
                     
                     <!-- Genel Butonlar -->

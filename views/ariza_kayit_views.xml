@@ -8,9 +8,11 @@
             <field name="arch" type="xml">
                 <form string="ARIZA KAYIT FORMU">
                     <header>
-                        <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
+                        <button name="action_personel_onayla" string="PERSONEL ONAYLA" type="object" class="oe_highlight" states="draft"/>
+                        <button name="action_teknik_onarim_baslat" string="TEKNİK ONARIM BAŞLAT" type="object" class="oe_highlight" states="personel_onay"/>
+                        <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim"/>
                         <button name="action_tamamla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -96,6 +98,8 @@
                     <field name="urun"/>
                     <field name="analitik_hesap_id"/>
                     <filter string="TASLAK" name="draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="PERSONEL ONAYI" name="personel_onay" domain="[('state', '=', 'personel_onay')]"/>
+                    <filter string="TEKNİK ONARIM" name="teknik_onarim" domain="[('state', '=', 'teknik_onarim')]"/>
                     <filter string="ONAYLANDI" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                     <filter string="TAMAMLANDI" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
                     <group expand="0" string="GRUPLA">
