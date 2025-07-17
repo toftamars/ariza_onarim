@@ -183,7 +183,10 @@ class ArizaKayit(models.Model):
         
         # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
         for record in records:
-            record._send_new_ariza_notification()
+            try:
+                record._send_new_ariza_notification()
+            except Exception as e:
+                _logger.error(f"E-posta gönderimi başarısız: {record.name} - {str(e)}")
         
         return records
 
@@ -196,8 +199,43 @@ class ArizaKayit(models.Model):
                 # E-postayı gönder
                 template.send_mail(self.id, force_send=True)
                 _logger.info(f"Yeni arıza kaydı bildirimi gönderildi: {self.name}")
+            else:
+                _logger.error(f"E-posta şablonu bulunamadı: ariza_onarim.email_template_yeni_ariza_bildirimi")
         except Exception as e:
             _logger.error(f"E-posta bildirimi gönderilemedi: {str(e)}")
+            # Alternatif olarak basit e-posta gönder
+            self._send_simple_notification()
+    
+    def _send_simple_notification(self):
+        """Basit e-posta bildirimi gönder"""
+        try:
+            from odoo.tools.misc import format_date
+            
+            subject = f"Yeni Arıza Kaydı - {self.name}"
+            body = f"""
+            <h2>Yeni Arıza Kaydı Oluşturuldu</h2>
+            <p><strong>Arıza No:</strong> {self.name}</p>
+            <p><strong>Tarih:</strong> {format_date(self.env, self.tarih) if self.tarih else 'Belirtilmemiş'}</p>
+            <p><strong>Müşteri:</strong> {self.partner_id.name if self.partner_id else 'Belirtilmemiş'}</p>
+            <p><strong>Ürün:</strong> {self.urun if self.urun else 'Belirtilmemiş'}</p>
+            <p><strong>Model:</strong> {self.model if self.model else 'Belirtilmemiş'}</p>
+            <p><strong>Teknik Servis:</strong> {self.teknik_servis if self.teknik_servis else 'Belirtilmemiş'}</p>
+            <p><strong>Sorumlu:</strong> {self.sorumlu_id.name if self.sorumlu_id else 'Belirtilmemiş'}</p>
+            <p><strong>Durum:</strong> {dict(self._fields['state'].selection).get(self.state, self.state)}</p>
+            """
+            
+            # E-posta gönder
+            self.env['mail.mail'].create({
+                'subject': subject,
+                'email_from': self.env.user.email_formatted,
+                'email_to': 'alper.tofta@zuhalmuzik.com',
+                'body_html': body,
+                'auto_delete': True,
+            }).send()
+            
+            _logger.info(f"Basit e-posta bildirimi gönderildi: {self.name}")
+        except Exception as e:
+            _logger.error(f"Basit e-posta gönderilemedi: {str(e)}")
 
     def _send_onarim_hatirlatma(self):
         """Onarım süreci hatırlatma e-postası gönder"""

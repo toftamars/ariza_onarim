@@ -26,6 +26,7 @@
     ],
     'data': [
         'data/sequence.xml',
+        'data/mail_template.xml',
         'security/ir.model.access.csv',
         'views/ariza_views.xml',
         'views/menu_views.xml',
