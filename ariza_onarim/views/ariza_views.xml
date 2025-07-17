@@ -97,20 +97,17 @@
                             </group>
                             <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
                                 <h4 style="color: #2c3e50; margin-bottom: 10px;">📊 Onarım Süreci Durumu</h4>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="text-align: center; flex: 1;">
-                                        <div style="font-size: 24px; font-weight: bold; color: #3498db;">{{ object.kalan_is_gunu or 0 }}</div>
-                                        <div style="font-size: 12px; color: #7f8c8d;">Kalan İş Günü</div>
-                                    </div>
-                                    <div style="text-align: center; flex: 1;">
-                                        <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">{{ object.beklenen_tamamlanma_tarihi.strftime('%d.%m.%Y') if object.beklenen_tamamlanma_tarihi else 'Belirtilmemiş' }}</div>
-                                        <div style="font-size: 12px; color: #7f8c8d;">Beklenen Tamamlanma</div>
-                                    </div>
-                                    <div style="text-align: center; flex: 1;">
-                                        <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{{ object.onarim_durumu or 'Beklemede' }}</div>
-                                        <div style="font-size: 12px; color: #7f8c8d;">Onarım Durumu</div>
-                                    </div>
-                                </div>
+                                <group>
+                                    <group>
+                                        <field name="kalan_is_gunu" readonly="1" widget="integer" string="Kalan İş Günü" style="font-size: 18px; font-weight: bold; color: #3498db;"/>
+                                    </group>
+                                    <group>
+                                        <field name="beklenen_tamamlanma_tarihi" readonly="1" string="Beklenen Tamamlanma" style="font-size: 18px; font-weight: bold; color: #e74c3c;"/>
+                                    </group>
+                                    <group>
+                                        <field name="onarim_durumu" readonly="1" string="Onarım Durumu" style="font-size: 18px; font-weight: bold; color: #27ae60;"/>
+                                    </group>
+                                </group>
                             </div>
                         </page>
                     </notebook>
