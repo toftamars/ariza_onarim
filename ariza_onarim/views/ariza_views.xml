@@ -153,6 +153,7 @@
     <!-- Teknik Ekip için Özel Menu -->
     <menuitem id="menu_ariza_kayit_teknik_ekip" 
               name="Teknik Ekip Arıza Kayıtları" 
+              parent="menu_ariza_root" 
               action="action_ariza_kayit_teknik_ekip" 
               sequence="15"/>
 
@@ -310,6 +311,7 @@
     
     <menuitem id="menu_ariza_kayit" 
               name="Arıza Kayıtları" 
+              parent="menu_ariza_root" 
               action="action_ariza_kayit" 
               sequence="10"/>
               
