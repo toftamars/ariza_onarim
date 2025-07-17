@@ -153,7 +153,6 @@
     <!-- Teknik Ekip için Özel Menu -->
     <menuitem id="menu_ariza_kayit_teknik_ekip" 
               name="Teknik Ekip Arıza Kayıtları" 
-              parent="menu_ariza_onarim_root" 
               action="action_ariza_kayit_teknik_ekip" 
               sequence="15"/>
 
@@ -309,13 +308,8 @@
         </field>
     </record>
     
-    <menuitem id="menu_ariza_onarim_root" 
-              name="Arıza Onarım" 
-              sequence="10"/>
-              
     <menuitem id="menu_ariza_kayit" 
               name="Arıza Kayıtları" 
-              parent="menu_ariza_onarim_root" 
               action="action_ariza_kayit" 
               sequence="10"/>
               
