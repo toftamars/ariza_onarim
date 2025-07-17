@@ -82,6 +82,37 @@
                                 <field name="notlar"/>
                             </group>
                         </page>
+                        <page string="Onarım Süreci Takibi">
+                            <group>
+                                <group>
+                                    <field name="onarim_baslangic_tarihi"/>
+                                    <field name="beklenen_tamamlanma_tarihi" readonly="1"/>
+                                    <field name="kalan_is_gunu" readonly="1" widget="integer"/>
+                                </group>
+                                <group>
+                                    <field name="onarim_durumu"/>
+                                    <field name="hatirlatma_gonderildi" readonly="1"/>
+                                    <field name="son_hatirlatma_tarihi" readonly="1"/>
+                                </group>
+                            </group>
+                            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                                <h4 style="color: #2c3e50; margin-bottom: 10px;">📊 Onarım Süreci Durumu</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="text-align: center; flex: 1;">
+                                        <div style="font-size: 24px; font-weight: bold; color: #3498db;">{{ object.kalan_is_gunu or 0 }}</div>
+                                        <div style="font-size: 12px; color: #7f8c8d;">Kalan İş Günü</div>
+                                    </div>
+                                    <div style="text-align: center; flex: 1;">
+                                        <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">{{ object.beklenen_tamamlanma_tarihi.strftime('%d.%m.%Y') if object.beklenen_tamamlanma_tarihi else 'Belirtilmemiş' }}</div>
+                                        <div style="font-size: 12px; color: #7f8c8d;">Beklenen Tamamlanma</div>
+                                    </div>
+                                    <div style="text-align: center; flex: 1;">
+                                        <div style="font-size: 24px; font-weight: bold; color: #27ae60;">{{ object.onarim_durumu or 'Beklemede' }}</div>
+                                        <div style="font-size: 12px; color: #7f8c8d;">Onarım Durumu</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
@@ -96,7 +127,7 @@
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'" decoration-muted="onarim_durumu == 'gecikti'">
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="partner_id"/>
@@ -104,6 +135,10 @@
                 <field name="model"/>
                 <field name="ariza_tipi"/>
                 <field name="state"/>
+                <field name="onarim_baslangic_tarihi"/>
+                <field name="beklenen_tamamlanma_tarihi"/>
+                <field name="kalan_is_gunu" widget="integer"/>
+                <field name="onarim_durumu"/>
             </tree>
         </field>
     </record>
@@ -123,6 +158,11 @@
                 <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
                 <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
+                <separator/>
+                <filter string="Onarım Beklemede" name="onarim_beklemede" domain="[('onarim_durumu', '=', 'beklemede')]"/>
+                <filter string="Onarım Devam Ediyor" name="onarim_devam" domain="[('onarim_durumu', '=', 'devam_ediyor')]"/>
+                <filter string="Onarım Gecikti" name="onarim_gecikti" domain="[('onarim_durumu', '=', 'gecikti')]"/>
+                <filter string="Kritik Süre (≤3 gün)" name="kritik_sure" domain="[('kalan_is_gunu', '&lt;=', 3), ('kalan_is_gunu', '&gt;', 0)]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
                     <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>

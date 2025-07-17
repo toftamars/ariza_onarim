@@ -163,6 +163,19 @@ class ArizaKayit(models.Model):
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
+    
+    # Onarım Süreci Takibi
+    onarim_baslangic_tarihi = fields.Date(string='Onarım Başlangıç Tarihi', tracking=True)
+    beklenen_tamamlanma_tarihi = fields.Date(string='Beklenen Tamamlanma Tarihi', compute='_compute_beklenen_tamamlanma_tarihi', store=True)
+    kalan_is_gunu = fields.Integer(string='Kalan İş Günü', compute='_compute_kalan_is_gunu', store=True)
+    onarim_durumu = fields.Selection([
+        ('beklemede', 'Beklemede'),
+        ('devam_ediyor', 'Devam Ediyor'),
+        ('tamamlandi', 'Tamamlandı'),
+        ('gecikti', 'Gecikti')
+    ], string='Onarım Durumu', default='beklemede', tracking=True)
+    hatirlatma_gonderildi = fields.Boolean(string='Hatırlatma Gönderildi', default=False, tracking=True)
+    son_hatirlatma_tarihi = fields.Date(string='Son Hatırlatma Tarihi', tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -185,6 +198,43 @@ class ArizaKayit(models.Model):
                 _logger.info(f"Yeni arıza kaydı bildirimi gönderildi: {self.name}")
         except Exception as e:
             _logger.error(f"E-posta bildirimi gönderilemedi: {str(e)}")
+
+    def _send_onarim_hatirlatma(self):
+        """Onarım süreci hatırlatma e-postası gönder"""
+        try:
+            # E-posta şablonunu bul
+            template = self.env.ref('ariza_onarim.email_template_onarim_hatirlatma')
+            if template:
+                # E-postayı gönder
+                template.send_mail(self.id, force_send=True)
+                self.hatirlatma_gonderildi = True
+                self.son_hatirlatma_tarihi = fields.Date.today()
+                _logger.info(f"Onarım hatırlatma e-postası gönderildi: {self.name}")
+        except Exception as e:
+            _logger.error(f"Onarım hatırlatma e-postası gönderilemedi: {str(e)}")
+
+    @api.model
+    def _check_onarim_deadlines(self):
+        """Günlük olarak onarım süreçlerini kontrol et ve hatırlatma gönder"""
+        from datetime import datetime, timedelta
+        
+        bugun = datetime.now().date()
+        
+        # Hatırlatma gönderilmesi gereken kayıtları bul
+        hatirlatma_gereken_kayitlar = self.search([
+            ('onarim_baslangic_tarihi', '!=', False),
+            ('onarim_durumu', 'in', ['beklemede', 'devam_ediyor']),
+            ('state', 'not in', ['tamamlandi', 'teslim_edildi', 'iptal']),
+            '|',
+            ('hatirlatma_gonderildi', '=', False),
+            ('son_hatirlatma_tarihi', '<', bugun - timedelta(days=3))  # 3 günde bir hatırlat
+        ])
+        
+        for kayit in hatirlatma_gereken_kayitlar:
+            # Kalan süre kontrolü
+            if kayit.kalan_is_gunu <= 3:  # 3 iş günü veya daha az kaldıysa
+                kayit._send_onarim_hatirlatma()
+                _logger.info(f"Onarım hatırlatma gönderildi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
 
     @api.model
     def _create_ariza_record(self, vals):
@@ -268,6 +318,62 @@ class ArizaKayit(models.Model):
                 record.garanti_suresi = False
                 record.garanti_bitis_tarihi = False
                 record.kalan_garanti = False
+
+    @api.depends('onarim_baslangic_tarihi')
+    def _compute_beklenen_tamamlanma_tarihi(self):
+        """Onarım başlangıç tarihinden 20 iş günü sonrasını hesapla"""
+        for record in self:
+            if record.onarim_baslangic_tarihi:
+                # 20 iş günü sonrasını hesapla (hafta sonları hariç)
+                from datetime import datetime, timedelta
+                from dateutil.relativedelta import relativedelta
+                
+                baslangic = record.onarim_baslangic_tarihi
+                is_gunu_sayisi = 0
+                hedef_tarih = baslangic
+                
+                while is_gunu_sayisi < 20:
+                    hedef_tarih += timedelta(days=1)
+                    # Hafta sonu değilse iş günü say
+                    if hedef_tarih.weekday() < 5:  # 0-4 = Pazartesi-Cuma
+                        is_gunu_sayisi += 1
+                
+                record.beklenen_tamamlanma_tarihi = hedef_tarih
+            else:
+                record.beklenen_tamamlanma_tarihi = False
+
+    @api.depends('onarim_baslangic_tarihi', 'beklenen_tamamlanma_tarihi')
+    def _compute_kalan_is_gunu(self):
+        """Bugünden itibaren kalan iş günü sayısını hesapla"""
+        for record in self:
+            if record.beklenen_tamamlanma_tarihi:
+                from datetime import datetime, timedelta
+                
+                bugun = datetime.now().date()
+                hedef_tarih = record.beklenen_tamamlanma_tarihi
+                
+                if hedef_tarih <= bugun:
+                    # Süre dolmuş
+                    record.kalan_is_gunu = 0
+                    if record.onarim_durumu != 'tamamlandi':
+                        record.onarim_durumu = 'gecikti'
+                else:
+                    # Kalan iş günü sayısını hesapla
+                    kalan_gun = 0
+                    current_date = bugun
+                    
+                    while current_date < hedef_tarih:
+                        current_date += timedelta(days=1)
+                        if current_date.weekday() < 5:  # Hafta sonu değilse
+                            kalan_gun += 1
+                    
+                    record.kalan_is_gunu = kalan_gun
+                    
+                    # Onarım durumunu güncelle
+                    if kalan_gun <= 5 and record.onarim_durumu == 'beklemede':
+                        record.onarim_durumu = 'devam_ediyor'
+            else:
+                record.kalan_is_gunu = 0
 
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):

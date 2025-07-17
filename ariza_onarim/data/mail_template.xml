@@ -163,5 +163,126 @@
             <field name="auto_delete" eval="True"/>
             <field name="lang">tr_TR</field>
         </record>
+
+        <!-- Onarım Süreci Hatırlatma -->
+        <record id="email_template_onarim_hatirlatma" model="mail.template">
+            <field name="name">Onarım Süreci Hatırlatma</field>
+            <field name="model_id" ref="model_ariza_kayit"/>
+            <field name="subject">⚠️ ONARIM SÜRECİ HATIRLATMA - {{ object.name }} ({{ object.kalan_is_gunu }} gün kaldı)</field>
+            <field name="email_from">{{ user.email_formatted }}</field>
+            <field name="email_to">alper.tofta@zuhalmuzik.com</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 20px; background-color: #fff5f5; font-family: Arial, sans-serif;">
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid #e74c3c;">
+                        <h2 style="color: #e74c3c; margin-bottom: 20px; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">
+                            ⚠️ ONARIM SÜRECİ HATIRLATMA
+                        </h2>
+                        
+                        <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                            <h3 style="color: #856404; margin: 0 0 10px 0;">🚨 DİKKAT: Onarım süresi yaklaşıyor!</h3>
+                            <p style="margin: 0; font-size: 16px; font-weight: bold;">
+                                <strong>Arıza No:</strong> {{ object.name }} | 
+                                <strong>Kalan Süre:</strong> 
+                                <span style="color: #e74c3c; font-size: 18px;">{{ object.kalan_is_gunu }} iş günü</span>
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;">📅 SÜREÇ TAKVİMİ</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold; width: 30%;">Onarım Başlangıç:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.onarim_baslangic_tarihi.strftime('%d.%m.%Y') if object.onarim_baslangic_tarihi else 'Belirtilmemiş' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Beklenen Tamamlanma:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">
+                                        <span style="color: #e74c3c; font-weight: bold;">
+                                            {{ object.beklenen_tamamlanma_tarihi.strftime('%d.%m.%Y') if object.beklenen_tamamlanma_tarihi else 'Belirtilmemiş' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Onarım Durumu:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">
+                                        {% if object.onarim_durumu == 'beklemede' %}
+                                            <span style="background-color: #f39c12; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⏳ Beklemede</span>
+                                        {% elif object.onarim_durumu == 'devam_ediyor' %}
+                                            <span style="background-color: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">🔧 Devam Ediyor</span>
+                                        {% elif object.onarim_durumu == 'gecikti' %}
+                                            <span style="background-color: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">🚨 Gecikti</span>
+                                        {% else %}
+                                            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">✅ Tamamlandı</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: #27ae60; margin-bottom: 15px;">👤 MÜŞTERİ BİLGİLERİ</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold; width: 30%;">Müşteri:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.partner_id.name if object.partner_id else 'Belirtilmemiş' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Mağaza:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.analitik_hesap_id.name if object.analitik_hesap_id else 'Belirtilmemiş' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Sorumlu:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.sorumlu_id.name if object.sorumlu_id else 'Belirtilmemiş' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: #8e44ad; margin-bottom: 15px;">📦 ÜRÜN BİLGİLERİ</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold; width: 30%;">Ürün:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.urun if object.urun else 'Belirtilmemiş' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Model:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.model if object.model else 'Belirtilmemiş' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; background-color: #ecf0f1; font-weight: bold;">Teknik Servis:</td>
+                                    <td style="padding: 8px; border-bottom: 1px solid #bdc3c7;">{{ object.teknik_servis if object.teknik_servis else 'Belirtilmemiş' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        {% if object.ariza_tanimi %}
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: #c0392b; margin-bottom: 15px;">📝 ARIZA TANIMI</h3>
+                            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px;">
+                                {{ object.ariza_tanimi }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div style="background-color: #e8f5e8; border: 1px solid #c3e6c3; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                            <h4 style="color: #27ae60; margin: 0 0 10px 0;">💡 ÖNERİLER:</h4>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                <li>Teknik servis ile iletişime geçin</li>
+                                <li>Onarım durumunu güncelleyin</li>
+                                <li>Müşteriye bilgi verin</li>
+                                <li>Gerekirse süre uzatımı talep edin</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e74c3c; text-align: center; color: #7f8c8d; font-size: 12px;">
+                            <p>Bu e-posta otomatik hatırlatma sisteminden gönderilmiştir.</p>
+                            <p><strong>Hatırlatma Tarihi:</strong> {{ context_timestamp(datetime.datetime.now()).strftime('%d.%m.%Y %H:%M') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </field>
+            <field name="auto_delete" eval="True"/>
+            <field name="lang">tr_TR</field>
+        </record>
     </data>
 </odoo> 
