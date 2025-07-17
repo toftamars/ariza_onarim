@@ -231,7 +231,17 @@ class ArizaKayit(models.Model):
                 vals['ariza_tipi'] = 'musteri'
             if not vals.get('sorumlu_id'):
                 vals['sorumlu_id'] = self.env.user.id
-        return super().create(vals_list)
+        
+        records = super().create(vals_list)
+        
+        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
+        for record in records:
+            try:
+                record._send_new_ariza_notification()
+            except Exception as e:
+                _logger.error(f"E-posta gönderimi başarısız: {record.name} - {str(e)}")
+        
+        return records
 
     def _send_new_ariza_notification(self):
         """Yeni arıza kaydı oluşturulduğunda e-posta bildirimi gönder"""
