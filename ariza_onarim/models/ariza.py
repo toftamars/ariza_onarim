@@ -191,11 +191,16 @@ class ArizaKayit(models.Model):
             
             # Onaylayabilen kullanıcılar (personel + teknik ekip)
             approve_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'personel1', 'personel2']  # Personel kullanıcıları
-            record.can_approve = current_user.login in approve_users or current_user.has_group('base.group_system')
+            record.can_approve = (current_user.login in approve_users or 
+                                current_user.has_group('base.group_system') or
+                                current_user.has_group('ariza_onarim.group_ariza_manager') or
+                                current_user.has_group('ariza_onarim.group_ariza_technician'))
             
             # Onarımı başlatabilen kullanıcılar (sadece teknik ekip)
-            repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Teknik ekip kullanıcıları
-            record.can_start_repair = current_user.login in repair_users or current_user.has_group('base.group_system')
+            repair_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'teknik_kullanici_adi']  # Teknik ekip kullanıcıları
+            record.can_start_repair = (current_user.login in repair_users or 
+                                     current_user.has_group('base.group_system') or
+                                     current_user.has_group('ariza_onarim.group_ariza_technician'))
 
     @api.model_create_multi
     def create(self, vals_list):
