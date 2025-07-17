@@ -150,6 +150,11 @@
         <field name="context">{'default_state': 'personel_onay', 'search_default_personel_onay': 1, 'order': 'tarih asc'}</field>
     </record>
 
+    <!-- Ana Menü Root -->
+    <menuitem id="menu_ariza_root" 
+              name="Arıza ve Onarım Yönetimi" 
+              sequence="10"/>
+              
     <!-- Teknik Ekip için Özel Menu -->
     <menuitem id="menu_ariza_kayit_teknik_ekip" 
               name="Teknik Ekip Arıza Kayıtları" 

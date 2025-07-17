@@ -11,6 +11,5 @@
         </field>
     </record>
 
-    <menuitem id="menu_ariza_root" name="Arıza ve Onarım Yönetimi" sequence="10"/>
     <menuitem id="menu_ariza_kayit" name="Arıza Kayıtları" parent="menu_ariza_root" action="action_ariza_kayit" sequence="10"/>
 </odoo> 
