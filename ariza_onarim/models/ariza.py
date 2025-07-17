@@ -1311,11 +1311,28 @@ class ArizaKayit(models.Model):
         for record in self:
             if record.state == 'draft':
                 record.state = 'personel_onay'
+                
+                # Personel onayı sonrası otomatik transfer oluştur (mağaza ürünleri için)
+                if record.ariza_tipi == 'magaza' and not record.transfer_id:
+                    # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
+                    if record.teknik_servis == 'TEDARİKÇİ':
+                        if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
+                            raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
+                        picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
+                        if picking:
+                            record.transfer_id = picking.id
+                    # Diğer teknik servisler için normal transfer oluştur
+                    elif record.teknik_servis != 'MAĞAZA':
+                        picking = record._create_stock_transfer(transfer_tipi='ilk')
+                        if picking:
+                            record.transfer_id = picking.id
+                
                 # Personel onayı sonrası SMS gönder
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
                     record._send_sms_to_customer(message)
                     record.sms_gonderildi = True
+                
                 # Personel onayında e-posta gönder
                 mail_to = 'alper.tofta@zuhalmuzik.com'
                 subject = f"Arıza Kaydı Personel Onayı: {record.name}"
