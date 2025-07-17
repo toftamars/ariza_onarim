@@ -112,9 +112,7 @@ class ArizaKayit(models.Model):
     tarih = fields.Date(string='Tarih', default=fields.Date.context_today, tracking=True)
     state = fields.Selection([
         ('draft', 'Taslak'),
-        ('incelemede', 'İncelemede'),
         ('onaylandi', 'Onaylandı'),
-        ('reddedildi', 'Reddedildi'),
         ('tamamlandi', 'Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
@@ -179,23 +177,23 @@ class ArizaKayit(models.Model):
     hatirlatma_gonderildi = fields.Boolean(string='Hatırlatma Gönderildi', default=False, tracking=True)
     son_hatirlatma_tarihi = fields.Date(string='Son Hatırlatma Tarihi', tracking=True)
     
-    # Rol tabanlı erişim kontrolü
-    is_teknik_ekip = fields.Boolean(string='Teknik Ekip mi?', compute='_compute_is_teknik_ekip', store=False)
-    is_magaza_personeli = fields.Boolean(string='Mağaza Personeli mi?', compute='_compute_is_magaza_personeli', store=False)
+    # Kullanıcı bazlı yetki kontrolü
+    can_approve = fields.Boolean(string='Onaylayabilir mi?', compute='_compute_user_permissions', store=False)
+    can_create_only = fields.Boolean(string='Sadece Oluşturabilir mi?', compute='_compute_user_permissions', store=False)
 
     @api.depends('sorumlu_id')
-    def _compute_is_teknik_ekip(self):
-        """Kullanıcının teknik ekip olup olmadığını kontrol et"""
+    def _compute_user_permissions(self):
+        """Kullanıcının yetkilerini kontrol et"""
         for record in self:
-            # Teknik ekip grubu kontrolü (grup adını Odoo'da ayarlamanız gerekir)
-            record.is_teknik_ekip = self.env.user.has_group('ariza_onarim.group_teknik_ekip')
-    
-    @api.depends('sorumlu_id')
-    def _compute_is_magaza_personeli(self):
-        """Kullanıcının mağaza personeli olup olmadığını kontrol et"""
-        for record in self:
-            # Mağaza personeli grubu kontrolü
-            record.is_magaza_personeli = self.env.user.has_group('ariza_onarim.group_magaza_personeli')
+            current_user = self.env.user
+            
+            # Onaylayabilen kullanıcılar (teknik ekip)
+            approve_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Buraya teknik ekip kullanıcılarını ekleyin
+            record.can_approve = current_user.login in approve_users or current_user.has_group('base.group_system')
+            
+            # Sadece oluşturabilen kullanıcılar (mağaza personeli)
+            create_only_users = ['magaza1', 'magaza2']  # Buraya mağaza personeli kullanıcılarını ekleyin
+            record.can_create_only = current_user.login in create_only_users
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -331,19 +329,15 @@ class ArizaKayit(models.Model):
                 kayit._send_onarim_hatirlatma()
                 _logger.info(f"Onarım hatırlatma gönderildi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
 
-    def action_incelemeye_al(self):
-        """Arıza kaydını incelemeye al"""
-        if not self.env.user.has_group('ariza_onarim.group_teknik_ekip'):
-            raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
+    def action_onayla_kullanici_bazli(self):
+        """Kullanıcı bazlı onay sistemi"""
+        current_user = self.env.user
         
-        self.state = 'incelemede'
-        self.message_post(body=_('Arıza kaydı incelemeye alındı.'))
-        _logger.info(f"Arıza kaydı incelemeye alındı: {self.name}")
-
-    def action_onayla_koşullu(self):
-        """Koşullu onay sistemi"""
-        if not self.env.user.has_group('ariza_onarim.group_teknik_ekip'):
-            raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
+        # Onaylayabilen kullanıcılar
+        approve_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Buraya teknik ekip kullanıcılarını ekleyin
+        
+        if current_user.login not in approve_users and not current_user.has_group('base.group_system'):
+            raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
         
         # Tedarikçi seçilmişse direkt onayla
         if self.teknik_servis == 'TEDARİKÇİ':
@@ -351,31 +345,10 @@ class ArizaKayit(models.Model):
             self.message_post(body=_('Tedarikçi seçildiği için direkt onaylandı.'))
             _logger.info(f"Tedarikçi arıza kaydı direkt onaylandı: {self.name}")
         else:
-            # Diğer teknik servisler için incelemeye al
-            self.state = 'incelemede'
-            self.message_post(body=_('Teknik servis incelemesi için bekliyor.'))
-            _logger.info(f"Arıza kaydı incelemeye alındı: {self.name}")
-
-    def action_onayla_teknik(self):
-        """Teknik ekip onayı"""
-        if not self.env.user.has_group('ariza_onarim.group_teknik_ekip'):
-            raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
-        
-        if self.state != 'incelemede':
-            raise UserError(_('Sadece incelemeye alınmış kayıtlar onaylanabilir.'))
-        
-        self.state = 'onaylandi'
-        self.message_post(body=_('Teknik ekip tarafından onaylandı.'))
-        _logger.info(f"Arıza kaydı teknik ekip tarafından onaylandı: {self.name}")
-
-    def action_reddet(self):
-        """Arıza kaydını reddet"""
-        if not self.env.user.has_group('ariza_onarim.group_teknik_ekip'):
-            raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
-        
-        self.state = 'reddedildi'
-        self.message_post(body=_('Arıza kaydı reddedildi.'))
-        _logger.info(f"Arıza kaydı reddedildi: {self.name}")
+            # Diğer teknik servisler için normal onay
+            self.state = 'onaylandi'
+            self.message_post(body=_('Arıza kaydı onaylandı.'))
+            _logger.info(f"Arıza kaydı onaylandı: {self.name}")
 
     @api.depends('invoice_line_id')
     def _compute_fatura_tarihi(self):
