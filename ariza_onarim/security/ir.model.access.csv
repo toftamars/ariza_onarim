@@ -4,3 +4,4 @@ access_ariza_kayit_manager,ariza.kayit.manager,model_ariza_kayit,ariza_onarim.gr
 
 access_ariza_kayit_tamamla_wizard_user,ariza.kayit.tamamla.wizard.user,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_user,1,1,1,0
 access_ariza_kayit_tamamla_wizard_manager,ariza.kayit.tamamla.wizard.manager,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
+access_ir_logging_manager,ir.logging.manager,base.model_ir_logging,ariza_onarim.group_ariza_manager,1,1,1,0

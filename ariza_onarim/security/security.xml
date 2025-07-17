@@ -13,7 +13,7 @@
             <field name="name">Arıza Onarım / Yönetici</field>
             <field name="category_id" ref="base.module_category_hidden"/>
             <field name="comment">Arıza kayıtlarını yönetebilir ve onaylayabilir.</field>
-            <field name="implied_ids" eval="[(4, ref('group_ariza_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system'))]"/>
         </record>
 
 
