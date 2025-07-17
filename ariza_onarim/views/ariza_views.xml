@@ -6,32 +6,15 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
                 <header>
-                    <!-- Onay Butonu (Personel + Teknik Ekip) -->
-                    <button name="action_onayla_kullanici_bazli" string="Onayla" type="object" class="oe_highlight" 
-                            states="draft" 
-                            attrs="{'invisible': [('can_approve', '=', False)]}"
-                            options='{"no_open": true}'/>
-                    
-                    <!-- Onarım Başlat Butonu (Sadece Teknik Ekip) -->
-                    <button name="action_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" 
-                            states="onaylandi" 
-                            attrs="{'invisible': [('can_start_repair', '=', False)]}"
-                            options='{"no_open": true}'/>
-                    
-                    <!-- Genel Butonlar -->
-                    <button name="action_onayla" string="Eski Onayla" type="object" class="oe_highlight" states="draft" options='{"no_open": true}'/>
+                    <button name="action_personel_onayla" string="PERSONEL ONAYLA" type="object" class="oe_highlight" states="draft"/>
+                    <button name="action_teknik_onarim_baslat" string="TEKNİK ONARIM BAŞLAT" type="object" class="oe_highlight" states="personel_onay"/>
+                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}"/>
                     <button name="action_tamamla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': [('transfer_id', '=', False)]}" options='{"no_open": true}'/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                 </header>
-                <sheet>
-                    <!-- Gizli alanlar -->
-                    <field name="can_approve" invisible="1"/>
-                    <field name="can_create_only" invisible="1"/>
-                    
-                    <div class="oe_title">
                 <sheet>
                     <div class="oe_title">
                         <h1>
@@ -101,34 +84,6 @@
                                 <field name="notlar"/>
                             </group>
                         </page>
-                        <page string="Onarım Süreci Takibi">
-                            <group>
-                                <group>
-                                    <field name="onarim_baslangic_tarihi"/>
-                                    <field name="beklenen_tamamlanma_tarihi" readonly="1"/>
-                                    <field name="kalan_is_gunu" readonly="1" widget="integer"/>
-                                </group>
-                                <group>
-                                    <field name="onarim_durumu"/>
-                                    <field name="hatirlatma_gonderildi" readonly="1"/>
-                                    <field name="son_hatirlatma_tarihi" readonly="1"/>
-                                </group>
-                            </group>
-                            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                                <h4 style="color: #2c3e50; margin-bottom: 10px;">📊 Onarım Süreci Durumu</h4>
-                                <group>
-                                    <group>
-                                        <field name="kalan_is_gunu" readonly="1" widget="integer" string="Kalan İş Günü" style="font-size: 18px; font-weight: bold; color: #3498db;"/>
-                                    </group>
-                                    <group>
-                                        <field name="beklenen_tamamlanma_tarihi" readonly="1" string="Beklenen Tamamlanma" style="font-size: 18px; font-weight: bold; color: #e74c3c;"/>
-                                    </group>
-                                    <group>
-                                        <field name="onarim_durumu" readonly="1" string="Onarım Durumu" style="font-size: 18px; font-weight: bold; color: #27ae60;"/>
-                                    </group>
-                                </group>
-                            </div>
-                        </page>
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
@@ -139,11 +94,12 @@
             </form>
         </field>
     </record>
+    
     <record id="view_ariza_kayit_tree" model="ir.ui.view">
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'" decoration-muted="onarim_durumu == 'gecikti'">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'">
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="partner_id"/>
@@ -151,13 +107,10 @@
                 <field name="model"/>
                 <field name="ariza_tipi"/>
                 <field name="state"/>
-                <field name="onarim_baslangic_tarihi"/>
-                <field name="beklenen_tamamlanma_tarihi"/>
-                <field name="kalan_is_gunu" widget="integer"/>
-                <field name="onarim_durumu"/>
             </tree>
         </field>
     </record>
+    
     <record id="view_ariza_kayit_search" model="ir.ui.view">
         <field name="name">ariza.kayit.search</field>
         <field name="model">ariza.kayit</field>
@@ -171,14 +124,11 @@
                 <field name="transfer_metodu"/>
                 <separator/>
                 <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Personel Onayı" name="personel_onay" domain="[('state', '=', 'personel_onay')]"/>
+                <filter string="Teknik Onarım" name="teknik_onarim" domain="[('state', '=', 'teknik_onarim')]"/>
                 <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
                 <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
-                <separator/>
-                <filter string="Onarım Beklemede" name="onarim_beklemede" domain="[('onarim_durumu', '=', 'beklemede')]"/>
-                <filter string="Onarım Devam Ediyor" name="onarim_devam" domain="[('onarim_durumu', '=', 'devam_ediyor')]"/>
-                <filter string="Onarım Gecikti" name="onarim_gecikti" domain="[('onarim_durumu', '=', 'gecikti')]"/>
-                <filter string="Kritik Süre (≤3 gün)" name="kritik_sure" domain="[('kalan_is_gunu', '&lt;=', 3), ('kalan_is_gunu', '&gt;', 0)]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
                     <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
@@ -188,6 +138,7 @@
             </search>
         </field>
     </record>
+    
     <record id="action_ariza_kayit" model="ir.actions.act_window">
         <field name="name">Arıza Kayıtları</field>
         <field name="res_model">ariza.kayit</field>
@@ -199,14 +150,17 @@
             </p>
         </field>
     </record>
+    
     <menuitem id="menu_ariza_onarim_root" 
               name="Arıza Onarım" 
               sequence="10"/>
+              
     <menuitem id="menu_ariza_kayit" 
               name="Arıza Kayıtları" 
               parent="menu_ariza_onarim_root" 
               action="action_ariza_kayit" 
               sequence="10"/>
+              
     <record id="view_ariza_kayit_pivot" model="ir.ui.view">
         <field name="name">ariza.kayit.pivot</field>
         <field name="model">ariza.kayit</field>
@@ -223,6 +177,7 @@
             </pivot>
         </field>
     </record>
+    
     <record id="view_ariza_kayit_graph" model="ir.ui.view">
         <field name="name">ariza.kayit.graph</field>
         <field name="model">ariza.kayit</field>
