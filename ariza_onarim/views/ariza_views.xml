@@ -21,6 +21,12 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
+                    <!-- Gizli alanlar -->
+                    <field name="can_approve" invisible="1"/>
+                    <field name="can_create_only" invisible="1"/>
+                    
+                    <div class="oe_title">
+                <sheet>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
