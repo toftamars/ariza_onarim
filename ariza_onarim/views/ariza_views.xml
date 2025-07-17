@@ -8,8 +8,8 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false">
                 <header>
-                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
-                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                 </header>
@@ -164,9 +164,9 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı">
                 <header>
-                    <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_user"/>
-                    <button name="action_teknik_onarim_baslat" string="ONARIMI BAŞLAT" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
-                    <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_personel_onayla" string="Onayla" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_user"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
@@ -422,19 +422,19 @@
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
                                         <button name="action_personel_onayla" 
-                                                string="ONAYLA" 
+                                                string="Onayla" 
                                                 type="object" 
                                                 class="btn btn-sm btn-warning" 
                                                 states="draft"
                                                 t-att-disabled="record.state.raw_value != 'draft'"/>
                                         <button name="action_teknik_onarim_baslat" 
-                                                string="ONARIMI BAŞLAT" 
+                                                string="Onarımı Başlat" 
                                                 type="object" 
                                                 class="btn btn-sm btn-primary" 
                                                 states="personel_onay"
                                                 t-att-disabled="record.state.raw_value != 'personel_onay'"/>
                                         <button name="action_onayla" 
-                                                string="ONAYLA" 
+                                                string="Onayla" 
                                                 type="object" 
                                                 class="btn btn-sm btn-success" 
                                                 states="teknik_onarim"
