@@ -434,7 +434,7 @@
                                                 states="personel_onay"
                                                 t-att-disabled="record.state.raw_value != 'personel_onay'"/>
                                         <button name="action_onayla" 
-                                                string="Onayla" 
+                                                string="Onarımı Bitir" 
                                                 type="object" 
                                                 class="btn btn-sm btn-success" 
                                                 states="teknik_onarim"
