@@ -1136,6 +1136,9 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': delivery_type,  # Her zaman matbu
         }
+        # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
+        if transfer_tipi == 'ikinci' and self.transfer_id and self.transfer_id.teslim_adresi:
+            picking_vals['note'] += f"\nAlım Yapılan: {self.transfer_id.teslim_adresi}"
         stock_picking_fields = self.env['stock.picking'].fields_get()
         if 'e_irsaliye_no' in stock_picking_fields:
             picking_vals['e_irsaliye_no'] = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
@@ -1524,6 +1527,12 @@ Arıza Kaydı Personel Onaylandı.<br/>
     def action_unlock(self):
         for rec in self:
             rec.state = 'draft'
+
+    def _clean_magaza_adi(self, magaza_adi):
+        """Mağaza adından 'Perakende - ' önekini temizle"""
+        if magaza_adi and magaza_adi.startswith("Perakende - "):
+            return magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+        return magaza_adi
 
     def action_tamamla(self):
         # Yönetici henüz "Onarımı Tamamla" yapmamışsa uyarı ver
