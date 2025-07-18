@@ -17,6 +17,18 @@
         </record>
 
         <!-- Stock Picking Record Rules -->
+        <!-- Tüm kullanıcılar için: Arıza kayıtlarıyla ilgili transferleri görebilir -->
+        <record id="rule_stock_picking_all_users" model="ir.rule">
+            <field name="name">Stock Picking - All Users Access</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="domain_force">['|', ('origin', 'ilike', 'ARZ'), ('note', 'ilike', 'Arıza Kaydı')]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
         <!-- Kullanıcılar için: Arıza kayıtlarıyla ilgili transferleri görebilir -->
         <record id="rule_stock_picking_user" model="ir.rule">
             <field name="name">Stock Picking - User Access</field>
