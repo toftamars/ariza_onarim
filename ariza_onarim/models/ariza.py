@@ -1137,8 +1137,8 @@ class ArizaKayit(models.Model):
             'delivery_type': delivery_type,  # Her zaman matbu
         }
         # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
-        if transfer_tipi == 'ikinci' and self.transfer_id and self.transfer_id.teslim_adresi:
-            picking_vals['note'] += f"\nAlım Yapılan: {self.transfer_id.teslim_adresi}"
+        if transfer_tipi == 'ikinci' and self.teslim_adresi:
+            picking_vals['note'] += f"\nAlım Yapılan: {self.teslim_adresi}"
         stock_picking_fields = self.env['stock.picking'].fields_get()
         if 'e_irsaliye_no' in stock_picking_fields:
             picking_vals['e_irsaliye_no'] = self.env['ir.sequence'].next_by_code('stock.picking.e.irsaliye')
