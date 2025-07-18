@@ -31,7 +31,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             # 2. transfer: Teknik servisten mağazaya geri dönüş
             yeni_transfer = ariza._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
-                hedef_konum=mevcut_kaynak   # Mağaza (1. transferin kaynağı)
+                hedef_konum=mevcut_kaynak,  # Mağaza (1. transferin kaynağı)
+                transfer_tipi='ikinci'      # 2. transfer olduğunu belirt
             )
             
             if yeni_transfer:
