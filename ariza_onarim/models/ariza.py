@@ -760,13 +760,15 @@ class ArizaKayit(models.Model):
         # 1. transfer için 'Tamir Teslimatları' ara
         if transfer_tipi == 'ilk':
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Teslimatları')
+                ('name', '=', 'Tamir Teslimatları'),
+                ('name', 'not ilike', 'Arıza:')
             ], limit=1)
         
         # 2. transfer için 'Tamir Alımlar' ara
         elif transfer_tipi == 'ikinci':
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Alımlar')
+                ('name', '=', 'Tamir Alımlar'),
+                ('name', 'not ilike', 'Arıza:')
             ], limit=1)
         
         # Operasyon tipi bulunamazsa hata ver
