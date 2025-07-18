@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ariza_onarim_bilgi_wizard_form" model="ir.ui.view">
+        <field name="name">ariza.onarim.bilgi.wizard.form</field>
+        <field name="model">ariza.onarim.bilgi.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Onarım Bilgilerini Doldur">
+                <group>
+                    <group>
+                        <field name="ariza_id" invisible="1"/>
+                        <field name="musteri_adi"/>
+                        <field name="urun"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="onarim_bilgisi" placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..."/>
+                </group>
+                <group>
+                    <group>
+                        <field name="garanti_kapsaminda_mi"/>
+                        <field name="onarim_ucreti"/>
+                    </group>
+                    <group>
+                        <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..."/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_onarim_bilgilerini_kaydet" 
+                            string="Onarımı Tamamla" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="İptal" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo> 
