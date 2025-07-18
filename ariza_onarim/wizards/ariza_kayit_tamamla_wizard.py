@@ -23,15 +23,15 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             
             ariza._send_sms_to_customer(sms_mesaji)
         
-        # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
+        # 2. transfer oluştur - İlk transferin tam tersi
         if ariza.transfer_id:
             mevcut_kaynak = ariza.transfer_id.location_id
             mevcut_hedef = ariza.transfer_id.location_dest_id
             
-            # Konumları ters çevirerek yeni transfer oluştur (çıkış transferi)
+            # 2. transfer: Teknik servisten mağazaya geri dönüş
             yeni_transfer = ariza._create_stock_transfer(
-                kaynak_konum=mevcut_hedef,  # Önceki hedef konum yeni kaynak konum olur
-                hedef_konum=mevcut_kaynak   # Önceki kaynak konum yeni hedef konum olur
+                kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
+                hedef_konum=mevcut_kaynak   # Mağaza (1. transferin kaynağı)
             )
             
             if yeni_transfer:
