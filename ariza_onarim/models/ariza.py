@@ -193,6 +193,9 @@ class ArizaKayit(models.Model):
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
     ], string='Durum (Yönetici)', compute='_compute_state_manager', store=False)
+    
+    # Transfer sayısı takibi
+    transfer_sayisi = fields.Integer(string='Transfer Sayısı', default=0, tracking=True)
 
     @api.depends('state')
     def _compute_state_manager(self):
@@ -1410,50 +1413,12 @@ Arıza Kaydı Personel Onaylandı.<br/>
             if record.state != 'teknik_onarim':
                 raise UserError('Sadece teknik onarım aşamasındaki kayıtlar onaylanabilir!')
             
-            # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
-            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'TEDARİKÇİ' and not record.transfer_id:
-                if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
-                    raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-                picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
-                if picking:
-                    record.transfer_id = picking.id
-                    record.state = 'onaylandi'
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'name': 'Transfer Belgesi',
-                        'res_model': 'stock.picking',
-                        'res_id': picking.id,
-                        'view_mode': 'form',
-                    }
-            # Mağaza ürünü ve teknik servis mağaza seçildiğinde transfer oluşturma
-            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'MAĞAZA':
-                record.state = 'onaylandi'
-                return
-            # Mağaza ürünü için transfer oluşturma kontrolü
-            if record.ariza_tipi == 'magaza' and record.teknik_servis == 'TEKNİK SERVİS':
-                record.state = 'onaylandi'
-                return
-            # Mağaza ürünü için transfer oluştur
-            if record.ariza_tipi == 'magaza' and not record.transfer_id:
-                picking = record._create_stock_transfer(transfer_tipi='ilk')
-                if picking:
-                    record.transfer_id = picking.id
-                    record.state = 'onaylandi'
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'name': 'Transfer Belgesi',
-                        'res_model': 'stock.picking',
-                        'res_id': picking.id,
-                        'view_mode': 'form',
-                    }
-            
-            # Ürün teslim işlemlerinde analitik bilgisi arıza kabulden gelsin
-            if record.islem_tipi == 'teslim' and record.ariza_kabul_id:
-                record.analitik_hesap_id = record.ariza_kabul_id.analitik_hesap_id
-
+            # Yönetici onarımı bitirdiğinde sadece durum değişsin
             record.state = 'onaylandi'
-            # Onaylama sonrası otomatik kilitle
-            record.action_lock()
+            record.message_post(
+                body=f"Onarım süreci tamamlandı. Kullanıcı tamamla butonuna basarak geri gönderim transferini oluşturabilir.",
+                subject="Onarım Tamamlandı"
+            )
 
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
@@ -1579,6 +1544,8 @@ class StockPicking(models.Model):
             if picking.origin:
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
                 if ariza:
+                    # Transfer sayısını artır
+                    ariza.transfer_sayisi += 1
                     return {
                         'type': 'ir.actions.act_window',
                         'res_model': 'ariza.kayit',

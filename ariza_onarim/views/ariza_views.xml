@@ -367,6 +367,7 @@
                 <field name="partner_id"/>
                 <field name="onarim_durumu"/>
                 <field name="kalan_is_gunu"/>
+                <field name="transfer_sayisi"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
@@ -439,6 +440,11 @@
                                                 class="btn btn-sm btn-success" 
                                                 states="teknik_onarim"
                                                 t-att-disabled="record.state.raw_value != 'teknik_onarim'"/>
+                                        <button name="action_tamamla" 
+                                                string="Tamamla" 
+                                                type="object" 
+                                                class="btn btn-sm btn-secondary" 
+                                                t-att-disabled="record.transfer_sayisi.raw_value != 2"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <button name="action_print" 
