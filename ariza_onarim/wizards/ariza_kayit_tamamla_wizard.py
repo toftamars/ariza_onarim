@@ -11,16 +11,37 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     def action_tamamla(self):
         ariza = self.ariza_id
         
-        # SMS gönderimi - "Onayla" butonundaki gibi
-        if ariza.partner_id and ariza.partner_id.phone and ariza.ariza_tipi == 'musteri':
+        # Email gönderimi - SMS yerine email kullan
+        if ariza.partner_id and ariza.partner_id.email and ariza.ariza_tipi == 'musteri':
             if ariza.ariza_tipi == 'musteri':
-                # Müşteri ürünü için teslim alındı SMS'i
-                sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                # Müşteri ürünü için teslim alındı email'i
+                subject = f"Ürününüz Teslim Edilmeye Hazır: {ariza.name}"
+                body = f"""
+                Sayın {ariza.partner_id.name},
+                
+                {ariza.urun} ürününüz teslim edilmeye hazırdır. 
+                Ürününüzü mağazamızdan teslim alabilirsiniz.
+                
+                Arıza No: {ariza.name}
+                
+                Saygılarımızla,
+                B021
+                """
             else:
-                # Mağaza ürünü için teslim edildi SMS'i
-                sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
+                # Mağaza ürünü için teslim edildi email'i
+                subject = f"Ürününüz Teslim Edildi: {ariza.name}"
+                body = f"""
+                Sayın {ariza.partner_id.name},
+                
+                {ariza.urun} ürününüz teslim edilmiştir.
+                
+                Arıza No: {ariza.name}
+                
+                Saygılarımızla,
+                B021
+                """
             
-            ariza._send_sms_to_customer(sms_mesaji)
+            ariza._send_email_to_customer(subject, body)
         
         # 2. transfer oluştur - İlk transferin tam tersi
         if ariza.transfer_id:
