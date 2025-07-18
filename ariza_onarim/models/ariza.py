@@ -1261,13 +1261,26 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi != 'musteri':
             return
         if self.partner_id and self.partner_id.phone:
-            sms_obj = self.env['sms.sms'].create({
-                'partner_id': self.partner_id.id,
-                'number': self.partner_id.phone,
-                'body': message,
-                'state': 'outgoing',
-            })
-            sms_obj.send()
+            try:
+                sms_obj = self.env['sms.sms'].create({
+                    'partner_id': self.partner_id.id,
+                    'number': self.partner_id.phone,
+                    'body': message,
+                    'state': 'outgoing',
+                })
+                sms_obj.send()
+            except Exception as e:
+                # SMS yetkisi yoksa sadece log yaz, hata verme
+                self.env['ir.logging'].create({
+                    'name': 'ariza_onarim',
+                    'type': 'server',
+                    'level': 'warning',
+                    'dbname': self._cr.dbname,
+                    'message': f"SMS gönderilemedi: {str(e)}",
+                    'path': __file__,
+                    'func': '_send_sms_to_customer',
+                    'line': 0,
+                })
         # SMS ile birlikte mail de gönder
         if self.partner_id and self.partner_id.email:
             subject = "Arıza Kaydınız Hakkında Bilgilendirme"
