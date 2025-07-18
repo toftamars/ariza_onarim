@@ -16,6 +16,30 @@
             <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system'))]"/>
         </record>
 
+        <!-- Stock Picking Record Rules -->
+        <!-- Kullanıcılar için: Arıza kayıtlarıyla ilgili transferleri görebilir -->
+        <record id="rule_stock_picking_user" model="ir.rule">
+            <field name="name">Stock Picking - User Access</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="domain_force">[('origin', 'ilike', 'ARZ')]</field>
+            <field name="groups" eval="[(4, ref('group_ariza_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Yöneticiler için: Tüm arıza transferlerini görebilir -->
+        <record id="rule_stock_picking_manager" model="ir.rule">
+            <field name="name">Stock Picking - Manager Access</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="domain_force">[('origin', 'ilike', 'ARZ')]</field>
+            <field name="groups" eval="[(4, ref('group_ariza_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
 
     </data>
 </odoo> 
