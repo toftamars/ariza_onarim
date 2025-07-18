@@ -444,7 +444,8 @@
                                                 string="Tamamla" 
                                                 type="object" 
                                                 class="btn btn-sm btn-secondary" 
-                                                t-att-disabled="record.transfer_sayisi.raw_value != 2"/>
+                                                t-att-disabled="record.transfer_sayisi.raw_value != 2"
+                                                t-att-invisible="record.state_manager.raw_value == 'onaylandi'"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <button name="action_print" 
