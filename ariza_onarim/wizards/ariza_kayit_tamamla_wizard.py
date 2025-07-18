@@ -35,7 +35,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             )
             
             if yeni_transfer:
-                ariza.transfer_id = yeni_transfer.id
+                # 2. transfer oluşturuldu, ama transfer_id'yi değiştirme
                 # Yeni transferin detaylarını logla
                 self.env['ir.logging'].create({
                     'name': 'ariza_onarim',
