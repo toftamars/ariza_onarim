@@ -1532,6 +1532,10 @@ Arıza Kaydı Personel Onaylandı.<br/>
             rec.state = 'draft'
 
     def action_tamamla(self):
+        # Yönetici henüz "Onarımı Tamamla" yapmamışsa uyarı ver
+        if self.state != 'onaylandi':
+            raise UserError(_('Bu işlemi yapabilmek için önce yöneticinin "Onarımı Tamamla" işlemini yapması gerekiyor!'))
+        
         # İlk transfer doğrulandıktan sonra tamamla butonu olsun
         if self.transfer_id:
             # SMS mesajını ürün tipine göre ayarla
@@ -1553,6 +1557,8 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     'default_onay_mesaji': onay_mesaji
                 }
             }
+        else:
+            raise UserError(_('Transfer bulunamadı! Lütfen önce transfer oluşturun.'))
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
