@@ -1146,8 +1146,8 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
 
-        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla
-        if self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
+        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
+        if transfer_tipi != 'ikinci' and self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             picking_vals['partner_id'] = self.contact_id.id
         # Diğer durumlarda partner_id set edilmesin
 
