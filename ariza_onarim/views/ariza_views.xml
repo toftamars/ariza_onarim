@@ -475,11 +475,10 @@
                 <field name="sorumlu_id"/>
                 <field name="tarih"/>
                 <separator/>
-                <filter string="Taslak" name="draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="Personel Onayı Bekleyen" name="personel_onay" domain="[('state', '=', 'personel_onay')]"/>
-                <filter string="Teknik Onarımda" name="teknik_onarim" domain="[('state', '=', 'teknik_onarim')]"/>
-                <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
-                <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
+                <filter string="Taslak" name="draft" domain="[('state_manager', '=', 'draft')]"/>
+                <filter string="Onaylandı" name="onaylandi" domain="[('state_manager', '=', 'onaylandi')]"/>
+                <filter string="Onarımda" name="onarimda" domain="[('state_manager', '=', 'onarimda')]"/>
+                <filter string="Tamamlandı" name="tamamlandi" domain="[('state_manager', '=', 'tamamlandi')]"/>
                 <filter string="Geciken Onarımlar" name="geciken" domain="[('kalan_is_gunu', '&lt;', 0)]"/>
                 <filter string="Bugün Bitecek" name="bugun_bitecek" domain="[('kalan_is_gunu', '=', 0)]"/>
                 <separator/>
@@ -491,7 +490,7 @@
                 <filter string="Tamamlandı" name="onarim_tamamlandi" domain="[('onarim_durumu', '=', 'tamamlandi')]"/>
                 <filter string="Gecikti" name="gecikti" domain="[('onarim_durumu', '=', 'gecikti')]"/>
                 <group expand="0" string="Grupla">
-                    <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
+                    <filter string="Durum" name="state_manager" context="{'group_by': 'state_manager'}"/>
                     <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
                     <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
                     <filter string="Sorumlu" name="sorumlu_id" context="{'group_by': 'sorumlu_id'}"/>
@@ -516,7 +515,7 @@
                 Yönetici dashboard'u - Tüm arıza kayıtlarını kolayca yönetin
             </p>
         </field>
-        <field name="context">{'search_default_personel_onay': 1, 'order': 'tarih desc'}</field>
+        <field name="context">{'search_default_onaylandi': 1, 'order': 'tarih desc'}</field>
     </record>
 
     <!-- Yönetici için Özel Menu -->
