@@ -49,14 +49,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'line': 0,
                 })
                 
-                # 2. transfer'e yönlendir
-                return {
-                    'type': 'ir.actions.act_window',
-                    'res_model': 'stock.picking',
-                    'res_id': yeni_transfer.id,
-                    'view_mode': 'form',
-                    'target': 'current',
-                }
                 # Eğer işlem tipi 'Arıza Kabul', arıza tipi 'Mağaza Ürünü', teknik servis 'TEDARİKÇİ' ise planlanan giriş transferi oluştur
                 if ariza.islem_tipi == 'kabul' and ariza.ariza_tipi == 'magaza' and ariza.teknik_servis == 'TEDARİKÇİ':
                     # Giriş transferi: kaynak ve hedefi tekrar ters çevir
@@ -76,6 +68,15 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                             'func': 'action_tamamla',
                             'line': 0,
                         })
+                
+                # 2. transfer'e yönlendir
+                return {
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'stock.picking',
+                    'res_id': yeni_transfer.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
             else:
                 raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         
