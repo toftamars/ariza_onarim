@@ -26,7 +26,7 @@
                 </group>
                 <footer>
                     <button name="action_onarim_bilgilerini_kaydet" 
-                            string="Onarımı Tamamla" 
+                            string="Onarımı Tamamla ve SMS Gönder" 
                             type="object" 
                             class="btn-primary"/>
                     <button string="İptal" 

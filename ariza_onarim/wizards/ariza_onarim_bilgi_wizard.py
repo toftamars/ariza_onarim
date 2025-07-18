@@ -29,9 +29,21 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Durumu onaylandı olarak güncelle
         ariza.state = 'onaylandi'
         
+        # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi
+        if ariza.partner_id and ariza.partner_id.phone:
+            if ariza.ariza_tipi == 'musteri':
+                # Müşteri ürünü için onarım tamamlandı SMS'i
+                magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+            else:
+                # Mağaza ürünü için onarım tamamlandı SMS'i
+                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
+            
+            ariza._send_sms_to_customer(sms_mesaji)
+        
         # Mesaj gönder
         ariza.message_post(
-            body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Kullanıcı tamamla butonuna basarak geri gönderim transferini oluşturabilir.",
+            body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı tamamla butonuna basarak geri gönderim transferini oluşturabilir.",
             subject="Onarım Tamamlandı"
         )
         
