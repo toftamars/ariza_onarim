@@ -362,7 +362,7 @@
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
-                <field name="state"/>
+                <field name="state_manager"/>
                 <field name="ariza_tanimi"/>
                 <field name="partner_id"/>
                 <field name="onarim_durumu"/>
@@ -378,8 +378,8 @@
                                         </strong>
                                     </div>
                                     <div class="o_kanban_record_top_right">
-                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state.raw_value == 'draft' ? 'info' : record.state.raw_value == 'personel_onay' ? 'warning' : record.state.raw_value == 'teknik_onarim' ? 'primary' : record.state.raw_value == 'onaylandi' ? 'success' : record.state.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
-                                            <field name="state"/>
+                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'teknik_onarim' ? 'primary' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
+                                            <field name="state_manager"/>
                                         </span>
                                     </div>
                                 </div>

@@ -182,6 +182,27 @@ class ArizaKayit(models.Model):
     # Kullanıcı bazlı yetki kontrolü
     can_approve = fields.Boolean(string='Onaylayabilir mi?', compute='_compute_user_permissions', store=False)
     can_start_repair = fields.Boolean(string='Onarımı Başlatabilir mi?', compute='_compute_user_permissions', store=False)
+    
+    # Yönetici için özel durum gösterimi
+    state_manager = fields.Selection([
+        ('draft', 'Taslak'),
+        ('onaylandi', 'Onaylandı'),
+        ('teknik_onarim', 'Teknik Onarım'),
+        ('onaylandi', 'Onaylandı'),
+        ('tamamlandi', 'Tamamlandı'),
+        ('teslim_edildi', 'Teslim Edildi'),
+        ('kilitli', 'Kilitli'),
+        ('iptal', 'İptal'),
+    ], string='Durum (Yönetici)', compute='_compute_state_manager', store=False)
+
+    @api.depends('state')
+    def _compute_state_manager(self):
+        """Yönetici için özel durum gösterimi - personel_onay durumunu onaylandı olarak göster"""
+        for record in self:
+            if record.state == 'personel_onay':
+                record.state_manager = 'onaylandi'
+            else:
+                record.state_manager = record.state
 
     @api.depends('sorumlu_id')
     def _compute_user_permissions(self):
