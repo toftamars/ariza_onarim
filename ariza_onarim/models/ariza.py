@@ -1321,11 +1321,29 @@ class ArizaKayit(models.Model):
                         picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
                         if picking:
                             record.transfer_id = picking.id
+                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            return {
+                                'type': 'ir.actions.act_window',
+                                'name': 'Transfer Belgesi',
+                                'res_model': 'stock.picking',
+                                'res_id': picking.id,
+                                'view_mode': 'form',
+                                'target': 'current',
+                            }
                     # Diğer teknik servisler için normal transfer oluştur
                     elif record.teknik_servis != 'MAĞAZA':
                         picking = record._create_stock_transfer(transfer_tipi='ilk')
                         if picking:
                             record.transfer_id = picking.id
+                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            return {
+                                'type': 'ir.actions.act_window',
+                                'name': 'Transfer Belgesi',
+                                'res_model': 'stock.picking',
+                                'res_id': picking.id,
+                                'view_mode': 'form',
+                                'target': 'current',
+                            }
                 
                 # Personel onayı sonrası SMS gönder
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
