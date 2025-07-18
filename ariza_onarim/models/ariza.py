@@ -1552,8 +1552,6 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 'target': 'new',
                 'context': {
                     'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name,
-                    'default_urun': self.urun,
                     'default_onay_mesaji': onay_mesaji
                 }
             }
@@ -1586,8 +1584,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     _description = 'Arıza Kaydı Tamamlama Sihirbazı'
 
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
-    musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
-    urun = fields.Char(string='Ürün', readonly=True)
     onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
 
     def action_tamamla(self):
