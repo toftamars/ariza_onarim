@@ -21,7 +21,7 @@
         <record id="rule_stock_picking_user" model="ir.rule">
             <field name="name">Stock Picking - User Access</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="domain_force">[('origin', 'ilike', 'ARZ')]</field>
+            <field name="domain_force">['|', ('origin', 'ilike', 'ARZ'), ('note', 'ilike', 'Arıza Kaydı')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -33,7 +33,7 @@
         <record id="rule_stock_picking_manager" model="ir.rule">
             <field name="name">Stock Picking - Manager Access</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="domain_force">[('origin', 'ilike', 'ARZ')]</field>
+            <field name="domain_force">['|', ('origin', 'ilike', 'ARZ'), ('note', 'ilike', 'Arıza Kaydı')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
