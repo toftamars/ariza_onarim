@@ -1226,7 +1226,7 @@ class ArizaKayit(models.Model):
             if self.ariza_tanimi:
                 msg += f"<br/><b>Ek Arıza Tanımı:</b> {self.ariza_tanimi}"
             picking.message_post(body=msg)
-        # 2. transferde chatter'a onarım bilgisi ve önemli bilgiler yaz + hedef konumu kesin olarak güncelle
+        # 2. transferde chatter'a onarım bilgisi ve önemli bilgiler yaz
         elif transfer_tipi == 'ikinci':
             msg = f"<b>Onarım Sonrası Transfer Oluşturuldu</b><br/>"
             msg += f"Onarım Bilgisi: {self.onarim_bilgisi or '-'}<br/>"
@@ -1237,12 +1237,6 @@ class ArizaKayit(models.Model):
             if self.onarim_bilgisi:
                 msg += f"<br/><b>Ek Onarım Bilgisi:</b> {self.onarim_bilgisi}"
             picking.message_post(body=msg)
-            # Hedef konumu tekrar ve kesin olarak güncelle (partner_id override'ını engelle)
-            if self.kaynak_konum_id:
-                picking.location_dest_id = self.kaynak_konum_id.id
-                # Tüm hareketlerin hedef konumunu da güncelle
-                for move in picking.move_lines:
-                    move.location_dest_id = self.kaynak_konum_id.id
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
