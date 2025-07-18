@@ -378,7 +378,7 @@
                                         </strong>
                                     </div>
                                     <div class="o_kanban_record_top_right">
-                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'teknik_onarim' ? 'primary' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
+                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'onarimda' ? 'primary' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
                                             <field name="state_manager"/>
                                         </span>
                                     </div>
