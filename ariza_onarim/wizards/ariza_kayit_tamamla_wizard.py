@@ -49,25 +49,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'line': 0,
                 })
                 
-                # Eğer işlem tipi 'Arıza Kabul', arıza tipi 'Mağaza Ürünü', teknik servis 'TEDARİKÇİ' ise planlanan giriş transferi oluştur
-                if ariza.islem_tipi == 'kabul' and ariza.ariza_tipi == 'magaza' and ariza.teknik_servis == 'TEDARİKÇİ':
-                    # Giriş transferi: kaynak ve hedefi tekrar ters çevir
-                    giris_transfer = ariza._create_stock_transfer(
-                        kaynak_konum=mevcut_kaynak,  # Mağaza/depo
-                        hedef_konum=mevcut_hedef    # Tedarikçi
-                    )
-                    # Giriş transferi planlanan olarak kalsın (onaylama yok)
-                    if giris_transfer:
-                        self.env['ir.logging'].create({
-                            'name': 'ariza_onarim',
-                            'type': 'server',
-                            'level': 'info',
-                            'dbname': self._cr.dbname,
-                            'message': f"Planlanan giriş transferi oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {giris_transfer.id} - Kaynak: {mevcut_kaynak.name} - Hedef: {mevcut_hedef.name}",
-                            'path': __file__,
-                            'func': 'action_tamamla',
-                            'line': 0,
-                        })
+
                 
                 # 2. transfer'e yönlendir
                 return {
