@@ -188,6 +188,7 @@ class ArizaKayit(models.Model):
         ('draft', 'Taslak'),
         ('onaylandi', 'Onaylandı'),
         ('onarimda', 'Onarımda'),
+        ('onarim_tamamlandi', 'Onarım Tamamlandı'),
         ('tamamlandi', 'Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
@@ -199,12 +200,14 @@ class ArizaKayit(models.Model):
 
     @api.depends('state')
     def _compute_state_manager(self):
-        """Yönetici için özel durum gösterimi - personel_onay durumunu onaylandı, teknik_onarim durumunu onarımda olarak göster"""
+        """Yönetici için özel durum gösterimi - personel_onay durumunu onaylandı, teknik_onarim durumunu onarımda, onaylandi durumunu onarım tamamlandı olarak göster"""
         for record in self:
             if record.state == 'personel_onay':
                 record.state_manager = 'onaylandi'
             elif record.state == 'teknik_onarim':
                 record.state_manager = 'onarimda'
+            elif record.state == 'onaylandi':
+                record.state_manager = 'onarim_tamamlandi'
             else:
                 record.state_manager = record.state
 

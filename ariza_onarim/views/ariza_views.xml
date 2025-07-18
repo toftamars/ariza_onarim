@@ -379,7 +379,7 @@
                                         </strong>
                                     </div>
                                     <div class="o_kanban_record_top_right">
-                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'onarimda' ? 'primary' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
+                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'onarimda' ? 'primary' : record.state_manager.raw_value == 'onarim_tamamlandi' ? 'warning' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
                                             <field name="state_manager"/>
                                         </span>
                                     </div>
@@ -445,7 +445,7 @@
                                                 type="object" 
                                                 class="btn btn-sm btn-secondary" 
                                                 t-att-disabled="record.transfer_sayisi.raw_value != 2"
-                                                t-att-invisible="record.state_manager.raw_value == 'onaylandi'"/>
+                                                t-att-invisible="record.state_manager.raw_value == 'onarim_tamamlandi'"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <button name="action_print" 
@@ -479,6 +479,7 @@
                 <filter string="Taslak" name="draft" domain="[('state_manager', '=', 'draft')]"/>
                 <filter string="Onaylandı" name="onaylandi" domain="[('state_manager', '=', 'onaylandi')]"/>
                 <filter string="Onarımda" name="onarimda" domain="[('state_manager', '=', 'onarimda')]"/>
+                <filter string="Onarım Tamamlandı" name="onarim_tamamlandi" domain="[('state_manager', '=', 'onarim_tamamlandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state_manager', '=', 'tamamlandi')]"/>
                 <filter string="Geciken Onarımlar" name="geciken" domain="[('kalan_is_gunu', '&lt;', 0)]"/>
                 <filter string="Bugün Bitecek" name="bugun_bitecek" domain="[('kalan_is_gunu', '=', 0)]"/>
