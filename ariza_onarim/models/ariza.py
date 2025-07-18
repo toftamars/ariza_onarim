@@ -1534,6 +1534,12 @@ Arıza Kaydı Personel Onaylandı.<br/>
     def action_tamamla(self):
         # İlk transfer doğrulandıktan sonra tamamla butonu olsun
         if self.transfer_id:
+            # SMS mesajını ürün tipine göre ayarla
+            if self.ariza_tipi == 'musteri':
+                onay_mesaji = 'Ürünün onarım süreci tamamlanmıştır. Müşteriye teslim alındı SMS\'i gönderilecektir. Emin misiniz?'
+            else:
+                onay_mesaji = 'Ürünün onarım süreci tamamlanmıştır. Müşteriye teslim edildi SMS\'i gönderilecektir. Emin misiniz?'
+            
             return {
                 'name': 'Onarım Tamamlandı',
                 'type': 'ir.actions.act_window',
@@ -1544,7 +1550,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name,
                     'default_urun': self.urun,
-                    'default_onay_mesaji': 'Ürünün onarım süreci tamamlanmıştır. Müşteriye SMS gönderilecektir. Emin misiniz?'
+                    'default_onay_mesaji': onay_mesaji
                 }
             }
 
@@ -1580,11 +1586,17 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
 
     def action_tamamla(self):
         ariza = self.ariza_id
-        # SMS gönderimi
-        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone:
-            magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
-            # SMS mesajı
-            sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+        
+        # SMS gönderimi - Hem müşteri hem mağaza ürünleri için
+        if ariza.partner_id and ariza.partner_id.phone:
+            if ariza.ariza_tipi == 'musteri':
+                # Müşteri ürünü için teslim alındı SMS'i
+                magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
+                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+            else:
+                # Mağaza ürünü için teslim edildi SMS'i
+                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmiştir. B021"
+            
             ariza._send_sms_to_customer(sms_mesaji)
         
         # Önceki transferin konumlarını ters çevirerek yeni transfer oluştur
