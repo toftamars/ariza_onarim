@@ -11,15 +11,14 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     def action_tamamla(self):
         ariza = self.ariza_id
         
-        # SMS gönderimi - Hem müşteri hem mağaza ürünleri için
-        if ariza.partner_id and ariza.partner_id.phone:
+        # SMS gönderimi - "Onayla" butonundaki gibi
+        if ariza.partner_id and ariza.partner_id.phone and ariza.ariza_tipi == 'musteri':
             if ariza.ariza_tipi == 'musteri':
                 # Müşteri ürünü için teslim alındı SMS'i
-                magaza_adi = ariza._clean_magaza_adi(ariza.teslim_magazasi_id.name) if ariza.teslim_magazasi_id else ''
-                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü - {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+                sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
             else:
                 # Mağaza ürünü için teslim edildi SMS'i
-                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüz teslim edilmiştir. B021"
+                sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
             
             ariza._send_sms_to_customer(sms_mesaji)
         
