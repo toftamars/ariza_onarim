@@ -1270,17 +1270,8 @@ class ArizaKayit(models.Model):
                 })
                 sms_obj.send()
             except Exception as e:
-                # SMS yetkisi yoksa sadece log yaz, hata verme
-                self.env['ir.logging'].create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'warning',
-                    'dbname': self._cr.dbname,
-                    'message': f"SMS gönderilemedi: {str(e)}",
-                    'path': __file__,
-                    'func': '_send_sms_to_customer',
-                    'line': 0,
-                })
+                # SMS yetkisi yoksa sadece sessizce geç, hata verme
+                pass
         # SMS ile birlikte mail de gönder
         if self.partner_id and self.partner_id.email:
             subject = "Arıza Kaydınız Hakkında Bilgilendirme"
