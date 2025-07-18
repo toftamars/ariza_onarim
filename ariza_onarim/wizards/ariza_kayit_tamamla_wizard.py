@@ -57,19 +57,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             
             if yeni_transfer:
                 # 2. transfer oluşturuldu, ama transfer_id'yi değiştirme
-                # Yeni transferin detaylarını logla
-                self.env['ir.logging'].create({
-                    'name': 'ariza_onarim',
-                    'type': 'server',
-                    'level': 'info',
-                    'dbname': self._cr.dbname,
-                    'message': f"Yeni transfer oluşturuldu! Arıza No: {ariza.name} - Transfer ID: {yeni_transfer.id} - Kaynak: {mevcut_hedef.name} - Hedef: {mevcut_kaynak.name}",
-                    'path': __file__,
-                    'func': 'action_tamamla',
-                    'line': 0,
-                })
-                
-
+                # Log kaydını kaldırdık - yetki hatası veriyordu
                 
                 # 2. transfer'e yönlendir
                 return {
