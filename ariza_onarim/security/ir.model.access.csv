@@ -6,3 +6,4 @@ access_ariza_kayit_tamamla_wizard_user,ariza.kayit.tamamla.wizard.user,model_ari
 access_ariza_kayit_tamamla_wizard_manager,ariza.kayit.tamamla.wizard.manager,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ariza_onarim_bilgi_wizard_manager,ariza.onarim.bilgi.wizard.manager,model_ariza_onarim_bilgi_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ir_logging_manager,ir.logging.manager,base.model_ir_logging,ariza_onarim.group_ariza_manager,1,1,1,0
+access_sms_sms_user,sms.sms user,model_sms_sms,base.group_user,1,1,1,1
