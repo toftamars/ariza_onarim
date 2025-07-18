@@ -754,22 +754,62 @@ class ArizaKayit(models.Model):
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
 
-        # Operasyon tipi seçimi - basit ve net
+        # Analitik hesap adını al ve "Perakende -" önekini temizle
+        magaza_adi = ""
+        if self.analitik_hesap_id and self.analitik_hesap_id.name:
+            magaza_adi = self.analitik_hesap_id.name
+            # "Perakende -" önekini temizle
+            if magaza_adi.startswith("Perakende - "):
+                magaza_adi = magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+
+        # Operasyon tipi seçimi - analitik hesap ile uyumlu
         picking_type = False
         
-        # 1. transfer için 'Tamir Teslimatları' ara
+        # 1. transfer için analitik hesap ile uyumlu 'Tamir Teslimatları' ara
         if transfer_tipi == 'ilk':
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Teslimatları'),
-                ('name', 'not ilike', 'Arıza:')
-            ], limit=1)
+            # Mağaza adına göre depo ara
+            if magaza_adi:
+                warehouse = self.env['stock.warehouse'].search([
+                    ('name', 'ilike', magaza_adi)
+                ], limit=1)
+                
+                if warehouse:
+                    # Depodan "Tamir Teslimatları" ara (Arıza: öneki olmayan)
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', '=', 'Tamir Teslimatları'),
+                        ('name', 'not ilike', 'Arıza:'),
+                        ('warehouse_id', '=', warehouse.id)
+                    ], limit=1)
+            
+            # Mağaza bulunamazsa, genel 'Tamir Teslimatları' ara (Arıza: öneki olmayan)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Teslimatları'),
+                    ('name', 'not ilike', 'Arıza:')
+                ], limit=1)
         
-        # 2. transfer için 'Tamir Alımlar' ara
+        # 2. transfer için analitik hesap ile uyumlu 'Tamir Alımlar' ara
         elif transfer_tipi == 'ikinci':
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Alımlar'),
-                ('name', 'not ilike', 'Arıza:')
-            ], limit=1)
+            # Mağaza adına göre depo ara
+            if magaza_adi:
+                warehouse = self.env['stock.warehouse'].search([
+                    ('name', 'ilike', magaza_adi)
+                ], limit=1)
+                
+                if warehouse:
+                    # Depodan "Tamir Alımlar" ara (Arıza: öneki olmayan)
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', '=', 'Tamir Alımlar'),
+                        ('name', 'not ilike', 'Arıza:'),
+                        ('warehouse_id', '=', warehouse.id)
+                    ], limit=1)
+            
+            # Mağaza bulunamazsa, genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:')
+                ], limit=1)
         
         # Operasyon tipi bulunamazsa hata ver
         if not picking_type:
