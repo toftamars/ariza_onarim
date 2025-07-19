@@ -71,8 +71,15 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'transfer_sayisi': ariza.transfer_sayisi + 1,
                 })
                 
-                # Sadece wizard'ı kapat, hiçbir yönlendirme yapma
-                return {'type': 'ir.actions.act_window_close'}
+                # İlk transferdeki yapıyı kullan - transfer'e yönlendir
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': yeni_transfer.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
             else:
                 raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         
