@@ -12,14 +12,12 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
         ariza = self.ariza_id
         
         # SMS ve Email gönderimi
-        if ariza.partner_id and ariza.ariza_tipi == 'musteri':
+        if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
             if ariza.partner_id.phone:
                 # SMS gönderimi
                 if ariza.ariza_tipi == 'musteri':
-                    # Müşteri ürünü için teslim alındı SMS'i
                     sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
-                else:
-                    # Mağaza ürünü için teslim edildi SMS'i
+                else: # ariza.ariza_tipi == 'magaza'
                     sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
                 
                 ariza._send_sms_to_customer(sms_mesaji)
@@ -27,7 +25,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             if ariza.partner_id.email:
                 # Email gönderimi
                 if ariza.ariza_tipi == 'musteri':
-                    # Müşteri ürünü için teslim alındı email'i
                     subject = f"Ürününüz Teslim Edilmeye Hazır: {ariza.name}"
                     body = f"""
                     Sayın {ariza.partner_id.name},
@@ -40,8 +37,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     Saygılarımızla,
                     B021
                     """
-                else:
-                    # Mağaza ürünü için teslim edildi email'i
+                else: # ariza.ariza_tipi == 'magaza'
                     subject = f"Ürününüz Teslim Edildi: {ariza.name}"
                     body = f"""
                     Sayın {ariza.partner_id.name},
@@ -69,18 +65,12 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             )
             
             if yeni_transfer:
-                # 2. transfer oluşturuldu, arıza kaydını güncelle
-                ariza.write({
-                    'transfer_id': yeni_transfer.id,  # 2. transferi arıza kaydına bağla
-                    'state': 'teslim_edildi',  # Durumu teslim edildi olarak güncelle
-                    'transfer_sayisi': ariza.transfer_sayisi + 1  # Transfer sayısını artır
-                })
-                
-                # 2. transfer'e yönlendir
+                # 2. transfer oluşturuldu
+                # Arıza kaydına geri döndür
                 return {
                     'type': 'ir.actions.act_window',
-                    'res_model': 'stock.picking',
-                    'res_id': yeni_transfer.id,
+                    'res_model': 'ariza.kayit',
+                    'res_id': ariza.id,
                     'view_mode': 'form',
                     'target': 'current',
                 }
