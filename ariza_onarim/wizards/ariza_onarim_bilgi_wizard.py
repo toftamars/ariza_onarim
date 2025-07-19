@@ -8,9 +8,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
-    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', 
-        domain="[('name', 'ilike', 'Perakende')]", 
-        attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')], 'required': [('ariza_tipi', '=', 'musteri')]}")
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
@@ -18,19 +16,6 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     onarim_ucreti = fields.Float(string='Onarım Ücreti')
-    
-    ariza_tipi = fields.Selection([
-        ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü')
-    ], string='Arıza Tipi', compute='_compute_ariza_tipi', store=False)
-    
-    @api.depends('ariza_id')
-    def _compute_ariza_tipi(self):
-        for record in self:
-            if record.ariza_id:
-                record.ariza_tipi = record.ariza_id.ariza_tipi
-            else:
-                record.ariza_tipi = False
 
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
