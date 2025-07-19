@@ -1022,16 +1022,13 @@ Arıza Kaydı Personel Onaylandı.<br/>
             
             # 2. transfer için (onaylandi durumundan)
             elif record.state == 'onaylandi':
-                # 2. transfer oluştur - İlk transferin kaynak ve hedefini yer değiştir
-                if record.transfer_id:
-                    # İlk transferin kaynak ve hedef konumlarını al
-                    ilk_kaynak = record.transfer_id.location_id
-                    ilk_hedef = record.transfer_id.location_dest_id
-                    
+                # 2. transfer oluştur - Kaynak ve hedef konumları yer değiştir
+                # Mevcut transfer_id'yi kullanmadan, doğrudan konumları belirle
+                if record.kaynak_konum_id and record.hedef_konum_id:
                     # 2. transfer: Kaynak ve hedef yer değiştirir
                     picking = record._create_stock_transfer(
-                        kaynak_konum=ilk_hedef,  # İlk transferin hedefi (teknik servis)
-                        hedef_konum=ilk_kaynak,  # İlk transferin kaynağı (mağaza)
+                        kaynak_konum=record.hedef_konum_id,  # İlk transferin hedefi (teknik servis)
+                        hedef_konum=record.kaynak_konum_id,  # İlk transferin kaynağı (mağaza)
                         transfer_tipi='ikinci'
                     )
                     
@@ -1049,7 +1046,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     else:
                         raise UserError(_("2. transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
                 else:
-                    raise UserError(_('İlk transfer bulunamadı! Lütfen önce ilk transferi oluşturun.'))
+                    raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
                 
                 # Tamamla işlemi sonrası SMS gönder
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
