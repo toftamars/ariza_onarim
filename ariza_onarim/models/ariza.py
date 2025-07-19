@@ -848,7 +848,6 @@ class ArizaKayit(models.Model):
             'location_dest_id': hedef.id,
             'company_id': self.env.company.id,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-            'quantity_done': 1,
         })
 
         # Chatter'a mesaj ekle
