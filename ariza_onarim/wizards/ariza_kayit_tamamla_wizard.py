@@ -71,12 +71,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'transfer_sayisi': ariza.transfer_sayisi + 1,
                 })
                 
-                # İlk transferdeki gibi doğrudan transfer sayfasına yönlendir
+                # Arıza kaydına geri döndür
                 return {
                     'type': 'ir.actions.act_window',
-                    'name': 'Transfer Belgesi',
-                    'res_model': 'stock.picking',
-                    'res_id': yeni_transfer.id,
+                    'res_model': 'ariza.kayit',
+                    'res_id': ariza.id,
                     'view_mode': 'form',
                     'target': 'current',
                 }
