@@ -69,8 +69,12 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             )
             
             if yeni_transfer:
-                # 2. transfer oluşturuldu, ama transfer_id'yi değiştirme
-                # Log kaydını kaldırdık - yetki hatası veriyordu
+                # 2. transfer oluşturuldu, arıza kaydını güncelle
+                ariza.write({
+                    'transfer_id': yeni_transfer.id,  # 2. transferi arıza kaydına bağla
+                    'state': 'teslim_edildi',  # Durumu teslim edildi olarak güncelle
+                    'transfer_sayisi': ariza.transfer_sayisi + 1  # Transfer sayısını artır
+                })
                 
                 # 2. transfer'e yönlendir
                 return {
