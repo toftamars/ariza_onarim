@@ -66,6 +66,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             
             if yeni_transfer:
                 # 2. transfer oluşturuldu
+                # Arıza kaydını güncelle - transfer bilgisini kaydet
+                ariza.write({
+                    'transfer_sayisi': ariza.transfer_sayisi + 1,
+                })
+                
                 # Arıza kaydına geri döndür
                 return {
                     'type': 'ir.actions.act_window',
