@@ -1119,6 +1119,46 @@ Arıza Kaydı Tamamlandı.<br/>
                 }
             }
 
+    def action_kullanici_tamamla(self):
+        """Kullanıcı tamamlama işlemi - Sadece tamamlandi durumundan çalışır"""
+        for record in self:
+            if record.state != 'tamamlandi':
+                raise UserError('Sadece tamamlanmış kayıtlar teslim edilebilir!')
+            
+            # Durumu teslim edildi yap
+            record.state = 'teslim_edildi'
+            
+            # Teslim edildi SMS'i gönder
+            if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri':
+                message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edildi. B021"
+                record._send_sms_to_customer(message)
+            
+            # Teslim edildi e-posta gönder
+            mail_to = 'alper.tofta@zuhalmuzik.com'
+            subject = f"Ürün Teslim Edildi: {record.name}"
+            body = f"""
+Ürün Teslim Edildi.<br/>
+<b>Arıza No:</b> {record.name}<br/>
+<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
+<b>Ürün:</b> {record.urun}<br/>
+<b>Model:</b> {record.model}<br/>
+<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
+<b>Tarih:</b> {record.tarih or '-'}<br/>
+<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
+<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
+"""
+            record.env['mail.mail'].create({
+                'subject': subject,
+                'body_html': body,
+                'email_to': mail_to,
+            }).send()
+            
+            # Chatter'a mesaj ekle
+            record.message_post(
+                body=f"Ürün teslim edildi. SMS gönderildi.",
+                subject="Ürün Teslim Edildi"
+            )
+
 
     
 
