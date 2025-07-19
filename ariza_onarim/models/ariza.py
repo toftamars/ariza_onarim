@@ -1112,6 +1112,7 @@ Arıza Kaydı Tamamlandı.<br/>
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name if self.partner_id else '',
                     'default_urun': self.urun,
+                    'default_teslim_magazasi_id': self.teslim_magazasi_id.id if self.teslim_magazasi_id else False,
                     'default_onarim_bilgisi': self.onarim_bilgisi or '',
                     'default_garanti_kapsaminda_mi': self.garanti_kapsaminda_mi or 'hayir',
                     'default_ucret_bilgisi': self.ucret_bilgisi or '',
