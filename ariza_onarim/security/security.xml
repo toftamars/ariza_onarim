@@ -6,7 +6,7 @@
             <field name="name">Arıza Onarım / Kullanıcı</field>
             <field name="category_id" ref="base.module_category_hidden"/>
             <field name="comment">Arıza kayıtları oluşturabilir ve görüntüleyebilir.</field>
-            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
         <!-- Arıza Onarım Yönetici Grubu -->
@@ -14,7 +14,12 @@
             <field name="name">Arıza Onarım / Yönetici</field>
             <field name="category_id" ref="base.module_category_hidden"/>
             <field name="comment">Arıza kayıtlarını yönetebilir ve onaylayabilir.</field>
-            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
+            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Tüm kullanıcılara stock izinleri ver -->
+        <record id="base.group_user" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
         </record>
 
 
