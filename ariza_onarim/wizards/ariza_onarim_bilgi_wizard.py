@@ -19,6 +19,11 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     onarim_ucreti = fields.Float(string='Onarım Ücreti')
     
+    ariza_tipi = fields.Selection([
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü')
+    ], string='Arıza Tipi', compute='_compute_ariza_tipi', store=False)
+    
     @api.depends('ariza_id')
     def _compute_ariza_tipi(self):
         for record in self:
@@ -26,11 +31,6 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 record.ariza_tipi = record.ariza_id.ariza_tipi
             else:
                 record.ariza_tipi = False
-    
-    ariza_tipi = fields.Selection([
-        ('musteri', 'Müşteri Ürünü'),
-        ('magaza', 'Mağaza Ürünü')
-    ], string='Arıza Tipi', compute='_compute_ariza_tipi', store=False)
 
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""

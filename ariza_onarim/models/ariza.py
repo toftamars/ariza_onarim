@@ -154,7 +154,9 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
-    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', tracking=True)
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', 
+        domain="[('name', 'ilike', 'Perakende')]", 
+        attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')], 'required': [('ariza_tipi', '=', 'musteri')]}")
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
     teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
@@ -1060,7 +1062,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 
                 # Tamamla işlemi sonrası SMS gönder
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
-                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. B021"
                     record._send_sms_to_customer(message)
                     record.sms_gonderildi = True
                 
