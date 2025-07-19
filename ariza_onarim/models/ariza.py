@@ -837,23 +837,28 @@ class ArizaKayit(models.Model):
 
         picking = self.env['stock.picking'].create(picking_vals)
         
-        # Ürün hareketi ekle
-        move_vals = {
-            'name': self.urun or self.magaza_urun_id.name,
-            'product_id': self.magaza_urun_id.id,
-            'product_uom_qty': 1,
-            'product_uom': self.magaza_urun_id.uom_id.id,
-            'picking_id': picking.id,
-            'location_id': kaynak.id,
-            'location_dest_id': hedef.id,
-            'company_id': self.env.company.id,
-        }
-        
-        # Analitik hesap varsa ekle
-        if self.analitik_hesap_id:
-            move_vals['analytic_account_id'] = self.analitik_hesap_id.id
+        # Ürün hareketi ekle - try-except ile hata yakalama
+        try:
+            move_vals = {
+                'name': self.urun or self.magaza_urun_id.name,
+                'product_id': self.magaza_urun_id.id,
+                'product_uom_qty': 1,
+                'product_uom': self.magaza_urun_id.uom_id.id,
+                'picking_id': picking.id,
+                'location_id': kaynak.id,
+                'location_dest_id': hedef.id,
+                'company_id': self.env.company.id,
+            }
             
-        self.env['stock.move'].create(move_vals)
+            # Analitik hesap varsa ekle
+            if self.analitik_hesap_id:
+                move_vals['analytic_account_id'] = self.analitik_hesap_id.id
+                
+            self.env['stock.move'].create(move_vals)
+        except Exception as e:
+            # Eğer stock.move oluşturma hatası alırsa, picking'i sil ve hata ver
+            picking.unlink()
+            raise UserError(_(f"Transfer oluşturulamadı: {str(e)}"))
 
         # Chatter'a mesaj ekle
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
