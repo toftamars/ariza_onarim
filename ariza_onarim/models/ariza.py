@@ -848,6 +848,7 @@ class ArizaKayit(models.Model):
                 'location_id': kaynak.id,
                 'location_dest_id': hedef.id,
                 'company_id': self.env.company.id,
+                'quantity_done': 1,
             }
             
             # Analitik hesap varsa ekle
