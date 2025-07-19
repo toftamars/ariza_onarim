@@ -8,3 +8,9 @@ access_stock_picking_user,stock.picking.user,stock.model_stock_picking,ariza_ona
 access_stock_picking_manager,stock.picking.manager,stock.model_stock_picking,ariza_onarim.group_ariza_manager,1,1,1,1
 access_stock_move_user,stock.move.user,stock.model_stock_move,ariza_onarim.group_ariza_user,1,1,1,0
 access_stock_move_manager,stock.move.manager,stock.model_stock_move,ariza_onarim.group_ariza_manager,1,1,1,1
+access_stock_picking_type_user,stock.picking.type.user,stock.model_stock_picking_type,ariza_onarim.group_ariza_user,1,0,0,0
+access_stock_picking_type_manager,stock.picking.type.manager,stock.model_stock_picking_type,ariza_onarim.group_ariza_manager,1,1,1,1
+access_stock_location_user,stock.location.user,stock.model_stock_location,ariza_onarim.group_ariza_user,1,0,0,0
+access_stock_location_manager,stock.location.manager,stock.model_stock_location,ariza_onarim.group_ariza_manager,1,1,1,1
+access_stock_warehouse_user,stock.warehouse.user,stock.model_stock_warehouse,ariza_onarim.group_ariza_user,1,0,0,0
+access_stock_warehouse_manager,stock.warehouse.manager,stock.model_stock_warehouse,ariza_onarim.group_ariza_manager,1,1,1,1
