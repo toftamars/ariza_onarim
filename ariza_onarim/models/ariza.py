@@ -955,8 +955,9 @@ class ArizaKayit(models.Model):
         return False
 
     def action_personel_onayla(self):
-        """Personel onaylama işlemi"""
+        """Personel onaylama işlemi - Hem ilk transfer hem de 2. transfer için çalışır"""
         for record in self:
+            # İlk transfer için (draft durumundan)
             if record.state == 'draft':
                 record.state = 'personel_onay'
                 
@@ -1018,46 +1019,9 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     'body_html': body,
                     'email_to': mail_to,
                 }).send()
-
-    def action_teknik_onarim_baslat(self):
-        """Teknik ekip onarım başlatma işlemi"""
-        for record in self:
-            if record.state == 'personel_onay':
-                record.state = 'teknik_onarim'
-                # Teknik onarım başlatma bildirimi
-                record.message_post(
-                    body=f"Teknik onarım süreci başlatıldı. Sorumlu: {record.sorumlu_id.name}",
-                    subject="Teknik Onarım Başlatıldı"
-                )
-
-    def action_onayla(self):
-        """Final onaylama işlemi - Sadece teknik_onarim durumundan çalışır"""
-        for record in self:
-            if record.state != 'teknik_onarim':
-                raise UserError('Sadece teknik onarım aşamasındaki kayıtlar onaylanabilir!')
             
-            # Yönetici onarımı bitirdiğinde onarım bilgilerini doldurabilmesi için wizard aç
-            return {
-                'name': 'Onarım Bilgilerini Doldur',
-                'type': 'ir.actions.act_window',
-                'res_model': 'ariza.onarim.bilgi.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name if self.partner_id else '',
-                    'default_urun': self.urun,
-                    'default_onarim_bilgisi': self.onarim_bilgisi or '',
-                    'default_garanti_kapsaminda_mi': self.garanti_kapsaminda_mi or 'hayir',
-                    'default_ucret_bilgisi': self.ucret_bilgisi or '',
-                    'default_onarim_ucreti': self.onarim_ucreti or 0.0,
-                }
-            }
-    
-    def action_tamamla_onayla(self):
-        """Tamamla işlemi - 2. transfer oluşturur, kaynak ve hedef yer değiştirir"""
-        for record in self:
-            if record.state == 'onaylandi':
+            # 2. transfer için (onaylandi durumundan)
+            elif record.state == 'onaylandi':
                 # 2. transfer oluştur - İlk transferin kaynak ve hedefini yer değiştir
                 if record.transfer_id:
                     # İlk transferin kaynak ve hedef konumlarını al
@@ -1065,8 +1029,6 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     ilk_hedef = record.transfer_id.location_dest_id
                     
                     # 2. transfer: Kaynak ve hedef yer değiştirir
-                    # Kaynak: İlk transferin hedefi (teknik servis)
-                    # Hedef: İlk transferin kaynağı (mağaza)
                     picking = record._create_stock_transfer(
                         kaynak_konum=ilk_hedef,  # İlk transferin hedefi (teknik servis)
                         hedef_konum=ilk_kaynak,  # İlk transferin kaynağı (mağaza)
@@ -1114,6 +1076,43 @@ Arıza Kaydı Tamamlandı.<br/>
                     'body_html': body,
                     'email_to': mail_to,
                 }).send()
+
+    def action_teknik_onarim_baslat(self):
+        """Teknik ekip onarım başlatma işlemi"""
+        for record in self:
+            if record.state == 'personel_onay':
+                record.state = 'teknik_onarim'
+                # Teknik onarım başlatma bildirimi
+                record.message_post(
+                    body=f"Teknik onarım süreci başlatıldı. Sorumlu: {record.sorumlu_id.name}",
+                    subject="Teknik Onarım Başlatıldı"
+                )
+
+    def action_onayla(self):
+        """Final onaylama işlemi - Sadece teknik_onarim durumundan çalışır"""
+        for record in self:
+            if record.state != 'teknik_onarim':
+                raise UserError('Sadece teknik onarım aşamasındaki kayıtlar onaylanabilir!')
+            
+            # Yönetici onarımı bitirdiğinde onarım bilgilerini doldurabilmesi için wizard aç
+            return {
+                'name': 'Onarım Bilgilerini Doldur',
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.onarim.bilgi.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_ariza_id': self.id,
+                    'default_musteri_adi': self.partner_id.name if self.partner_id else '',
+                    'default_urun': self.urun,
+                    'default_onarim_bilgisi': self.onarim_bilgisi or '',
+                    'default_garanti_kapsaminda_mi': self.garanti_kapsaminda_mi or 'hayir',
+                    'default_ucret_bilgisi': self.ucret_bilgisi or '',
+                    'default_onarim_ucreti': self.onarim_ucreti or 0.0,
+                }
+            }
+    
+
 
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:

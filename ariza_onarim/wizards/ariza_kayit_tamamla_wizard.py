@@ -71,8 +71,15 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                         
                         ariza._send_email_to_customer(subject, body)
                 
-                # Sadece wizard'ı kapat, hiçbir yönlendirme yapma
-                return {'type': 'ir.actions.act_window_close'}
+                # 2. transfer oluşturulduğunda transfer'e yönlendir (ilk transferdeki gibi)
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Transfer Belgesi',
+                    'res_model': 'stock.picking',
+                    'res_id': yeni_transfer.id,
+                    'view_mode': 'form',
+                    'target': 'current',
+                }
             else:
                 raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
         
