@@ -154,9 +154,7 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
-    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası', 
-        domain="[('name', 'ilike', 'Perakende')]", 
-        attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')], 'required': [('ariza_tipi', '=', 'musteri')]}")
+    teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
     teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
