@@ -17,11 +17,11 @@
             <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
         </record>
 
-        <!-- Stock Picking için Özel İzinler -->
-        <record id="stock_picking_rule_user" model="ir.rule">
-            <field name="name">Stock Picking - Kullanıcı Erişimi</field>
+        <!-- Stock Picking için Özel İzinler - Sadece Arıza Onarım Modülü -->
+        <record id="stock_picking_rule_ariza_user" model="ir.rule">
+            <field name="name">Stock Picking - Arıza Onarım Kullanıcı Erişimi</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">[('origin', 'ilike', 'ARZ/')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -29,10 +29,10 @@
             <field name="perm_unlink" eval="False"/>
         </record>
 
-        <record id="stock_picking_rule_manager" model="ir.rule">
-            <field name="name">Stock Picking - Yönetici Erişimi</field>
+        <record id="stock_picking_rule_ariza_manager" model="ir.rule">
+            <field name="name">Stock Picking - Arıza Onarım Yönetici Erişimi</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">[('origin', 'ilike', 'ARZ/')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -40,11 +40,11 @@
             <field name="perm_unlink" eval="True"/>
         </record>
 
-        <!-- Stock Move için Özel İzinler -->
-        <record id="stock_move_rule_user" model="ir.rule">
-            <field name="name">Stock Move - Kullanıcı Erişimi</field>
+        <!-- Stock Move için Özel İzinler - Sadece Arıza Onarım Modülü -->
+        <record id="stock_move_rule_ariza_user" model="ir.rule">
+            <field name="name">Stock Move - Arıza Onarım Kullanıcı Erişimi</field>
             <field name="model_id" ref="stock.model_stock_move"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">[('picking_id.origin', 'ilike', 'ARZ/')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
@@ -52,10 +52,10 @@
             <field name="perm_unlink" eval="False"/>
         </record>
 
-        <record id="stock_move_rule_manager" model="ir.rule">
-            <field name="name">Stock Move - Yönetici Erişimi</field>
+        <record id="stock_move_rule_ariza_manager" model="ir.rule">
+            <field name="name">Stock Move - Arıza Onarım Yönetici Erişimi</field>
             <field name="model_id" ref="stock.model_stock_move"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">[('picking_id.origin', 'ilike', 'ARZ/')]</field>
             <field name="groups" eval="[(4, ref('group_ariza_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
