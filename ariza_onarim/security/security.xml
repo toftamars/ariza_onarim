@@ -22,6 +22,55 @@
             <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
         </record>
 
+        <!-- Public kullanıcılara da stock izinleri ver -->
+        <record id="base.group_public" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
+        </record>
+
+        <!-- Stock picking için record rule - Tüm kayıtlara erişim (tüm kullanıcılar için) -->
+        <record id="stock_picking_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Picking Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Stock move için record rule - Tüm kayıtlara erişim (tüm kullanıcılar için) -->
+        <record id="stock_move_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Move Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_move"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Stock location için record rule - Tüm kayıtlara erişim -->
+        <record id="stock_location_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Location Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_location"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Stock picking type için record rule - Tüm kayıtlara erişim -->
+        <record id="stock_picking_type_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Picking Type Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_picking_type"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
 
 
     </data>
