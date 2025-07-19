@@ -4,7 +4,3 @@ access_ariza_kayit_manager,ariza.kayit.manager,model_ariza_kayit,ariza_onarim.gr
 access_ariza_kayit_tamamla_wizard_user,ariza.kayit.tamamla.wizard.user,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_user,1,1,1,0
 access_ariza_kayit_tamamla_wizard_manager,ariza.kayit.tamamla.wizard.manager,model_ariza_kayit_tamamla_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ariza_onarim_bilgi_wizard_manager,ariza.onarim.bilgi.wizard.manager,model_ariza_onarim_bilgi_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
-access_stock_picking_user,stock.picking.user,stock.model_stock_picking,ariza_onarim.group_ariza_user,1,1,0,0
-access_stock_picking_manager,stock.picking.manager,stock.model_stock_picking,ariza_onarim.group_ariza_manager,1,1,1,1
-access_stock_picking_base_user,stock.picking.base.user,stock.model_stock_picking,base.group_user,1,1,0,0
-access_stock_picking_public,stock.picking.public,stock.model_stock_picking,base.group_public,1,1,0,0
