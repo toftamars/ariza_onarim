@@ -1168,15 +1168,15 @@ Arıza Kaydı Personel Onaylandı.<br/>
             mevcut_kaynak = self.transfer_id.location_id
             mevcut_hedef = self.transfer_id.location_dest_id
             
-            # 2. transfer: Teknik servisten mağazaya geri dönüş
-            yeni_transfer = self._create_stock_transfer(
+            # 2. transfer: Teknik servisten mağazaya geri dönüş (ilk transferdeki gibi)
+            picking = self._create_stock_transfer(
                 kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
                 hedef_konum=mevcut_kaynak,  # Mağaza (1. transferin kaynağı)
                 transfer_tipi='ikinci'      # 2. transfer olduğunu belirt
             )
             
-            if yeni_transfer:
-                # 2. transfer oluşturuldu
+            if picking:
+                # 2. transfer oluşturuldu (ilk transferdeki gibi)
                 # Arıza kaydını güncelle
                 self.write({
                     'transfer_sayisi': self.transfer_sayisi + 1,
@@ -1228,7 +1228,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     'type': 'ir.actions.act_window',
                     'name': 'Transfer Belgesi',
                     'res_model': 'stock.picking',
-                    'res_id': yeni_transfer.id,
+                    'res_id': picking.id,
                     'view_mode': 'form',
                     'target': 'current',
                 }
