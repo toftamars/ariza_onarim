@@ -1055,85 +1055,67 @@ Arıza Kaydı Personel Onaylandı.<br/>
             }
     
     def action_tamamla_onayla(self):
-        """2. transfer oluşturma işlemi - Onayla butonundaki yapıyı kullanır"""
+        """Tamamla işlemi - action_personel_onayla'nın birebir kopyası"""
         for record in self:
-            if record.state != 'onaylandi':
-                raise UserError(_('Bu işlemi yapabilmek için önce yöneticinin "Onarımı Tamamla" işlemini yapması gerekiyor!'))
-            
-            # İlk transfer doğrulandıktan sonra 2. transfer oluştur
-            if record.transfer_id:
-                # 2. transfer oluştur - İlk transferin tam tersi
-                mevcut_kaynak = record.transfer_id.location_id
-                mevcut_hedef = record.transfer_id.location_dest_id
+            if record.state == 'onaylandi':
+                # 2. transfer oluştur (mağaza ürünleri için)
+                if record.ariza_tipi == 'magaza' and record.transfer_id:
+                    # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
+                    if record.teknik_servis == 'TEDARİKÇİ':
+                        if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
+                            raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
+                        picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ikinci')
+                        if picking:
+                            record.transfer_sayisi = record.transfer_sayisi + 1
+                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            return {
+                                'type': 'ir.actions.act_window',
+                                'name': 'Transfer Belgesi',
+                                'res_model': 'stock.picking',
+                                'res_id': picking.id,
+                                'view_mode': 'form',
+                                'target': 'current',
+                            }
+                    # Diğer teknik servisler için normal transfer oluştur
+                    elif record.teknik_servis != 'MAĞAZA':
+                        picking = record._create_stock_transfer(transfer_tipi='ikinci')
+                        if picking:
+                            record.transfer_sayisi = record.transfer_sayisi + 1
+                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            return {
+                                'type': 'ir.actions.act_window',
+                                'name': 'Transfer Belgesi',
+                                'res_model': 'stock.picking',
+                                'res_id': picking.id,
+                                'view_mode': 'form',
+                                'target': 'current',
+                            }
                 
-                # 2. transfer: Teknik servisten mağazaya geri dönüş (ilk transferdeki gibi)
-                picking = record._create_stock_transfer(
-                    kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
-                    hedef_konum=mevcut_kaynak,  # Mağaza (1. transferin kaynağı)
-                    transfer_tipi='ikinci'      # 2. transfer olduğunu belirt
-                )
+                # Tamamla işlemi sonrası SMS gönder
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                    record._send_sms_to_customer(message)
+                    record.sms_gonderildi = True
                 
-                if picking:
-                    # 2. transfer oluşturuldu (ilk transferdeki gibi)
-                    # Arıza kaydını güncelle
-                    record.write({
-                        'transfer_sayisi': record.transfer_sayisi + 1,
-                    })
-                    
-                    # SMS ve Email gönderimi
-                    if record.partner_id and (record.ariza_tipi == 'musteri' or record.ariza_tipi == 'magaza'):
-                        if record.partner_id.phone:
-                            # SMS gönderimi
-                            if record.ariza_tipi == 'musteri':
-                                sms_mesaji = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
-                            else: # record.ariza_tipi == 'magaza'
-                                sms_mesaji = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmiştir. B021"
-                            
-                            record._send_sms_to_customer(sms_mesaji)
-                        
-                        if record.partner_id.email:
-                            # Email gönderimi
-                            if record.ariza_tipi == 'musteri':
-                                subject = f"Ürününüz Teslim Edilmeye Hazır: {record.name}"
-                                body = f"""
-                                Sayın {record.partner_id.name},
-                                
-                                {record.urun} ürününüz teslim edilmeye hazırdır. 
-                                Ürününüzü mağazamızdan teslim alabilirsiniz.
-                                
-                                Arıza No: {record.name}
-                                
-                                Saygılarımızla,
-                                B021
-                                """
-                            else: # record.ariza_tipi == 'magaza'
-                                subject = f"Ürününüz Teslim Edildi: {record.name}"
-                                body = f"""
-                                Sayın {record.partner_id.name},
-                                
-                                {record.urun} ürününüz teslim edilmiştir.
-                                
-                                Arıza No: {record.name}
-                                
-                                Saygılarımızla,
-                                B021
-                                """
-                            
-                            record._send_email_to_customer(subject, body)
-                    
-                    # 2. transfer oluşturulduğunda transfer'e yönlendir (ilk transferdeki gibi)
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'name': 'Transfer Belgesi',
-                        'res_model': 'stock.picking',
-                        'res_id': picking.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
-                else:
-                    raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-            else:
-                raise UserError(_('Transfer bulunamadı! Lütfen önce transfer oluşturun.'))
+                # Tamamla işleminde e-posta gönder
+                mail_to = 'alper.tofta@zuhalmuzik.com'
+                subject = f"Arıza Kaydı Tamamlandı: {record.name}"
+                body = f"""
+Arıza Kaydı Tamamlandı.<br/>
+<b>Arıza No:</b> {record.name}<br/>
+<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
+<b>Ürün:</b> {record.urun}<br/>
+<b>Model:</b> {record.model}<br/>
+<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
+<b>Tarih:</b> {record.tarih or '-'}<br/>
+<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
+<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
+"""
+                record.env['mail.mail'].create({
+                    'subject': subject,
+                    'body_html': body,
+                    'email_to': mail_to,
+                }).send()
 
     def action_print(self):
         if self.transfer_metodu in ['ucretsiz_kargo', 'ucretli_kargo'] and self.transfer_id:
