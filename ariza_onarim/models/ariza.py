@@ -969,28 +969,32 @@ class ArizaKayit(models.Model):
                         picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
                         if picking:
                             record.transfer_id = picking.id
-                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            # Transfer oluşturuldu, yönlendirme yapma
                             return {
-                                'type': 'ir.actions.act_window',
-                                'name': 'Transfer Belgesi',
-                                'res_model': 'stock.picking',
-                                'res_id': picking.id,
-                                'view_mode': 'form',
-                                'target': 'current',
+                                'type': 'ir.actions.client',
+                                'tag': 'display_notification',
+                                'params': {
+                                    'title': 'Başarılı',
+                                    'message': 'Transfer oluşturuldu.',
+                                    'type': 'success',
+                                    'sticky': False,
+                                }
                             }
                     # Diğer teknik servisler için normal transfer oluştur
                     elif record.teknik_servis != 'MAĞAZA':
                         picking = record._create_stock_transfer(transfer_tipi='ilk')
                         if picking:
                             record.transfer_id = picking.id
-                            # Transfer oluşturulduğunda transfer'e yönlendir
+                            # Transfer oluşturuldu, yönlendirme yapma
                             return {
-                                'type': 'ir.actions.act_window',
-                                'name': 'Transfer Belgesi',
-                                'res_model': 'stock.picking',
-                                'res_id': picking.id,
-                                'view_mode': 'form',
-                                'target': 'current',
+                                'type': 'ir.actions.client',
+                                'tag': 'display_notification',
+                                'params': {
+                                    'title': 'Başarılı',
+                                    'message': 'Transfer oluşturuldu.',
+                                    'type': 'success',
+                                    'sticky': False,
+                                }
                             }
                 
                 # Personel onayı sonrası SMS gönder
