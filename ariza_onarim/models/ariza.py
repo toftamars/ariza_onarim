@@ -1055,41 +1055,39 @@ Arıza Kaydı Personel Onaylandı.<br/>
             }
     
     def action_tamamla_onayla(self):
-        """Tamamla işlemi - action_personel_onayla'nın birebir kopyası"""
+        """Tamamla işlemi - 2. transfer oluşturur, kaynak ve hedef yer değiştirir"""
         for record in self:
             if record.state == 'onaylandi':
-                # 2. transfer oluştur (mağaza ürünleri için)
-                if record.ariza_tipi == 'magaza' and record.transfer_id:
-                    # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
-                    if record.teknik_servis == 'TEDARİKÇİ':
-                        if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
-                            raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-                        picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ikinci')
-                        if picking:
-                            record.transfer_sayisi = record.transfer_sayisi + 1
-                            # Transfer oluşturulduğunda transfer'e yönlendir
-                            return {
-                                'type': 'ir.actions.act_window',
-                                'name': 'Transfer Belgesi',
-                                'res_model': 'stock.picking',
-                                'res_id': picking.id,
-                                'view_mode': 'form',
-                                'target': 'current',
-                            }
-                    # Diğer teknik servisler için normal transfer oluştur
-                    elif record.teknik_servis != 'MAĞAZA':
-                        picking = record._create_stock_transfer(transfer_tipi='ikinci')
-                        if picking:
-                            record.transfer_sayisi = record.transfer_sayisi + 1
-                            # Transfer oluşturulduğunda transfer'e yönlendir
-                            return {
-                                'type': 'ir.actions.act_window',
-                                'name': 'Transfer Belgesi',
-                                'res_model': 'stock.picking',
-                                'res_id': picking.id,
-                                'view_mode': 'form',
-                                'target': 'current',
-                            }
+                # 2. transfer oluştur - İlk transferin kaynak ve hedefini yer değiştir
+                if record.transfer_id:
+                    # İlk transferin kaynak ve hedef konumlarını al
+                    ilk_kaynak = record.transfer_id.location_id
+                    ilk_hedef = record.transfer_id.location_dest_id
+                    
+                    # 2. transfer: Kaynak ve hedef yer değiştirir
+                    # Kaynak: İlk transferin hedefi (teknik servis)
+                    # Hedef: İlk transferin kaynağı (mağaza)
+                    picking = record._create_stock_transfer(
+                        kaynak_konum=ilk_hedef,  # İlk transferin hedefi (teknik servis)
+                        hedef_konum=ilk_kaynak,  # İlk transferin kaynağı (mağaza)
+                        transfer_tipi='ikinci'
+                    )
+                    
+                    if picking:
+                        record.transfer_sayisi = record.transfer_sayisi + 1
+                        # Transfer oluşturulduğunda transfer'e yönlendir
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'name': 'Transfer Belgesi',
+                            'res_model': 'stock.picking',
+                            'res_id': picking.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
+                    else:
+                        raise UserError(_("2. transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+                else:
+                    raise UserError(_('İlk transfer bulunamadı! Lütfen önce ilk transferi oluşturun.'))
                 
                 # Tamamla işlemi sonrası SMS gönder
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
