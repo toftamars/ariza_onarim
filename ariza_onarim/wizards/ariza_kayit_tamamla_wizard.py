@@ -11,47 +11,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
     def action_tamamla(self):
         ariza = self.ariza_id
         
-        # SMS ve Email gönderimi
-        if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
-            if ariza.partner_id.phone:
-                # SMS gönderimi
-                if ariza.ariza_tipi == 'musteri':
-                    sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
-                else: # ariza.ariza_tipi == 'magaza'
-                    sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
-                
-                ariza._send_sms_to_customer(sms_mesaji)
-            
-            if ariza.partner_id.email:
-                # Email gönderimi
-                if ariza.ariza_tipi == 'musteri':
-                    subject = f"Ürününüz Teslim Edilmeye Hazır: {ariza.name}"
-                    body = f"""
-                    Sayın {ariza.partner_id.name},
-                    
-                    {ariza.urun} ürününüz teslim edilmeye hazırdır. 
-                    Ürününüzü mağazamızdan teslim alabilirsiniz.
-                    
-                    Arıza No: {ariza.name}
-                    
-                    Saygılarımızla,
-                    B021
-                    """
-                else: # ariza.ariza_tipi == 'magaza'
-                    subject = f"Ürününüz Teslim Edildi: {ariza.name}"
-                    body = f"""
-                    Sayın {ariza.partner_id.name},
-                    
-                    {ariza.urun} ürününüz teslim edilmiştir.
-                    
-                    Arıza No: {ariza.name}
-                    
-                    Saygılarımızla,
-                    B021
-                    """
-                
-                ariza._send_email_to_customer(subject, body)
-        
         # 2. transfer oluştur - İlk transferin tam tersi
         if ariza.transfer_id:
             mevcut_kaynak = ariza.transfer_id.location_id
@@ -66,10 +25,51 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             
             if yeni_transfer:
                 # 2. transfer oluşturuldu
-                # Arıza kaydını güncelle - transfer bilgisini kaydet
+                # Arıza kaydını güncelle
                 ariza.write({
                     'transfer_sayisi': ariza.transfer_sayisi + 1,
                 })
+                
+                # SMS ve Email gönderimi
+                if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
+                    if ariza.partner_id.phone:
+                        # SMS gönderimi
+                        if ariza.ariza_tipi == 'musteri':
+                            sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                        else: # ariza.ariza_tipi == 'magaza'
+                            sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
+                        
+                        ariza._send_sms_to_customer(sms_mesaji)
+                    
+                    if ariza.partner_id.email:
+                        # Email gönderimi
+                        if ariza.ariza_tipi == 'musteri':
+                            subject = f"Ürününüz Teslim Edilmeye Hazır: {ariza.name}"
+                            body = f"""
+                            Sayın {ariza.partner_id.name},
+                            
+                            {ariza.urun} ürününüz teslim edilmeye hazırdır. 
+                            Ürününüzü mağazamızdan teslim alabilirsiniz.
+                            
+                            Arıza No: {ariza.name}
+                            
+                            Saygılarımızla,
+                            B021
+                            """
+                        else: # ariza.ariza_tipi == 'magaza'
+                            subject = f"Ürününüz Teslim Edildi: {ariza.name}"
+                            body = f"""
+                            Sayın {ariza.partner_id.name},
+                            
+                            {ariza.urun} ürününüz teslim edilmiştir.
+                            
+                            Arıza No: {ariza.name}
+                            
+                            Saygılarımızla,
+                            B021
+                            """
+                        
+                        ariza._send_email_to_customer(subject, body)
                 
                 # Sadece wizard'ı kapat, hiçbir yönlendirme yapma
                 return {'type': 'ir.actions.act_window_close'}

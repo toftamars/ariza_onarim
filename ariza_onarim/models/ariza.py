@@ -1164,78 +1164,23 @@ Arıza Kaydı Personel Onaylandı.<br/>
         
         # İlk transfer doğrulandıktan sonra tamamla butonu olsun
         if self.transfer_id:
-            # 2. transfer oluştur - İlk transferin tam tersi
-            mevcut_kaynak = self.transfer_id.location_id
-            mevcut_hedef = self.transfer_id.location_dest_id
-            
-            # 2. transfer: Teknik servisten mağazaya geri dönüş
-            yeni_transfer = self._create_stock_transfer(
-                kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
-                hedef_konum=mevcut_kaynak,  # Mağaza (1. transferin kaynağı)
-                transfer_tipi='ikinci'      # 2. transfer olduğunu belirt
-            )
-            
-            if yeni_transfer:
-                # 2. transfer oluşturuldu
-                # Arıza kaydını güncelle
-                self.write({
-                    'transfer_sayisi': self.transfer_sayisi + 1,
-                })
-                
-                # SMS ve Email gönderimi
-                if self.partner_id and (self.ariza_tipi == 'musteri' or self.ariza_tipi == 'magaza'):
-                    if self.partner_id.phone:
-                        # SMS gönderimi
-                        if self.ariza_tipi == 'musteri':
-                            sms_mesaji = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
-                        else: # self.ariza_tipi == 'magaza'
-                            sms_mesaji = f"Sayın {self.partner_id.name}., {self.urun} ürününüz teslim edilmiştir. B021"
-                        
-                        self._send_sms_to_customer(sms_mesaji)
-                    
-                    if self.partner_id.email:
-                        # Email gönderimi
-                        if self.ariza_tipi == 'musteri':
-                            subject = f"Ürününüz Teslim Edilmeye Hazır: {self.name}"
-                            body = f"""
-                            Sayın {self.partner_id.name},
-                            
-                            {self.urun} ürününüz teslim edilmeye hazırdır. 
-                            Ürününüzü mağazamızdan teslim alabilirsiniz.
-                            
-                            Arıza No: {self.name}
-                            
-                            Saygılarımızla,
-                            B021
-                            """
-                        else: # self.ariza_tipi == 'magaza'
-                            subject = f"Ürününüz Teslim Edildi: {self.name}"
-                            body = f"""
-                            Sayın {self.partner_id.name},
-                            
-                            {self.urun} ürününüz teslim edilmiştir.
-                            
-                            Arıza No: {self.name}
-                            
-                            Saygılarımızla,
-                            B021
-                            """
-                        
-                        self._send_email_to_customer(subject, body)
-                
-                # Başarı mesajı
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'Başarılı',
-                        'message': '2. transfer oluşturuldu ve SMS/Email gönderildi.',
-                        'type': 'success',
-                        'sticky': False,
-                    }
-                }
+            # SMS mesajını ürün tipine göre ayarla
+            if self.ariza_tipi == 'musteri':
+                onay_mesaji = 'Ürünün onarım süreci tamamlanmıştır. Müşteriye teslim alındı SMS\'i gönderilecektir. Emin misiniz?'
             else:
-                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+                onay_mesaji = 'Ürünün onarım süreci tamamlanmıştır. Müşteriye teslim edildi SMS\'i gönderilecektir. Emin misiniz?'
+            
+            return {
+                'name': 'Onarım Tamamlandı',
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.kayit.tamamla.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_ariza_id': self.id,
+                    'default_onay_mesaji': onay_mesaji
+                }
+            }
         else:
             raise UserError(_('Transfer bulunamadı! Lütfen önce transfer oluşturun.'))
 
