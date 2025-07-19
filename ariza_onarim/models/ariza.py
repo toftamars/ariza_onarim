@@ -1004,8 +1004,8 @@ class ArizaKayit(models.Model):
                                 'target': 'current',
                             }
                 
-                # Personel onayı sonrası SMS gönder
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                # Personel onayı sonrası SMS gönder (sadece mağaza ürünü için)
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'magaza' and not record.sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
                     record._send_sms_to_customer(message)
                     record.sms_gonderildi = True
@@ -1058,8 +1058,8 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 else:
                     raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
                 
-                # Tamamla işlemi sonrası SMS gönder
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                # Tamamla işlemi sonrası SMS gönder (sadece mağaza ürünü için)
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'magaza' and not record.sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
                     record._send_sms_to_customer(message)
                     record.sms_gonderildi = True
@@ -1118,6 +1118,68 @@ Arıza Kaydı Tamamlandı.<br/>
                     'default_onarim_ucreti': self.onarim_ucreti or 0.0,
                 }
             }
+
+    def action_musteri_tamamla(self):
+        """Müşteri ürünü tamamlama işlemi - Sadece onaylandi durumundan çalışır"""
+        for record in self:
+            if record.state != 'onaylandi':
+                raise UserError('Sadece onaylanmış kayıtlar tamamlanabilir!')
+            
+            if record.ariza_tipi != 'musteri':
+                raise UserError('Bu işlem sadece müşteri ürünleri için geçerlidir!')
+            
+            # 2. transfer oluştur - Kaynak ve hedef konumları yer değiştir
+            if record.kaynak_konum_id and record.hedef_konum_id:
+                # 2. transfer: Kaynak ve hedef yer değiştirir
+                picking = record._create_stock_transfer(
+                    kaynak_konum=record.hedef_konum_id,  # İlk transferin hedefi (teknik servis)
+                    hedef_konum=record.kaynak_konum_id,  # İlk transferin kaynağı (mağaza)
+                    transfer_tipi='ikinci'
+                )
+                
+                if picking:
+                    record.transfer_sayisi = record.transfer_sayisi + 1
+                    record.state = 'tamamlandi'
+                    
+                    # Müşteri ürünü tamamlandığında SMS gönder
+                    if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                        message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                        record._send_sms_to_customer(message)
+                        record.sms_gonderildi = True
+                    
+                    # Müşteri ürünü tamamlandığında e-posta gönder
+                    mail_to = 'alper.tofta@zuhalmuzik.com'
+                    subject = f"Müşteri Ürünü Tamamlandı: {record.name}"
+                    body = f"""
+Müşteri Ürünü Tamamlandı.<br/>
+<b>Arıza No:</b> {record.name}<br/>
+<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
+<b>Ürün:</b> {record.urun}<br/>
+<b>Model:</b> {record.model}<br/>
+<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
+<b>Tarih:</b> {record.tarih or '-'}<br/>
+<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
+<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
+"""
+                    record.env['mail.mail'].create({
+                        'subject': subject,
+                        'body_html': body,
+                        'email_to': mail_to,
+                    }).send()
+                    
+                    # Transfer oluşturulduğunda transfer'e yönlendir
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Transfer Belgesi',
+                        'res_model': 'stock.picking',
+                        'res_id': picking.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
+                else:
+                    raise UserError(_("2. transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
+            else:
+                raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
     
 
 

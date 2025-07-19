@@ -170,7 +170,8 @@
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
-                    <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
+                    <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi'), ('ariza_tipi', '!=', 'magaza')]}" options='{"no_open": true}'/>
+                    <button name="action_musteri_tamamla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'onaylandi'), ('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true}'/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi"/>
                 </header>
                 <sheet>
