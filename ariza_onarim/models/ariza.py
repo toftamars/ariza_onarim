@@ -1130,8 +1130,12 @@ Arıza Kaydı Tamamlandı.<br/>
             record.state = 'teslim_edildi'
             
             # Teslim edildi SMS'i gönder
-            if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri':
-                message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edildi. B021"
+            if record.ariza_tipi == 'musteri' and record.partner_id and record.partner_id.phone:
+                # Mağaza adını temizle
+                magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
+                temiz_magaza_adi = record._clean_magaza_adi(magaza_adi)
+                
+                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan teslim edilmiştir. B021"
                 record._send_sms_to_customer(message)
             
             # Teslim edildi e-posta gönder
