@@ -898,19 +898,34 @@ class ArizaKayit(models.Model):
     def _send_sms_to_customer(self, message):
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != 'musteri':
+            self.message_post(body=f"SMS gönderilmedi: Arıza tipi müşteri değil ({self.ariza_tipi})")
             return
             
         if self.partner_id and self.partner_id.phone:
             try:
-                # SMS'i doğrudan gönder, kaydetme
-                self.env['sms.api']._send_sms(
-                    self.partner_id.phone,
-                    message,
-                    partner_id=self.partner_id.id
-                )
+                # SMS'i doğru yöntemle gönder
+                sms = self.env['sms.sms'].create({
+                    'number': self.partner_id.phone,
+                    'body': message,
+                    'partner_id': self.partner_id.id,
+                })
+                sms.send()
+                
+                # Başarılı SMS logu
+                self.message_post(body=f"SMS başarıyla gönderildi: {message}")
+                _logger.info(f"SMS gönderildi: {self.name} - {self.partner_id.phone}")
+                
             except Exception as e:
-                # SMS yetkisi yoksa sadece sessizce geç, hata verme
-                pass
+                # SMS hatası logu
+                error_msg = f"SMS gönderilemedi: {str(e)}"
+                self.message_post(body=error_msg)
+                _logger.error(f"SMS hatası: {self.name} - {str(e)}")
+        else:
+            # Partner veya telefon yoksa log
+            missing_info = f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}"
+            self.message_post(body=missing_info)
+            _logger.warning(f"SMS koşulları eksik: {self.name} - {missing_info}")
+            
         # SMS ile birlikte mail de gönder
         if self.partner_id and self.partner_id.email:
             subject = "Arıza Kaydınız Hakkında Bilgilendirme"
