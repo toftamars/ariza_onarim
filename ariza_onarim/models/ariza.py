@@ -270,10 +270,16 @@ class ArizaKayit(models.Model):
         
         records = super().create(vals_list)
         
-        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder
+        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder ve chatter mesajı ekle
         for record in records:
             try:
                 record._send_new_ariza_notification()
+                
+                # Chatter'a arıza tanımını içeren mesaj ekle
+                ariza_tanimi = record.ariza_tanimi or "Arıza tanımı belirtilmemiş"
+                chatter_mesaji = f"Arıza Kaydı Oluşturuldu - Arıza Tanımı: {ariza_tanimi}"
+                record.message_post(body=chatter_mesaji)
+                
             except Exception as e:
                 _logger.error(f"E-posta gönderimi başarısız: {record.name} - {str(e)}")
         
