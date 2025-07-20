@@ -133,6 +133,7 @@ class ArizaKayit(models.Model):
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
         ('hayir', 'Hayır'),
+        ('urun_degisimi', 'Ürün Değişimi'),
     ], string='Garanti Kapsamında mı?', tracking=True)
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     notlar = fields.Text(string='Notlar')
