@@ -1047,6 +1047,15 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     'body_html': body,
                     'email_to': mail_to,
                 }).send()
+                
+                # Arıza kayıtları görünümüne dön
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Arıza Kayıtları',
+                    'res_model': 'ariza.kayit',
+                    'view_mode': 'tree,form',
+                    'target': 'current',
+                }
             
             # 2. transfer için (onaylandi durumundan)
             elif record.state == 'onaylandi':
