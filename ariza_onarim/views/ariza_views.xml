@@ -518,7 +518,7 @@
                 Yönetici dashboard'u - Tüm arıza kayıtlarını kolayca yönetin
             </p>
         </field>
-        <field name="context">{'search_default_onarim_tamamlandi': 1, 'order': 'tarih desc'}</field>
+        <field name="context">{'order': 'tarih desc'}</field>
     </record>
 
     <!-- Yönetici için Özel Menu -->
