@@ -139,7 +139,8 @@ class ArizaKayit(models.Model):
     notlar = fields.Text(string='Notlar')
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
-    onarim_ucreti = fields.Float(string='Onarım Ücreti', tracking=True)
+    onarim_ucreti = fields.Float(string='Onarım Ücreti (Ham)', tracking=True)
+    onarim_ucreti_tl = fields.Char(string='Onarım Ücreti', compute='_compute_onarim_ucreti_tl', store=True)
     yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
     marka_urunleri_ids = fields.Many2many(
         'product.product',
@@ -214,6 +215,15 @@ class ArizaKayit(models.Model):
                 record.state_manager = 'onarim_tamamlandi'
             else:
                 record.state_manager = record.state
+
+    @api.depends('onarim_ucreti')
+    def _compute_onarim_ucreti_tl(self):
+        """Onarım ücretini TL formatında göster"""
+        for record in self:
+            if record.onarim_ucreti:
+                record.onarim_ucreti_tl = f"{record.onarim_ucreti:,.0f} TL"
+            else:
+                record.onarim_ucreti_tl = ""
 
     @api.depends('sorumlu_id')
     def _compute_user_permissions(self):
