@@ -57,8 +57,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         if self.ariza_tipi == 'musteri' and self.teslim_magazasi_id:
             ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
         
-        # Durumu onaylandı olarak güncelle
-        ariza.state = 'onaylandi'
+        # Durumu tamamlandı olarak güncelle
+        ariza.state = 'tamamlandi'
         
         # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi
         if ariza.partner_id and ariza.partner_id.phone:
