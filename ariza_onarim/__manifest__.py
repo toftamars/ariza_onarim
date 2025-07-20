@@ -30,6 +30,7 @@
         'data/mail_template.xml',
         'data/cron.xml',
         'security/ir.model.access.csv',
+        'views/ariza_kayit_views.xml',
         'views/ariza_views.xml',
         'views/menu_views.xml',
         'reports/report_ariza_kayit.xml',
