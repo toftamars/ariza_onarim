@@ -1012,7 +1012,6 @@ class ArizaKayit(models.Model):
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
                     record._send_sms_to_customer(message)
                     record.ilk_sms_gonderildi = True
-                    record.sms_gonderildi = True
                 
                 # Personel onayında e-posta gönder
                 mail_to = 'alper.tofta@zuhalmuzik.com'
