@@ -1274,6 +1274,94 @@ Arıza Kaydı Tamamlandı.<br/>
             return magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
         return magaza_adi
 
+    @api.model
+    def _send_ariza_kayit_email_raporu(self):
+        """Açık arıza kayıtlarını e-posta ile gönder"""
+        # Açık arıza kayıtlarını al (teslim edilmemiş olanlar)
+        acik_arizalar = self.search([
+            ('state', 'not in', ['teslim_edildi', 'iptal', 'kilitli'])
+        ])
+        
+        if not acik_arizalar:
+            return
+        
+        # E-posta içeriğini oluştur
+        from datetime import datetime
+        bugun = datetime.now().strftime("%d.%m.%Y")
+        
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                table {{ border-collapse: collapse; width: 100%; }}
+                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                th {{ background-color: #f2f2f2; }}
+                .header {{ background-color: #4CAF50; color: white; padding: 15px; text-align: center; }}
+                .summary {{ background-color: #f9f9f9; padding: 10px; margin: 10px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>Arıza Kayıtları Raporu - {bugun}</h2>
+            </div>
+            
+            <div class="summary">
+                <strong>Toplam Açık Arıza Sayısı:</strong> {len(acik_arizalar)}<br>
+                <strong>Rapor Tarihi:</strong> {bugun}
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Arıza No</th>
+                        <th>Müşteri</th>
+                        <th>Ürün</th>
+                        <th>Model</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th>Teknik Servis</th>
+                        <th>Sorumlu</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for ariza in acik_arizalar:
+            html_content += f"""
+                    <tr>
+                        <td>{ariza.name}</td>
+                        <td>{ariza.partner_id.name if ariza.partner_id else '-'}</td>
+                        <td>{ariza.urun}</td>
+                        <td>{ariza.model}</td>
+                        <td>{ariza.state}</td>
+                        <td>{ariza.tarih.strftime('%d.%m.%Y') if ariza.tarih else '-'}</td>
+                        <td>{ariza.teknik_servis or '-'}</td>
+                        <td>{ariza.sorumlu_id.name if ariza.sorumlu_id else '-'}</td>
+                    </tr>
+            """
+        
+        html_content += """
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; padding: 10px; background-color: #e7f3ff; border-left: 4px solid #2196F3;">
+                <strong>Not:</strong> Bu rapor günlük olarak otomatik olarak gönderilmektedir.
+            </div>
+        </body>
+        </html>
+        """
+        
+        # E-postayı gönder
+        mail_to = 'alper.tofta@zuhalmuzik.com'
+        subject = f"Arıza Kayıtları Raporu - {bugun}"
+        
+        self.env['mail.mail'].create({
+            'subject': subject,
+            'body_html': html_content,
+            'email_to': mail_to,
+            'auto_delete': True,
+        }).send()
+
 
 
 class StockPicking(models.Model):
