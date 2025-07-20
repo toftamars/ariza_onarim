@@ -154,6 +154,9 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
+    ilk_sms_gonderildi = fields.Boolean(string='İlk SMS Gönderildi', default=False, tracking=True)
+    ikinci_sms_gonderildi = fields.Boolean(string='İkinci SMS Gönderildi', default=False, tracking=True)
+    ucuncu_sms_gonderildi = fields.Boolean(string='Üçüncü SMS Gönderildi', default=False, tracking=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
@@ -1004,10 +1007,11 @@ class ArizaKayit(models.Model):
                                 'target': 'current',
                             }
                 
-                # Personel onayı sonrası SMS gönder
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                # Personel onayı sonrası SMS gönder (İlk SMS)
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
                     record._send_sms_to_customer(message)
+                    record.ilk_sms_gonderildi = True
                     record.sms_gonderildi = True
                 
                 # Personel onayında e-posta gönder
@@ -1058,11 +1062,11 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 else:
                     raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
                 
-                # Tamamla işlemi sonrası SMS gönder
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.sms_gonderildi:
+                # Tamamla işlemi sonrası SMS gönder (İkinci SMS)
+                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ikinci_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. B021"
                     record._send_sms_to_customer(message)
-                    record.sms_gonderildi = True
+                    record.ikinci_sms_gonderildi = True
                 
                 # Tamamla işleminde e-posta gönder
                 mail_to = 'alper.tofta@zuhalmuzik.com'
@@ -1129,14 +1133,15 @@ Arıza Kaydı Tamamlandı.<br/>
             # Durumu teslim edildi yap
             record.state = 'teslim_edildi'
             
-            # Teslim edildi SMS'i gönder
-            if record.ariza_tipi == 'musteri' and record.partner_id and record.partner_id.phone:
+            # Teslim edildi SMS'i gönder (Üçüncü SMS)
+            if record.ariza_tipi == 'musteri' and record.partner_id and record.partner_id.phone and not record.ucuncu_sms_gonderildi:
                 # Mağaza adını temizle
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi)
                 
                 message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan teslim edilmiştir. B021"
                 record._send_sms_to_customer(message)
+                record.ucuncu_sms_gonderildi = True
             
             # Teslim edildi e-posta gönder
             mail_to = 'alper.tofta@zuhalmuzik.com'

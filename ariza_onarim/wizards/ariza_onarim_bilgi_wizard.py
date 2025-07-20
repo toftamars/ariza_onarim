@@ -60,8 +60,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Durumu tamamlandı olarak güncelle
         ariza.state = 'tamamlandi'
         
-        # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi
-        if ariza.partner_id and ariza.partner_id.phone:
+        # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi (İkinci SMS)
+        if ariza.partner_id and ariza.partner_id.phone and not ariza.ikinci_sms_gonderildi:
             if ariza.ariza_tipi == 'musteri':
                 # Müşteri ürünü için onarım tamamlandı SMS'i
                 magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
@@ -72,6 +72,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
             
             ariza._send_sms_to_customer(sms_mesaji)
+            ariza.ikinci_sms_gonderildi = True
         
         # Mesaj gönder
         ariza.message_post(
