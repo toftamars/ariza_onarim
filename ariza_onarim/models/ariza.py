@@ -890,18 +890,8 @@ class ArizaKayit(models.Model):
         return picking
 
     def _send_sms_to_customer(self, message):
-        # Debug: Metod çağrıldığını logla
-        self.message_post(
-            body=f"SMS metodu çağrıldı: {message}",
-            subject="SMS Metodu Çağrıldı"
-        )
-        
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != 'musteri':
-            self.message_post(
-                body=f"SMS gönderilmedi: Arıza tipi müşteri değil ({self.ariza_tipi})",
-                subject="SMS Arıza Tipi Hatası"
-            )
             return
             
         if self.partner_id and self.partner_id.phone:
@@ -912,24 +902,9 @@ class ArizaKayit(models.Model):
                     message,
                     partner_id=self.partner_id.id
                 )
-                # Debug: SMS gönderildiğini logla
-                self.message_post(
-                    body=f"SMS başarıyla gönderildi: {message}",
-                    subject="SMS Başarılı"
-                )
             except Exception as e:
                 # SMS yetkisi yoksa sadece sessizce geç, hata verme
-                # Debug: Hata durumunu logla
-                self.message_post(
-                    body=f"SMS gönderilemedi: {str(e)}",
-                    subject="SMS Hatası"
-                )
-        else:
-            # Debug: Partner veya telefon yoksa logla
-            self.message_post(
-                body=f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}",
-                subject="SMS Koşulları Eksik"
-            )
+                pass
         # SMS ile birlikte mail de gönder
         if self.partner_id and self.partner_id.email:
             subject = "Arıza Kaydınız Hakkında Bilgilendirme"
@@ -1035,30 +1010,12 @@ class ArizaKayit(models.Model):
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
-                    # Debug: İlk SMS koşullarını logla
-                    record.message_post(
-                        body=f"İlk SMS koşulları kontrol ediliyor: islem_tipi={record.islem_tipi}, ariza_tipi={record.ariza_tipi}, ilk_sms_gonderildi={record.ilk_sms_gonderildi}",
-                        subject="İlk SMS Koşul Kontrolü"
-                    )
-                    
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
                     record._send_sms_to_customer(message)
                     # Müşteriye e-posta gönder
                     if record.partner_id and record.partner_id.email:
                         record._send_email_to_customer("Ürününüz Onarım Sürecine Alındı", message)
                     record.ilk_sms_gonderildi = True
-                    
-                    # Debug: İlk SMS tamamlandığını logla
-                    record.message_post(
-                        body=f"İlk SMS işlemi tamamlandı: ilk_sms_gonderildi={record.ilk_sms_gonderildi}",
-                        subject="İlk SMS Tamamlandı"
-                    )
-                else:
-                    # Debug: İlk SMS koşulları sağlanmadığını logla
-                    record.message_post(
-                        body=f"İlk SMS koşulları sağlanmadı: islem_tipi={record.islem_tipi}, ariza_tipi={record.ariza_tipi}, ilk_sms_gonderildi={record.ilk_sms_gonderildi}",
-                        subject="İlk SMS Koşul Hatası"
-                    )
                 
                 # Personel onayında e-posta gönder
                 mail_to = 'alper.tofta@zuhalmuzik.com'
