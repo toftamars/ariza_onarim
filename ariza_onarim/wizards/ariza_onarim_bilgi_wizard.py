@@ -8,6 +8,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
+    ariza_tipi = fields.Selection([
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü')
+    ], string='Arıza Tipi', readonly=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
@@ -16,6 +20,20 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     onarim_ucreti = fields.Float(string='Onarım Ücreti')
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if self._context.get('active_id'):
+            ariza = self.env['ariza.kayit'].browse(self._context['active_id'])
+            res.update({
+                'ariza_id': ariza.id,
+                'musteri_adi': ariza.partner_id.name if ariza.partner_id else '',
+                'urun': ariza.urun if ariza.urun else '',
+                'ariza_tipi': ariza.ariza_tipi,
+                'teslim_magazasi_id': ariza.teslim_magazasi_id.id if ariza.teslim_magazasi_id else False,
+            })
+        return res
 
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
