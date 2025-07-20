@@ -1144,51 +1144,19 @@ Arıza Kaydı Tamamlandı.<br/>
             if record.state != 'tamamlandi':
                 raise UserError('Sadece tamamlanmış kayıtlar teslim edilebilir!')
             
-            # Durumu teslim edildi yap
-            record.state = 'teslim_edildi'
-            
-            # Teslim edildi SMS'i gönder (Üçüncü SMS)
-            if record.ariza_tipi == 'musteri' and record.partner_id and record.partner_id.phone and not record.ucuncu_sms_gonderildi:
-                # Mağaza adını temizle
-                magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
-                temiz_magaza_adi = record._clean_magaza_adi(magaza_adi)
-                
-                # Tarih ve saat bilgisini al
-                from datetime import datetime
-                teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
-                
-                # Teslim edilen kişi bilgisini al
-                teslim_edilen_kisi = record.teslim_alan if record.teslim_alan else "müşteriye"
-                
-                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde {teslim_edilen_kisi} teslim edilmiştir. B021"
-                record._send_sms_to_customer(message)
-                record.ucuncu_sms_gonderildi = True
-            
-            # Teslim edildi e-posta gönder
-            mail_to = 'alper.tofta@zuhalmuzik.com'
-            subject = f"Ürün Teslim Edildi: {record.name}"
-            body = f"""
-Ürün Teslim Edildi.<br/>
-<b>Arıza No:</b> {record.name}<br/>
-<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
-<b>Ürün:</b> {record.urun}<br/>
-<b>Model:</b> {record.model}<br/>
-<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
-<b>Tarih:</b> {record.tarih or '-'}<br/>
-<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
-<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
-"""
-            record.env['mail.mail'].create({
-                'subject': subject,
-                'body_html': body,
-                'email_to': mail_to,
-            }).send()
-            
-            # Chatter'a mesaj ekle
-            record.message_post(
-                body=f"Ürün teslim edildi. SMS gönderildi.",
-                subject="Ürün Teslim Edildi"
-            )
+            # Teslim bilgilerini girmek için wizard aç
+            return {
+                'name': 'Teslim Alan Bilgisi',
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.teslim.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_ariza_id': self.id,
+                    'default_musteri_adi': self.partner_id.name if self.partner_id else '',
+                    'default_urun': self.urun,
+                }
+            }
 
 
     

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ariza_teslim_wizard_form" model="ir.ui.view">
+        <field name="name">ariza.teslim.wizard.form</field>
+        <field name="model">ariza.teslim.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Teslim Alan Bilgisi">
+                <group>
+                    <group>
+                        <field name="musteri_adi" readonly="1"/>
+                        <field name="urun" readonly="1"/>
+                    </group>
+                </group>
+                <group>
+                    <group>
+                        <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
+                        <field name="teslim_alan_tc" placeholder="Teslim alan kişinin TC kimlik numarası"/>
+                        <field name="teslim_alan_telefon" placeholder="Teslim alan kişinin telefon numarası"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="teslim_notu" placeholder="Teslim ile ilgili notlar"/>
+                </group>
+                <footer>
+                    <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary"/>
+                    <button string="İptal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ariza_teslim_wizard" model="ir.actions.act_window">
+        <field name="name">Teslim Alan Bilgisi</field>
+        <field name="res_model">ariza.teslim.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_ariza_kayit"/>
+    </record>
+</odoo> 

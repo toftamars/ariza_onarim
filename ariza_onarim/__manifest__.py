@@ -34,6 +34,7 @@
         'reports/report_ariza_kayit.xml',
         'wizards/ariza_kayit_tamamla_wizard_views.xml',
         'wizards/ariza_onarim_bilgi_wizard_views.xml',
+        'wizards/ariza_teslim_wizard_views.xml',
     ],
     'icon': 'static/description/icon.png',
     'demo': [],
