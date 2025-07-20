@@ -1142,7 +1142,10 @@ Arıza Kaydı Tamamlandı.<br/>
                 from datetime import datetime
                 teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
                 
-                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde teslim edilmiştir. B021"
+                # Teslim edilen kişi bilgisini al
+                teslim_edilen_kisi = record.teslim_alan if record.teslim_alan else "müşteriye"
+                
+                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde {teslim_edilen_kisi} teslim edilmiştir. B021"
                 record._send_sms_to_customer(message)
                 record.ucuncu_sms_gonderildi = True
             
