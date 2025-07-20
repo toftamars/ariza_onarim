@@ -1138,7 +1138,11 @@ Arıza Kaydı Tamamlandı.<br/>
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi)
                 
-                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan teslim edilmiştir. B021"
+                # Tarih ve saat bilgisini al
+                from datetime import datetime
+                teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
+                
+                message = f"Sayın {record.partner_id.name}. {record.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde teslim edilmiştir. B021"
                 record._send_sms_to_customer(message)
                 record.ucuncu_sms_gonderildi = True
             
