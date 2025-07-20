@@ -901,9 +901,24 @@ class ArizaKayit(models.Model):
                     'state': 'outgoing',
                 })
                 sms_obj.send()
+                # Debug: SMS gönderildiğini logla
+                self.message_post(
+                    body=f"SMS gönderildi: {message}",
+                    subject="SMS Gönderildi"
+                )
             except Exception as e:
                 # SMS yetkisi yoksa sadece sessizce geç, hata verme
-                pass
+                # Debug: Hata durumunu logla
+                self.message_post(
+                    body=f"SMS gönderilemedi: {str(e)}",
+                    subject="SMS Hatası"
+                )
+        else:
+            # Debug: Partner veya telefon yoksa logla
+            self.message_post(
+                body=f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}",
+                subject="SMS Koşulları Eksik"
+            )
         # SMS ile birlikte mail de gönder
         if self.partner_id and self.partner_id.email:
             subject = "Arıza Kaydınız Hakkında Bilgilendirme"
