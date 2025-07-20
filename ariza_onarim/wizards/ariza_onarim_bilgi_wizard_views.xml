@@ -10,6 +10,7 @@
                         <field name="ariza_id" invisible="1"/>
                         <field name="musteri_adi"/>
                         <field name="urun"/>
+                        <field name="ariza_tipi"/>
                         <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}'/>
                     </group>
                 </group>
