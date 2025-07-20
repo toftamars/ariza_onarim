@@ -47,6 +47,9 @@ class ArizaTeslimWizard(models.TransientModel):
             
             message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde {teslim_edilen_kisi} teslim edilmiştir. B021"
             ariza._send_sms_to_customer(message)
+            # Müşteriye e-posta gönder
+            if ariza.partner_id and ariza.partner_id.email:
+                ariza._send_email_to_customer("Ürününüz Teslim Edildi", message)
             ariza.ucuncu_sms_gonderildi = True
         
         # Teslim edildi e-posta gönder
