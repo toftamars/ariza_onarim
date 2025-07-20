@@ -906,13 +906,12 @@ class ArizaKayit(models.Model):
             
         if self.partner_id and self.partner_id.phone:
             try:
-                sms_obj = self.env['sms.sms'].create({
-                    'partner_id': self.partner_id.id,
-                    'number': self.partner_id.phone,
-                    'body': message,
-                    'state': 'outgoing',
-                })
-                sms_obj.send()
+                # SMS'i doğrudan gönder, kaydetme
+                self.env['sms.api']._send_sms(
+                    self.partner_id.phone,
+                    message,
+                    partner_id=self.partner_id.id
+                )
                 # Debug: SMS gönderildiğini logla
                 self.message_post(
                     body=f"SMS başarıyla gönderildi: {message}",
