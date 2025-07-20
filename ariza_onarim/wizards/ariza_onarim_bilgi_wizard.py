@@ -35,6 +35,14 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             })
         return res
 
+    def _temizle_magaza_adi(self, magaza_adi):
+        """Mağaza adından 'Perakende' ifadesini kaldır"""
+        if magaza_adi:
+            # "Perakende" ifadesini kaldır
+            temiz_adi = magaza_adi.replace('Perakende ', '').replace(' Perakende', '')
+            return temiz_adi
+        return magaza_adi
+
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
         ariza = self.ariza_id
@@ -57,7 +65,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             if ariza.ariza_tipi == 'musteri':
                 # Müşteri ürünü için onarım tamamlandı SMS'i
                 magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
-                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+                temiz_magaza_adi = self._temizle_magaza_adi(magaza_adi)
+                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
             else:
                 # Mağaza ürünü için onarım tamamlandı SMS'i
                 sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
