@@ -277,7 +277,7 @@ class ArizaKayit(models.Model):
                 
                 # Chatter'a arıza tanımını içeren mesaj ekle
                 ariza_tanimi = record.ariza_tanimi or "Arıza tanımı belirtilmemiş"
-                chatter_mesaji = f"Arıza Kaydı Oluşturuldu - Arıza Tanımı: {ariza_tanimi}"
+                chatter_mesaji = f"Arıza Tanımı: {ariza_tanimi}"
                 record.message_post(body=chatter_mesaji)
                 
             except Exception as e:
