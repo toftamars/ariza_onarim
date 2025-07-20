@@ -50,14 +50,10 @@
                             </page>
                             <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
                                 <group>
-                                    <field name="teslim_tarihi" readonly="1"/>
-                                    <field name="teslim_saati" readonly="1"/>
-                                    <field name="teslim_eden" readonly="1"/>
                                     <field name="teslim_alan" readonly="1"/>
                                     <field name="teslim_alan_tc" readonly="1"/>
                                     <field name="teslim_alan_telefon" readonly="1"/>
                                     <field name="teslim_alan_imza" readonly="1"/>
-                                    <field name="teslim_eden_imza" readonly="1"/>
                                     <field name="teslim_notu" readonly="1"/>
                                 </group>
                             </page>
@@ -118,54 +114,14 @@
             <field name="arch" type="xml">
                 <form string="Onarım Tamamlandı">
                     <group>
-                        <field name="musteri_adi"/>
-                        <field name="urun"/>
+                        <field name="ariza_id"/>
                         <field name="onay_mesaji"/>
                     </group>
                     <footer>
-                        <button name="action_personel_onayla" string="Evet, Tamamla" type="object" class="btn-primary"/>
+                        <button name="action_tamamla" string="Evet, Tamamla" type="object" class="btn-primary"/>
                         <button string="İptal" class="btn-secondary" special="cancel"/>
                     </footer>
                 </form>
-            </field>
-        </record>
-
-        <!-- Arıza Kayıt Tamamlama Wizard Ağaç Görünümü -->
-        <record id="view_ariza_kayit_tamamla_wizard_tree" model="ir.ui.view">
-            <field name="name">ariza.kayit.tamamla.wizard.tree</field>
-            <field name="model">ariza.kayit.tamamla.wizard</field>
-            <field name="arch" type="xml">
-                <tree string="ARIZA KAYIT TAMAMLAMA">
-                    <field name="ariza_id"/>
-                    <field name="musteri_adi"/>
-                    <field name="urun"/>
-                    <field name="teslim_tarihi"/>
-                    <field name="teslim_saati"/>
-                    <field name="teslim_eden"/>
-                    <field name="teslim_alan"/>
-                    <field name="teslim_durumu"/>
-                </tree>
-            </field>
-        </record>
-
-        <!-- Arıza Kayıt Tamamlama Wizard Arama Görünümü -->
-        <record id="view_ariza_kayit_tamamla_wizard_search" model="ir.ui.view">
-            <field name="name">ariza.kayit.tamamla.wizard.search</field>
-            <field name="model">ariza.kayit.tamamla.wizard</field>
-            <field name="arch" type="xml">
-                <search string="ARIZA KAYIT TAMAMLAMA">
-                    <field name="ariza_id"/>
-                    <field name="musteri_adi"/>
-                    <field name="urun"/>
-                    <field name="teslim_tarihi"/>
-                    <field name="teslim_eden"/>
-                    <field name="teslim_alan"/>
-                    <field name="teslim_durumu"/>
-                    <group expand="0" string="GRUPLA">
-                        <filter string="TESLİM DURUMU" name="teslim_durumu" context="{'group_by': 'teslim_durumu'}"/>
-                        <filter string="TESLİM EDEN" name="teslim_eden" context="{'group_by': 'teslim_eden'}"/>
-                    </group>
-                </search>
             </field>
         </record>
 
