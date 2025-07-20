@@ -17,15 +17,7 @@
             <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
-        <!-- Tüm kullanıcılara stock izinleri ver -->
-        <record id="base.group_user" model="res.groups">
-            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
-        </record>
 
-        <!-- Public kullanıcılara da stock izinleri ver -->
-        <record id="base.group_public" model="res.groups">
-            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager'))]"/>
-        </record>
 
         <!-- Stock picking için record rule - Tüm kayıtlara erişim (tüm kullanıcılar için) -->
         <record id="stock_picking_ariza_rule" model="ir.rule">
