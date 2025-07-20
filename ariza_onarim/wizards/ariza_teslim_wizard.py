@@ -9,9 +9,6 @@ class ArizaTeslimWizard(models.TransientModel):
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
     teslim_alan = fields.Char(string='Teslim Alan Kişi', required=True)
-    teslim_alan_tc = fields.Char(string='Teslim Alan TC')
-    teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
-    teslim_notu = fields.Text(string='Teslim Notu')
 
     @api.model
     def default_get(self, fields_list):
@@ -31,9 +28,6 @@ class ArizaTeslimWizard(models.TransientModel):
         
         # Teslim bilgilerini güncelle
         ariza.teslim_alan = self.teslim_alan
-        ariza.teslim_alan_tc = self.teslim_alan_tc
-        ariza.teslim_alan_telefon = self.teslim_alan_telefon
-        ariza.teslim_notu = self.teslim_notu
         
         # Durumu teslim edildi yap
         ariza.state = 'teslim_edildi'
@@ -69,9 +63,6 @@ class ArizaTeslimWizard(models.TransientModel):
 <b>Teknik Servis:</b> {ariza.teknik_servis or '-'}<br/>
 <b>Teknik Servis Adresi:</b> {ariza.teknik_servis_adres or '-'}<br/>
 <b>Teslim Alan:</b> {self.teslim_alan}<br/>
-<b>Teslim Alan TC:</b> {self.teslim_alan_tc or '-'}<br/>
-<b>Teslim Alan Telefon:</b> {self.teslim_alan_telefon or '-'}<br/>
-<b>Teslim Notu:</b> {self.teslim_notu or '-'}<br/>
 """
         ariza.env['mail.mail'].create({
             'subject': subject,

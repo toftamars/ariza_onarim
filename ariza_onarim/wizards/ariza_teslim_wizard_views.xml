@@ -12,14 +12,7 @@
                     </group>
                 </group>
                 <group>
-                    <group>
-                        <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
-                        <field name="teslim_alan_tc" placeholder="Teslim alan kişinin TC kimlik numarası"/>
-                        <field name="teslim_alan_telefon" placeholder="Teslim alan kişinin telefon numarası"/>
-                    </group>
-                </group>
-                <group>
-                    <field name="teslim_notu" placeholder="Teslim ile ilgili notlar"/>
+                    <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
                 </group>
                 <footer>
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary"/>
