@@ -22,13 +22,13 @@
                             <group>
                                 <field name="ariza_tipi"/>
                                 <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
+                                <field name="musteri_telefon" readonly="1"/>
                                 <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
                                 <field name="invoice_line_id" widget="many2one" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
                                 <field name="urun"/>
                                 <field name="model"/>
                                 <field name="analitik_hesap_id"/>
                                 <field name="teslim_magazasi_id"/>
-                                <field name="teslim_adresi"/>
                             </group>
                             <group>
                                 <field name="islem_tipi"/>

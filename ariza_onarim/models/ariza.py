@@ -202,6 +202,7 @@ class ArizaKayit(models.Model):
     
     # Transfer sayısı takibi
     transfer_sayisi = fields.Integer(string='Transfer Sayısı', default=0, tracking=True)
+    musteri_telefon = fields.Char(string='Telefon', readonly=True, compute='_compute_musteri_telefon', store=False)
 
     @api.depends('state')
     def _compute_state_manager(self):
@@ -1391,6 +1392,11 @@ Arıza Kaydı Tamamlandı.<br/>
             self.teslim_adresi = self.analitik_hesap_id.adres
         else:
             self.teslim_adresi = ''
+
+    @api.depends('partner_id')
+    def _compute_musteri_telefon(self):
+        for rec in self:
+            rec.musteri_telefon = rec.partner_id.phone or rec.partner_id.mobile or ''
 
 
 
