@@ -196,7 +196,7 @@
                         <group>
                             <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
-                            <field name="invoice_line_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
+                            <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                             <field name="analitik_hesap_id" options='{"no_create": true, "no_open": true}' required="1"/>
                             <field name="magaza_urun_id" options='{"no_create": true, "no_open": true}' string="Ürün" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="marka_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('siparis_yok', '=', True)]}"/>
@@ -225,10 +225,10 @@
                         </page>
                         <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
-                                <field name="urun" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                                <field name="marka_id" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                                <field name="marka_manu" attrs="{'required': [('siparis_yok', '=', True)]}"/>
-                                <field name="model" attrs="{'required': [('siparis_yok', '=', True)]}"/>
+                                <field name="urun" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_id" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_manu" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                                <field name="model" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                                 <field name="garanti_suresi" readonly="1"/>
                                 <field name="garanti_bitis_tarihi" readonly="1"/>
                                 <field name="kalan_garanti" readonly="1"/>
