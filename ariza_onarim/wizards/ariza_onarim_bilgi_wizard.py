@@ -80,7 +80,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         
         # Mesaj gönder
         ariza.message_post(
-            body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı tamamla butonuna basarak geri gönderim transferini oluşturabilir.",
+            body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
             subject="Onarım Tamamlandı"
         )
         
