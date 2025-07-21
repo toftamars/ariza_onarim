@@ -45,7 +45,7 @@
                                 <td><strong>Adres:</strong></td>
                                 <td>
                                     <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres"> <t t-esc="o.analitik_hesap_id.adres"/> </span>
-                                    <span t-else>Adres bilgisi yok</span>
+                                    <span t-else="">Adres bilgisi yok</span>
                                 </td>
                             </tr>
                             <tr>
