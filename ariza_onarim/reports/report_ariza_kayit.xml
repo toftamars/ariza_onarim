@@ -42,10 +42,10 @@
                                 <td><span t-field="o.analitik_hesap_id.name"/></td>
                             </tr>
                             <tr>
-                                <td><strong>Teslim Adresi:</strong></td>
+                                <td><strong>Adres:</strong></td>
                                 <td>
-                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-field="o.analitik_hesap_id.adres"/>
-                                    <span t-else="" t-field="o.teslim_adresi"/>
+                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres"> <t t-esc="o.analitik_hesap_id.adres"/> </span>
+                                    <span t-else>Adres bilgisi yok</span>
                                 </td>
                             </tr>
                             <tr>
