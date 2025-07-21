@@ -1385,6 +1385,13 @@ Arıza Kaydı Tamamlandı.<br/>
             'auto_delete': True,
         }).send()
 
+    @api.onchange('analitik_hesap_id')
+    def _onchange_analitik_hesap_id_adres(self):
+        if self.analitik_hesap_id and self.analitik_hesap_id.adres:
+            self.teslim_adresi = self.analitik_hesap_id.adres
+        else:
+            self.teslim_adresi = ''
+
 
 
 class StockPicking(models.Model):
