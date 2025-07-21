@@ -36,6 +36,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                         # SMS gönderimi
                         if ariza.ariza_tipi == 'musteri':
                             sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
+                            if ariza.garanti_kapsaminda_mi == 'evet':
+                                sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
                         else: # ariza.ariza_tipi == 'magaza'
                             sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
                         
