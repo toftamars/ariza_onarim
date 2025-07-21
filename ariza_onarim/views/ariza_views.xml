@@ -226,8 +226,8 @@
                         <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
                                 <field name="urun" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_id" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_manu" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                                <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
                                 <field name="model" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                                 <field name="garanti_suresi" readonly="1"/>
                                 <field name="garanti_bitis_tarihi" readonly="1"/>
