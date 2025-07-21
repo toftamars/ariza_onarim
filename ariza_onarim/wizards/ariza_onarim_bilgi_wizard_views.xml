@@ -20,7 +20,6 @@
                 <group>
                     <group>
                         <field name="garanti_kapsaminda_mi"/>
-                        <field name="onarim_ucreti_tl" readonly="1"/>
                     </group>
                     <group>
                         <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..."/>
