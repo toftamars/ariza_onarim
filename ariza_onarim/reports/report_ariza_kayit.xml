@@ -51,15 +51,7 @@
                             <tr>
                                 <td><strong>Telefon:</strong></td>
                                 <td>
-                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon" t-field="o.analitik_hesap_id.telefon"/>
-                                    <span t-else="" t-field="o.tedarikci_telefon"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>E-posta:</strong></td>
-                                <td>
-                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.email" t-field="o.analitik_hesap_id.email"/>
-                                    <span t-else="" t-field="o.tedarikci_email"/>
+                                    <span t-field="o.partner_id.phone"/>
                                 </td>
                             </tr>
                         </table>
