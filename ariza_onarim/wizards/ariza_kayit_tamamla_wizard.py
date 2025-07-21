@@ -35,9 +35,11 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     if ariza.partner_id.phone:
                         # SMS gönderimi
                         if ariza.ariza_tipi == 'musteri':
+                            ariza.message_post(body=f"DEBUG: Garanti Kapsamında mı?: {ariza.garanti_kapsaminda_mi}")
                             sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. B021"
                             if ariza.garanti_kapsaminda_mi == 'evet':
                                 sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
+                            ariza.message_post(body=f"DEBUG: Gönderilen SMS: {sms_mesaji}")
                         else: # ariza.ariza_tipi == 'magaza'
                             sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. B021"
                         
