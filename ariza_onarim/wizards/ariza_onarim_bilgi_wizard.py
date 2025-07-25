@@ -97,6 +97,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 # Mağaza ürünü için onarım tamamlandı SMS'i
                 sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
             
+            # Ürün Değişimi bilgisini ekle
+            if self.garanti_kapsaminda_mi == 'urun_degisimi':
+                sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
+            
             ariza._send_sms_to_customer(sms_mesaji)
             # Müşteriye e-posta gönder
             if ariza.partner_id and ariza.partner_id.email:
@@ -110,7 +114,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             teslim_edilen_kisi = "Adrese Gönderim"
             
             message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {teslim_tarihi} tarihinde {teslim_edilen_kisi} kişisine teslim edilmiştir. B021"
-            if ariza.garanti_kapsaminda_mi == 'evet':
+            if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
                 message += " Ürününüzün değişimi sağlanmıştır."
             
             ariza._send_sms_to_customer(message)

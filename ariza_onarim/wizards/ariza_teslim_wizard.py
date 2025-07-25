@@ -46,7 +46,7 @@ class ArizaTeslimWizard(models.TransientModel):
             teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
             
             message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde {teslim_edilen_kisi} kişisine teslim edilmiştir. B021"
-            if ariza.garanti_kapsaminda_mi == 'evet':
+            if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
                 message += " Ürününüzün değişimi sağlanmıştır."
             ariza._send_sms_to_customer(message)
             # Müşteriye e-posta gönder
