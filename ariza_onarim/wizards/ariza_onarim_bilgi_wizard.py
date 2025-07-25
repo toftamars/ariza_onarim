@@ -107,21 +107,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 ariza._send_email_to_customer("Ürününüz Teslim Edilmeye Hazır", sms_mesaji)
             ariza.ikinci_sms_gonderildi = True
         
-        # Adrese gönderim seçildiyse üçüncü SMS'i de gönder (teslim edildi SMS'i)
-        if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id and not ariza.ucuncu_sms_gonderildi:
-            from datetime import datetime
-            teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
-            teslim_edilen_kisi = "Adrese Gönderim"
-            
-            message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {teslim_tarihi} tarihinde {teslim_edilen_kisi} kişisine teslim edilmiştir. B021"
-            if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
-                message += " Ürününüzün değişimi sağlanmıştır."
-            
-            ariza._send_sms_to_customer(message)
-            # Müşteriye e-posta gönder
-            if ariza.partner_id and ariza.partner_id.email:
-                ariza._send_email_to_customer("Ürününüz Teslim Edildi", message)
-            ariza.ucuncu_sms_gonderildi = True
+
         
         # Mesaj gönder
         if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
