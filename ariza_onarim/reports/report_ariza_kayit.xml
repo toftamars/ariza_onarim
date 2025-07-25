@@ -58,10 +58,10 @@
                     </div>
                 </div>
 
-                <!-- Ürün Bilgileri -->
+                <!-- Ürün ve Garanti Bilgileri -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h5>Ürün Bilgileri</h5>
+                        <h5>Ürün ve Garanti Bilgileri</h5>
                         <table class="table table-bordered">
                             <tr>
                                 <td width="30%"><strong>Ürün:</strong></td>
