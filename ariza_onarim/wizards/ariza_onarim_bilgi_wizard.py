@@ -6,6 +6,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     _description = 'Onarım Bilgilerini Doldurma Sihirbazı'
 
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
+    partner_id = fields.Many2one('res.partner', string='Müşteri', readonly=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
     ariza_tipi = fields.Selection([
@@ -13,6 +14,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         ('magaza', 'Mağaza Ürünü')
     ], string='Arıza Tipi', readonly=True)
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
+    adresime_gonderilsin = fields.Boolean(string='Adresime Gönderilsin', default=False)
+    musteri_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi', 
+                                       domain="[('parent_id', '=', partner_id), ('type', '=', 'delivery')]",
+                                       attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)]}")
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
@@ -29,6 +34,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza = self.env['ariza.kayit'].browse(self._context['active_id'])
             res.update({
                 'ariza_id': ariza.id,
+                'partner_id': ariza.partner_id.id if ariza.partner_id else False,
                 'musteri_adi': ariza.partner_id.name if ariza.partner_id else '',
                 'urun': ariza.urun if ariza.urun else '',
                 'ariza_tipi': ariza.ariza_tipi,
@@ -55,8 +61,14 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         ariza.onarim_ucreti = self.onarim_ucreti
         
         # Teslim mağazasını güncelle (müşteri ürünü için)
-        if self.ariza_tipi == 'musteri' and self.teslim_magazasi_id:
-            ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
+        if self.ariza_tipi == 'musteri':
+            if self.adresime_gonderilsin and self.musteri_adresi_id:
+                # Adrese gönderim seçildi
+                ariza.teslim_magazasi_id = False
+                ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+            elif self.teslim_magazasi_id:
+                # Mağazadan teslim seçildi
+                ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
         
         # Durumu tamamlandı olarak güncelle
         ariza.state = 'tamamlandi'
@@ -65,9 +77,14 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         if ariza.partner_id and ariza.partner_id.phone and not ariza.ikinci_sms_gonderildi:
             if ariza.ariza_tipi == 'musteri':
                 # Müşteri ürünü için onarım tamamlandı SMS'i
-                magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
-                temiz_magaza_adi = self._temizle_magaza_adi(magaza_adi)
-                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+                if self.adresime_gonderilsin and self.musteri_adresi_id:
+                    # Adrese gönderim
+                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüz adresinize gönderilecektir. B021"
+                else:
+                    # Mağazadan teslim
+                    magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
+                    temiz_magaza_adi = self._temizle_magaza_adi(magaza_adi)
+                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
             else:
                 # Mağaza ürünü için onarım tamamlandı SMS'i
                 sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
