@@ -92,7 +92,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                     # Mağazadan teslim
                     magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
                     temiz_magaza_adi = self._temizle_magaza_adi(magaza_adi)
-                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. B021"
+                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan 3 (üç) iş günü sonra teslim alabilirsiniz. B021"
             else:
                 # Mağaza ürünü için onarım tamamlandı SMS'i
                 sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
