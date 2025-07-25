@@ -23,6 +23,7 @@
                 <group>
                     <group>
                         <field name="garanti_kapsaminda_mi"/>
+                        <field name="currency_id" invisible="1"/>
                         <field name="onarim_ucreti" attrs="{'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
                     </group>
                     <group>

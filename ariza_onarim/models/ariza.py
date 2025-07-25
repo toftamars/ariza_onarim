@@ -139,7 +139,8 @@ class ArizaKayit(models.Model):
     notlar = fields.Text(string='Notlar')
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
-    onarim_ucreti = fields.Float(string='Onarım Ücreti (Ham)', tracking=True)
+    onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id', tracking=True)
+    currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
     onarim_ucreti_tl = fields.Char(string='Onarım Ücreti', compute='_compute_onarim_ucreti_tl', store=True)
     yapilan_islemler = fields.Text(string='Yapılan İşlemler', tracking=True)
     marka_urunleri_ids = fields.Many2many(
@@ -217,12 +218,12 @@ class ArizaKayit(models.Model):
             else:
                 record.state_manager = record.state
 
-    @api.depends('onarim_ucreti')
+    @api.depends('onarim_ucreti', 'currency_id')
     def _compute_onarim_ucreti_tl(self):
-        """Onarım ücretini TL formatında göster"""
+        """Onarım ücretini para birimi formatında göster"""
         for record in self:
-            if record.onarim_ucreti:
-                record.onarim_ucreti_tl = f"{record.onarim_ucreti:,.0f} TL"
+            if record.onarim_ucreti and record.currency_id:
+                record.onarim_ucreti_tl = f"{record.onarim_ucreti:,.2f} {record.currency_id.symbol}"
             else:
                 record.onarim_ucreti_tl = ""
 

@@ -25,7 +25,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         ('urun_degisimi', 'Ürün Değişimi'),
     ], string='Garanti Kapsamında mı?', required=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
-    onarim_ucreti = fields.Float(string='Onarım Ücreti')
+    onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id')
+    currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
 
     @api.model
     def default_get(self, fields_list):
