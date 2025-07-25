@@ -60,7 +60,12 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         ariza.onarim_bilgisi = self.onarim_bilgisi
         ariza.garanti_kapsaminda_mi = self.garanti_kapsaminda_mi
         ariza.ucret_bilgisi = self.ucret_bilgisi
-        ariza.onarim_ucreti = self.onarim_ucreti
+        
+        # Garanti kapsamında olan durumlarda onarım ücreti sıfırla
+        if self.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
+            ariza.onarim_ucreti = 0.0
+        else:
+            ariza.onarim_ucreti = self.onarim_ucreti
         
         # Teslim mağazasını güncelle (müşteri ürünü için)
         if self.ariza_tipi == 'musteri':

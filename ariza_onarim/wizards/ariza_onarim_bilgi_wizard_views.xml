@@ -24,7 +24,7 @@
                     <group>
                         <field name="garanti_kapsaminda_mi"/>
                         <field name="currency_id" invisible="1"/>
-                        <field name="onarim_ucreti" attrs="{'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
+                        <field name="onarim_ucreti" attrs="{'invisible': [('garanti_kapsaminda_mi', 'in', ['evet', 'urun_degisimi'])], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
                     </group>
                     <group>
                         <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..."/>
