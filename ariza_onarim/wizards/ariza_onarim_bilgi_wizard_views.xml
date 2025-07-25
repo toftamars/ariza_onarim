@@ -14,7 +14,7 @@
                         <field name="ariza_tipi"/>
                         <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('adresime_gonderilsin', '=', True)]}"/>
                         <field name="adresime_gonderilsin"/>
-                        <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}"/>
+                        <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
                     </group>
                 </group>
                 <group>
