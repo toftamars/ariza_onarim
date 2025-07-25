@@ -191,6 +191,7 @@
                             <field name="tarih"/>
                             <field name="sorumlu_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
+                            <field name="teslim_alan" invisible="1"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' string="Transfer Metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options='{"no_open": true, "no_create": true}'/>
