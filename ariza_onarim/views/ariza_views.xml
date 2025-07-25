@@ -237,9 +237,6 @@
                         <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
-                                <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')], 'required': [('islem_tipi', '=', 'teslim')]}"/>
-                                <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')], 'required': [('islem_tipi', '=', 'teslim')]}"/>
-                                <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}"/>
                                 <field name="notlar"/>
                             </group>
                         </page>

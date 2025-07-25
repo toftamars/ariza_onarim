@@ -49,7 +49,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><strong>Telefon:</strong></td>
+                                <td><strong>Müşteri Telefon:</strong></td>
                                 <td>
                                     <span t-field="o.partner_id.phone"/>
                                 </td>
@@ -98,6 +98,10 @@
                             <tr>
                                 <td><strong>Teknik Servis:</strong></td>
                                 <td><span t-field="o.teknik_servis"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Teknik Servis Adresi:</strong></td>
+                                <td><span t-field="o.teknik_servis_adres"/></td>
                             </tr>
                             <tr>
                                 <td><strong>Arıza Tanımı:</strong></td>
