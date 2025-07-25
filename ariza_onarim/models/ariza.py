@@ -908,6 +908,9 @@ class ArizaKayit(models.Model):
         return picking
 
     def _send_sms_to_customer(self, message):
+        # Debug log ekle
+        self.message_post(body=f"İlk SMS koşulları kontrol ediliyor: islem_tipi={self.islem_tipi}, ariza_tipi={self.ariza_tipi}, ilk_sms_gonderildi={self.ilk_sms_gonderildi}")
+        
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != 'musteri':
             self.message_post(body=f"SMS gönderilmedi: Arıza tipi müşteri değil ({self.ariza_tipi})")
