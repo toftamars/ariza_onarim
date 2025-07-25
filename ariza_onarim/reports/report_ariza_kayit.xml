@@ -109,11 +109,25 @@
                             </tr>
                             <tr>
                                 <td><strong>Garanti Kapsamında:</strong></td>
-                                <td><span t-field="o.garanti_kapsaminda_mi"/></td>
+                                <td>
+                                    <span t-if="o.garanti_kapsaminda_mi">
+                                        <span t-field="o.garanti_kapsaminda_mi"/>
+                                    </span>
+                                    <span t-else="">
+                                        Teknik Servis Tarafından doldurulacaktır
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
                                 <td><strong>Onarım Ücreti:</strong></td>
-                                <td><span t-field="o.onarim_ucreti"/></td>
+                                <td>
+                                    <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">
+                                        <span t-field="o.onarim_ucreti"/>
+                                    </span>
+                                    <span t-else="">
+                                        Teknik Servis Tarafından doldurulacaktır
+                                    </span>
+                                </td>
                             </tr>
                         </table>
                     </div>
