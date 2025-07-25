@@ -72,8 +72,14 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 # Mağazadan teslim seçildi
                 ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
         
-        # Durumu tamamlandı olarak güncelle
-        ariza.state = 'tamamlandi'
+        # Durumu güncelle - Adrese gönderim seçildiyse direkt teslim edildi durumuna geç
+        if self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
+            ariza.state = 'teslim_edildi'
+            # Adrese gönderim için teslim bilgilerini güncelle
+            ariza.teslim_alan = 'Adrese Gönderim'
+            ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+        else:
+            ariza.state = 'tamamlandi'
         
         # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi (İkinci SMS)
         if ariza.partner_id and ariza.partner_id.phone and not ariza.ikinci_sms_gonderildi:
@@ -97,10 +103,32 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 ariza._send_email_to_customer("Ürününüz Teslim Edilmeye Hazır", sms_mesaji)
             ariza.ikinci_sms_gonderildi = True
         
+        # Adrese gönderim seçildiyse üçüncü SMS'i de gönder (teslim edildi SMS'i)
+        if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id and not ariza.ucuncu_sms_gonderildi:
+            from datetime import datetime
+            teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
+            teslim_edilen_kisi = "Adrese Gönderim"
+            
+            message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {teslim_tarihi} tarihinde {teslim_edilen_kisi} kişisine teslim edilmiştir. B021"
+            if ariza.garanti_kapsaminda_mi == 'evet':
+                message += " Ürününüzün değişimi sağlanmıştır."
+            
+            ariza._send_sms_to_customer(message)
+            # Müşteriye e-posta gönder
+            if ariza.partner_id and ariza.partner_id.email:
+                ariza._send_email_to_customer("Ürününüz Teslim Edildi", message)
+            ariza.ucuncu_sms_gonderildi = True
+        
         # Mesaj gönder
-        ariza.message_post(
-            body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
-            subject="Onarım Tamamlandı"
-        )
+        if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
+            ariza.message_post(
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Adrese gönderim seçildi. Müşteriye SMS gönderildi. Durum otomatik olarak 'Teslim Edildi' olarak güncellendi.",
+                subject="Onarım Tamamlandı - Adrese Gönderim"
+            )
+        else:
+            ariza.message_post(
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
+                subject="Onarım Tamamlandı"
+            )
         
         return {'type': 'ir.actions.act_window_close'} 
