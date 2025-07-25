@@ -108,6 +108,17 @@
                                 <td><span t-field="o.ariza_tanimi"/></td>
                             </tr>
                             <tr>
+                                <td><strong>Onarım Bilgisi:</strong></td>
+                                <td>
+                                    <span t-if="o.onarim_bilgisi">
+                                        <span t-field="o.onarim_bilgisi"/>
+                                    </span>
+                                    <span t-else="">
+                                        Teknik Servis Tarafından doldurulacaktır
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td><strong>Garanti Kapsamında:</strong></td>
                                 <td>
                                     <span t-if="o.garanti_kapsaminda_mi">
