@@ -33,7 +33,8 @@
                             <group>
                                 <field name="islem_tipi"/>
                                 <field name="ariza_kabul_id" attrs='{"invisible": [["islem_tipi", "!=", "teslim"]]}'/>
-                                <field name="transfer_id" readonly="1" widget="many2one"/>
+                                <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                        <field name="transfer_id" readonly="1" widget="many2one" string="Transfer Metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                                 <field name="sms_gonderildi" readonly="1"/>
                                 <field name="create_date" readonly="1"/>
                                 <field name="write_date" readonly="1"/>
