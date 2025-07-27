@@ -574,6 +574,24 @@ class ArizaKayit(models.Model):
         # Zuhal adresini otomatik ekle
         elif self.teknik_servis == 'zuhal':
             self.tedarikci_adresi = 'Halkalı Merkez, 34303 Küçükçekmece/İstanbul'
+        # TEDARİKÇİ seçildiğinde tedarikçi adresini otomatik doldur
+        elif self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+            # Tedarikçi adresini kapsamlı şekilde oluştur
+            adres_parcalari = []
+            if self.tedarikci_id.street:
+                adres_parcalari.append(self.tedarikci_id.street)
+            if self.tedarikci_id.street2:
+                adres_parcalari.append(self.tedarikci_id.street2)
+            if self.tedarikci_id.city:
+                adres_parcalari.append(self.tedarikci_id.city)
+            if self.tedarikci_id.state_id:
+                adres_parcalari.append(self.tedarikci_id.state_id.name)
+            if self.tedarikci_id.zip:
+                adres_parcalari.append(self.tedarikci_id.zip)
+            if self.tedarikci_id.country_id:
+                adres_parcalari.append(self.tedarikci_id.country_id.name)
+            
+            self.tedarikci_adresi = ', '.join(adres_parcalari) if adres_parcalari else ''
 
         # Müşteri ürünü işlemleri için hedef konum ayarları
         if self.ariza_tipi == 'musteri':
@@ -720,7 +738,22 @@ class ArizaKayit(models.Model):
     @api.onchange('tedarikci_id')
     def _onchange_tedarikci(self):
         if self.tedarikci_id:
-            self.tedarikci_adresi = self.tedarikci_id.street
+            # Tedarikçi adresini kapsamlı şekilde oluştur
+            adres_parcalari = []
+            if self.tedarikci_id.street:
+                adres_parcalari.append(self.tedarikci_id.street)
+            if self.tedarikci_id.street2:
+                adres_parcalari.append(self.tedarikci_id.street2)
+            if self.tedarikci_id.city:
+                adres_parcalari.append(self.tedarikci_id.city)
+            if self.tedarikci_id.state_id:
+                adres_parcalari.append(self.tedarikci_id.state_id.name)
+            if self.tedarikci_id.zip:
+                adres_parcalari.append(self.tedarikci_id.zip)
+            if self.tedarikci_id.country_id:
+                adres_parcalari.append(self.tedarikci_id.country_id.name)
+            
+            self.tedarikci_adresi = ', '.join(adres_parcalari) if adres_parcalari else ''
             self.tedarikci_telefon = self.tedarikci_id.phone
             self.tedarikci_email = self.tedarikci_id.email
             # Kontak (Teslimat Adresi) otomatik gelsin
@@ -1276,7 +1309,26 @@ Arıza Kaydı Tamamlandı.<br/>
     def _compute_teknik_servis_adres(self):
         for rec in self:
             if rec.teknik_servis == 'TEDARİKÇİ' and rec.tedarikci_id:
-                rec.teknik_servis_adres = rec.tedarikci_adresi or rec.tedarikci_id.street or ''
+                # Önce tedarikci_adresi alanını kontrol et, yoksa partner'ın adres bilgilerini kullan
+                if rec.tedarikci_adresi:
+                    rec.teknik_servis_adres = rec.tedarikci_adresi
+                else:
+                    # Partner'ın adres bilgilerini birleştir
+                    adres_parcalari = []
+                    if rec.tedarikci_id.street:
+                        adres_parcalari.append(rec.tedarikci_id.street)
+                    if rec.tedarikci_id.street2:
+                        adres_parcalari.append(rec.tedarikci_id.street2)
+                    if rec.tedarikci_id.city:
+                        adres_parcalari.append(rec.tedarikci_id.city)
+                    if rec.tedarikci_id.state_id:
+                        adres_parcalari.append(rec.tedarikci_id.state_id.name)
+                    if rec.tedarikci_id.zip:
+                        adres_parcalari.append(rec.tedarikci_id.zip)
+                    if rec.tedarikci_id.country_id:
+                        adres_parcalari.append(rec.tedarikci_id.country_id.name)
+                    
+                    rec.teknik_servis_adres = ', '.join(adres_parcalari) if adres_parcalari else ''
             elif rec.teknik_servis == 'ZUHAL ARIZA DEPO':
                 rec.teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
             elif rec.teknik_servis == 'DTL BEYOĞLU':
