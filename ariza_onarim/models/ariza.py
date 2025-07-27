@@ -908,8 +908,26 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': 'matbu',  # Her zaman matbu
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,  # Araç bilgisi ekle
         }
+        
+        # Araç bilgisi ekle - önce arıza kaydından, yoksa sistemdeki varsayılan araçtan
+        if self.vehicle_id:
+            picking_vals['vehicle_id'] = self.vehicle_id.id
+        else:
+            # Sistemdeki varsayılan araç bilgisini bul
+            default_vehicle = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('name', 'ilike', '34PLK34')
+            ], limit=1)
+            if default_vehicle:
+                picking_vals['vehicle_id'] = default_vehicle.id
+            else:
+                # Genel varsayılan sürücü ara
+                default_vehicle = self.env['res.partner'].search([
+                    ('is_driver', '=', True)
+                ], limit=1)
+                if default_vehicle:
+                    picking_vals['vehicle_id'] = default_vehicle.id
         
         # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
         if transfer_tipi == 'ikinci' and self.teslim_adresi:
