@@ -76,12 +76,13 @@
             <field name="arch" type="xml">
                 <tree string="ARIZA KAYITLARI">
                     <field name="name"/>
-                    <field name="ariza_tipi"/>
+                    <field name="tarih"/>
                     <field name="partner_id"/>
                     <field name="urun"/>
-                    <field name="analitik_hesap_id"/>
+                    <field name="model"/>
+                    <field name="ariza_tipi"/>
                     <field name="state"/>
-                    <field name="create_date"/>
+                    <field name="kalan_is_gunu" string="Kalan Onarım Süresi"/>
                 </tree>
             </field>
         </record>
