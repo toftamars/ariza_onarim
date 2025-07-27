@@ -919,47 +919,9 @@ class ArizaKayit(models.Model):
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
-        # Araç No bilgisini ekle - 34PLK34
-        # Önce arıza kaydından, yoksa sistemdeki varsayılan araçtan
+        # Araç bilgisi ekle - basit yöntem
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
-        else:
-            # Sistemdeki 34PLK34 araç bilgisini bul - farklı yöntemlerle
-            default_vehicle = self.env['res.partner'].search([
-                ('is_driver', '=', True),
-                ('name', 'ilike', '34PLK34')
-            ], limit=1)
-            
-            # Eğer bulunamazsa, plaka numarası ile ara
-            if not default_vehicle:
-                default_vehicle = self.env['res.partner'].search([
-                    ('is_driver', '=', True),
-                    '|',
-                    ('name', 'ilike', '34PLK34'),
-                    ('name', 'ilike', '34 PLK 34'),
-                    ('name', 'ilike', '34-PLK-34')
-                ], limit=1)
-            
-            # Hala bulunamazsa, genel varsayılan sürücü ara
-            if not default_vehicle:
-                default_vehicle = self.env['res.partner'].search([
-                    ('is_driver', '=', True)
-                ], limit=1)
-            
-            if default_vehicle:
-                picking_vals['vehicle_id'] = default_vehicle.id
-                # Debug log ekle
-                _logger.info(f"Araç bilgisi bulundu: {default_vehicle.name} (ID: {default_vehicle.id})")
-            else:
-                # Hiç sürücü bulunamazsa log ekle
-                _logger.warning("Hiç sürücü bulunamadı!")
-                
-        # Alternatif olarak, delivery.carrier'dan araç bilgisini al
-        if not picking_vals.get('vehicle_id') and delivery_carrier:
-            # Carrier'ın varsayılan araç bilgisini kontrol et
-            if hasattr(delivery_carrier, 'vehicle_id') and delivery_carrier.vehicle_id:
-                picking_vals['vehicle_id'] = delivery_carrier.vehicle_id.id
-                _logger.info(f"Carrier'dan araç bilgisi alındı: {delivery_carrier.vehicle_id.name}")
         
 
         
