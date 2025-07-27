@@ -16,9 +16,9 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     adresime_gonderilsin = fields.Boolean(string='Adresime Gönderilsin', default=False)
     musteri_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi', 
-                                       domain="[('parent_id', '=', partner_id), ('type', '=', 'delivery')]",
+                                       domain="[('type', 'in', ['delivery', 'contact'])]",
                                        attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)]}",
-                                       context="{'default_parent_id': partner_id, 'default_type': 'delivery'}")
+                                       context="{'default_type': 'delivery'}")
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
