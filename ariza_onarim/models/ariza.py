@@ -908,6 +908,7 @@ class ArizaKayit(models.Model):
             'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': 'matbu',  # Her zaman matbu
+            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,  # Araç bilgisi ekle
         }
         
         # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
