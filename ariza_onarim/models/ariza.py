@@ -2,6 +2,9 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
+import logging
+
+_logger = logging.getLogger(__name__)
 from dateutil.relativedelta import relativedelta
 import os
 import logging
@@ -264,11 +267,14 @@ class ArizaKayit(models.Model):
                     raise ValidationError(_('Müşteri ürünü için "Ürün" alanı zorunludur.'))
             elif ariza_tipi == 'magaza':
                 # Mağaza ürünü için magaza_urun_id alanı zorunlu
-                if not vals.get('magaza_urun_id'):
+                magaza_urun_id = vals.get('magaza_urun_id')
+                # Debug log ekle
+                _logger.info(f"Mağaza ürünü kayıt - magaza_urun_id: {magaza_urun_id}, vals: {vals}")
+                if not magaza_urun_id:
                     raise ValidationError(_('Mağaza ürünü için "Ürün" seçimi zorunludur.'))
                 # magaza_urun_id seçilmişse urun ve model alanlarını doldur
-                if vals.get('magaza_urun_id'):
-                    urun = self.env['product.product'].browse(vals['magaza_urun_id'])
+                if magaza_urun_id:
+                    urun = self.env['product.product'].browse(magaza_urun_id)
                     if urun:
                         vals['urun'] = urun.name or ''
                         vals['model'] = urun.default_code or ''
