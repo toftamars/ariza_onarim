@@ -122,7 +122,7 @@ class ArizaKayit(models.Model):
     ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
     invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
-        domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product')]",
+        domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product'), ('exclude_from_invoice_tab', '=', False), ('quantity', '>', 0)]",
         tracking=True)
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=True)
