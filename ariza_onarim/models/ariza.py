@@ -1046,7 +1046,7 @@ class ArizaKayit(models.Model):
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
-                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. B021"
+                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
                     # Müşteriye e-posta gönder
                     if record.partner_id and record.partner_id.email:
@@ -1112,7 +1112,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 
                 # Tamamla işlemi sonrası SMS ve E-posta gönder (İkinci SMS)
                 if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ikinci_sms_gonderildi:
-                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. B021"
+                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
                     # Müşteriye e-posta gönder
                     if record.partner_id and record.partner_id.email:
