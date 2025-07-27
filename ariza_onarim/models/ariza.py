@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -125,8 +126,8 @@ class ArizaKayit(models.Model):
         domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product'), ('exclude_from_invoice_tab', '=', False), ('quantity', '>', 0)]",
         tracking=True)
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
-    urun = fields.Char(string='Ürün', required=True)
-    model = fields.Char(string='Model', required=True)
+    urun = fields.Char(string='Ürün', required=False)
+    model = fields.Char(string='Model', required=False)
     garanti_suresi = fields.Char(string='Garanti Süresi', compute='_compute_garanti_suresi', store=True, tracking=True)
     garanti_bitis_tarihi = fields.Date(string='Garanti Bitiş Tarihi', compute='_compute_garanti_suresi', store=True)
     kalan_garanti = fields.Char(string='Kalan Garanti', compute='_compute_garanti_suresi', store=True)
@@ -154,7 +155,8 @@ class ArizaKayit(models.Model):
     magaza_urun_id = fields.Many2one(
         'product.product',
         string='Ürün',
-        tracking=True
+        tracking=True,
+        required=False
     )
     sms_gonderildi = fields.Boolean(string='SMS Gönderildi', default=False, tracking=True)
     ilk_sms_gonderildi = fields.Boolean(string='İlk SMS Gönderildi', default=False, tracking=True)
@@ -253,6 +255,23 @@ class ArizaKayit(models.Model):
                 sorumlu = self.env['res.users'].browse(vals['sorumlu_id'])
                 if sorumlu and sorumlu.employee_id and sorumlu.employee_id.magaza_id:
                     vals['analitik_hesap_id'] = sorumlu.employee_id.magaza_id.id
+            
+            # Arıza tipine göre ürün alanı kontrolü
+            ariza_tipi = vals.get('ariza_tipi', 'musteri')
+            if ariza_tipi == 'musteri':
+                # Müşteri ürünü için urun alanı zorunlu
+                if not vals.get('urun'):
+                    raise ValidationError(_('Müşteri ürünü için "Ürün" alanı zorunludur.'))
+            elif ariza_tipi == 'magaza':
+                # Mağaza ürünü için magaza_urun_id alanı zorunlu
+                if not vals.get('magaza_urun_id'):
+                    raise ValidationError(_('Mağaza ürünü için "Ürün" seçimi zorunludur.'))
+                # magaza_urun_id seçilmişse urun ve model alanlarını doldur
+                if vals.get('magaza_urun_id'):
+                    urun = self.env['product.product'].browse(vals['magaza_urun_id'])
+                    if urun:
+                        vals['urun'] = urun.name or ''
+                        vals['model'] = urun.default_code or ''
             # Varsayılan değerleri ayarla
             if not vals.get('name'):
                 try:
@@ -523,6 +542,7 @@ class ArizaKayit(models.Model):
             self.partner_id = False
             self.urun = False
             self.model = False
+            self.magaza_urun_id = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
             self.transfer_id = False
@@ -530,6 +550,7 @@ class ArizaKayit(models.Model):
             self.partner_id = False
             self.urun = False
             self.model = False
+            self.magaza_urun_id = False
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
@@ -537,6 +558,7 @@ class ArizaKayit(models.Model):
             self.partner_id = False
             self.urun = False
             self.model = False
+            self.magaza_urun_id = False
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
 
