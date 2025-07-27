@@ -918,12 +918,13 @@ class ArizaKayit(models.Model):
         ], limit=1)
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
-        
-        # Araç bilgisi ekle - önce arıza kaydından, yoksa sistemdeki varsayılan araçtan
+            
+        # Araç No bilgisini ekle - 34PLK34
+        # Önce arıza kaydından, yoksa sistemdeki varsayılan araçtan
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         else:
-            # Sistemdeki varsayılan araç bilgisini bul
+            # Sistemdeki 34PLK34 araç bilgisini bul
             default_vehicle = self.env['res.partner'].search([
                 ('is_driver', '=', True),
                 ('name', 'ilike', '34PLK34')
@@ -937,6 +938,8 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if default_vehicle:
                     picking_vals['vehicle_id'] = default_vehicle.id
+        
+
         
         # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
         if transfer_tipi == 'ikinci' and self.teslim_adresi:
