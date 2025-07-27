@@ -953,6 +953,13 @@ class ArizaKayit(models.Model):
             else:
                 # Hiç sürücü bulunamazsa log ekle
                 _logger.warning("Hiç sürücü bulunamadı!")
+                
+        # Alternatif olarak, delivery.carrier'dan araç bilgisini al
+        if not picking_vals.get('vehicle_id') and delivery_carrier:
+            # Carrier'ın varsayılan araç bilgisini kontrol et
+            if hasattr(delivery_carrier, 'vehicle_id') and delivery_carrier.vehicle_id:
+                picking_vals['vehicle_id'] = delivery_carrier.vehicle_id.id
+                _logger.info(f"Carrier'dan araç bilgisi alındı: {delivery_carrier.vehicle_id.name}")
         
 
         
