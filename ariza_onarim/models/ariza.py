@@ -910,6 +910,15 @@ class ArizaKayit(models.Model):
             'delivery_type': 'matbu',  # Her zaman matbu
         }
         
+        # Nakliye bilgilerini ekle
+        # Kargo şirketini bul (ücretsiz kargo)
+        delivery_carrier = self.env['delivery.carrier'].search([
+            ('delivery_type', '=', 'fixed'),
+            ('fixed_price', '=', 0.0)
+        ], limit=1)
+        if delivery_carrier:
+            picking_vals['carrier_id'] = delivery_carrier.id
+        
         # Araç bilgisi ekle - önce arıza kaydından, yoksa sistemdeki varsayılan araçtan
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
