@@ -919,6 +919,18 @@ class ArizaKayit(models.Model):
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
+            # Delivery carrier'ın vehicle_id alanını ayarla
+            if self.vehicle_id:
+                delivery_carrier.vehicle_id = self.vehicle_id.id
+            else:
+                # Eğer arıza kaydında vehicle_id yoksa, 34PLK34 plakalı sürücüyü bul
+                vehicle_34plk34 = self.env['res.partner'].search([
+                    ('is_driver', '=', True),
+                    ('name', 'ilike', '34PLK34')
+                ], limit=1)
+                if vehicle_34plk34:
+                    delivery_carrier.vehicle_id = vehicle_34plk34.id
+            
         # Araç bilgisi ekle - basit yöntem
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
@@ -1529,4 +1541,10 @@ class StockPicking(models.Model):
                         'target': 'current',
                     }
         return res 
+
+
+class DeliveryCarrier(models.Model):
+    _inherit = 'delivery.carrier'
+    
+    vehicle_id = fields.Many2one('res.partner', string='Araç No', domain="[('is_driver','=',True)]")
 
