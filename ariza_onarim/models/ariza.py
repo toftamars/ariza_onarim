@@ -924,20 +924,35 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         else:
-            # Sistemdeki 34PLK34 araç bilgisini bul
+            # Sistemdeki 34PLK34 araç bilgisini bul - farklı yöntemlerle
             default_vehicle = self.env['res.partner'].search([
                 ('is_driver', '=', True),
                 ('name', 'ilike', '34PLK34')
             ], limit=1)
-            if default_vehicle:
-                picking_vals['vehicle_id'] = default_vehicle.id
-            else:
-                # Genel varsayılan sürücü ara
+            
+            # Eğer bulunamazsa, plaka numarası ile ara
+            if not default_vehicle:
+                default_vehicle = self.env['res.partner'].search([
+                    ('is_driver', '=', True),
+                    '|',
+                    ('name', 'ilike', '34PLK34'),
+                    ('name', 'ilike', '34 PLK 34'),
+                    ('name', 'ilike', '34-PLK-34')
+                ], limit=1)
+            
+            # Hala bulunamazsa, genel varsayılan sürücü ara
+            if not default_vehicle:
                 default_vehicle = self.env['res.partner'].search([
                     ('is_driver', '=', True)
                 ], limit=1)
-                if default_vehicle:
-                    picking_vals['vehicle_id'] = default_vehicle.id
+            
+            if default_vehicle:
+                picking_vals['vehicle_id'] = default_vehicle.id
+                # Debug log ekle
+                _logger.info(f"Araç bilgisi bulundu: {default_vehicle.name} (ID: {default_vehicle.id})")
+            else:
+                # Hiç sürücü bulunamazsa log ekle
+                _logger.warning("Hiç sürücü bulunamadı!")
         
 
         
