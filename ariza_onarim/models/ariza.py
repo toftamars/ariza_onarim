@@ -1076,9 +1076,19 @@ class ArizaKayit(models.Model):
                 if record.ariza_tipi == 'magaza' and not record.transfer_id:
                     # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
                     if record.teknik_servis == 'TEDARİKÇİ':
-                        if not record.tedarikci_id or not record.tedarikci_id.property_stock_supplier:
-                            raise UserError('Tedarikçi veya tedarikçi stok konumu eksik!')
-                        picking = record._create_stock_transfer(hedef_konum=record.tedarikci_id.property_stock_supplier, transfer_tipi='ilk')
+                        if not record.tedarikci_id:
+                            raise UserError('Tedarikçi seçimi zorunludur!')
+                        # Tedarikçi stok konumu yoksa varsayılan konum kullan
+                        hedef_konum = record.tedarikci_id.property_stock_supplier
+                        if not hedef_konum:
+                            # Varsayılan tedarikçi konumu bul
+                            hedef_konum = record.env['stock.location'].search([
+                                ('usage', '=', 'supplier'),
+                                ('company_id', '=', record.company_id.id)
+                            ], limit=1)
+                            if not hedef_konum:
+                                raise UserError('Tedarikçi stok konumu bulunamadı!')
+                        picking = record._create_stock_transfer(hedef_konum=hedef_konum, transfer_tipi='ilk')
                         if picking:
                             record.transfer_id = picking.id
                             # Transfer oluşturulduğunda transfer'e yönlendir
