@@ -65,48 +65,68 @@
                     page-break-before: avoid !important;
                 }
                 
-                /* Kompakt tasarım için genel ayarlar - boyutlar büyütüldü */
+                /* Düzenli ve toplu tasarım - boyutlar daha da büyütüldü */
                 .row {
-                    margin-bottom: 10px !important;
+                    margin-bottom: 12px !important;
                 }
                 
                 .mb-4 {
-                    margin-bottom: 10px !important;
+                    margin-bottom: 12px !important;
                 }
                 
                 h2 {
-                    font-size: 18px !important;
-                    margin-bottom: 10px !important;
-                }
-                
-                h5 {
-                    font-size: 14px !important;
-                    margin-bottom: 6px !important;
+                    font-size: 20px !important;
+                    margin-bottom: 12px !important;
+                    text-align: center !important;
                     font-weight: bold !important;
                 }
                 
+                h5 {
+                    font-size: 16px !important;
+                    margin-bottom: 8px !important;
+                    font-weight: bold !important;
+                    color: #2c3e50 !important;
+                }
+                
                 .table {
-                    font-size: 12px !important;
-                    margin-bottom: 10px !important;
+                    font-size: 13px !important;
+                    margin-bottom: 12px !important;
+                    border-collapse: collapse !important;
                 }
                 
                 .table td {
-                    padding: 4px 8px !important;
+                    padding: 6px 10px !important;
+                    border: 1px solid #ddd !important;
                 }
                 
                 .table th {
-                    padding: 4px 8px !important;
+                    padding: 6px 10px !important;
+                    border: 1px solid #ddd !important;
+                    background-color: #f8f9fa !important;
+                    font-weight: bold !important;
                 }
                 
-                /* Gönderi adresi kompakt - boyutlar büyütüldü */
+                /* Gönderi adresi düzenli - boyutlar büyütüldü */
                 .gonderi-adresi {
-                    padding: 10px !important;
-                    font-size: 12px !important;
-                    margin-bottom: 10px !important;
+                    padding: 12px !important;
+                    font-size: 13px !important;
+                    margin-bottom: 12px !important;
+                    border-radius: 5px !important;
                 }
                 
                 .gonderi-adresi strong {
-                    font-size: 14px !important;
+                    font-size: 15px !important;
+                }
+                
+                /* Genel metin boyutları */
+                body, html {
+                    font-size: 12px !important;
+                }
+                
+                /* Başlık ve etiketler */
+                strong {
+                    font-weight: bold !important;
+                    color: #2c3e50 !important;
                 }
             </style>
             <div class="page page-break-after" style="page-break-after: avoid !important;">
@@ -131,7 +151,8 @@
                                 <span t-if="o.tedarikci_id.city" t-field="o.tedarikci_id.city"/>
                                 <span t-if="o.tedarikci_id.state_id" t-field="o.tedarikci_id.state_id.name"/>
                                 <span t-if="o.tedarikci_id.zip" t-field="o.tedarikci_id.zip"/><br/>
-                                <span t-if="o.tedarikci_id.country_id" t-field="o.tedarikci_id.country_id.name"/>
+                                <span t-if="o.tedarikci_id.country_id" t-field="o.tedarikci_id.country_id.name"/><br/>
+                                <span t-if="o.tedarikci_id.phone or o.tedarikci_id.mobile">Tel: <t t-esc="o.tedarikci_id.phone or o.tedarikci_id.mobile"/></span>
                             </t>
                             
                             <!-- MAĞAZA için -->
@@ -145,7 +166,7 @@
                             <t t-if="o.teknik_servis not in ['TEDARİKÇİ', 'MAĞAZA']">
                                 <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
                                 <span t-if="o.teknik_servis_adres" t-esc="o.teknik_servis_adres"/><br/>
-                                <span t-if="o.teknik_servis_adres">Tel: <t t-esc="o.teknik_servis_adres"/></span>
+                                <span t-if="o.teknik_servis_telefon">Tel: <t t-esc="o.teknik_servis_telefon"/></span>
                                 <span t-if="not o.teknik_servis_adres">Adres bilgisi mevcut değil</span>
                             </t>
                         </div>

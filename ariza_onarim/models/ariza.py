@@ -175,6 +175,7 @@ class ArizaKayit(models.Model):
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
     teknik_servis_adres = fields.Char(string='Teknik Servis Adresi', compute='_compute_teknik_servis_adres', store=False)
+    teknik_servis_telefon = fields.Char(string='Teknik Servis Telefonu', compute='_compute_teknik_servis_telefon', store=False)
     teslim_alan = fields.Char(string='Teslim Alan')
     teslim_alan_tc = fields.Char(string='Teslim Alan TC')
     teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
@@ -1423,6 +1424,22 @@ Arıza Kaydı Tamamlandı.<br/>
                 rec.teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
             else:
                 rec.teknik_servis_adres = ''
+
+    @api.depends('teknik_servis', 'tedarikci_id')
+    def _compute_teknik_servis_telefon(self):
+        for rec in self:
+            if rec.teknik_servis == 'TEDARİKÇİ' and rec.tedarikci_id:
+                rec.teknik_servis_telefon = rec.tedarikci_id.phone or rec.tedarikci_id.mobile or ''
+            elif rec.teknik_servis == 'ZUHAL ARIZA DEPO':
+                rec.teknik_servis_telefon = '0212 555 55 55'
+            elif rec.teknik_servis == 'DTL BEYOĞLU':
+                rec.teknik_servis_telefon = '0212 555 55 56'
+            elif rec.teknik_servis == 'DTL OKMEYDANI':
+                rec.teknik_servis_telefon = '0212 555 55 57'
+            elif rec.teknik_servis == 'ZUHAL NEFESLİ':
+                rec.teknik_servis_telefon = '0212 555 55 58'
+            else:
+                rec.teknik_servis_telefon = ''
 
     def action_lock(self):
         for rec in self:
