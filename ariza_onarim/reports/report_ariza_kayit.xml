@@ -10,29 +10,27 @@
 
     <!-- Özelleştirilmiş External Layout -->
     <template id="ariza_external_layout" inherit_id="web.external_layout">
-        <xpath expr="//div[@class='header']" position="replace">
-            <div class="header">
+        <xpath expr="//div[@class='oe-document-header']" position="replace">
+            <div class="oe-document-header">
                 <div class="row">
                     <div class="col-3">
-                        <div class="oe-document-header">
-                            <div class="oe-document-header-content">
-                                <div class="oe-document-header-title">
-                                    <h2 class="oe-document-header-title-text">
-                                        <t t-if="company.logo">
-                                            <img t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
-                                        </t>
-                                        <span t-if="not company.logo" t-field="company.name"/>
-                                    </h2>
-                                </div>
-                                <div class="oe-document-header-info">
-                                    <div class="oe-document-header-address">
-                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
-                                            <div t-esc="o.analitik_hesap_id.adres"/>
-                                        </t>
-                                        <t t-else="">
-                                            <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
-                                        </t>
-                                    </div>
+                        <div class="oe-document-header-content">
+                            <div class="oe-document-header-title">
+                                <h2 class="oe-document-header-title-text">
+                                    <t t-if="company.logo">
+                                        <img t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
+                                    </t>
+                                    <span t-if="not company.logo" t-field="company.name"/>
+                                </h2>
+                            </div>
+                            <div class="oe-document-header-info">
+                                <div class="oe-document-header-address">
+                                    <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
+                                        <div t-esc="o.analitik_hesap_id.adres"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                                    </t>
                                 </div>
                             </div>
                         </div>
