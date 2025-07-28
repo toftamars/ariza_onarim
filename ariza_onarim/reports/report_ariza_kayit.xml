@@ -140,20 +140,54 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
                         <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
-                        <!-- Teslim Mağazası seçilmişse -->
-                        <t t-if="o.teslim_alan == 'Teslim Mağazası' and o.teslim_magazasi_id">
-                            <t t-esc="o.teslim_magazasi_id.name"/><br/>
-                            <t t-esc="o.teslim_magazasi_id.street or ''"/><br/>
-                            <t t-esc="o.teslim_magazasi_id.city or ''"/>, <t t-esc="o.teslim_magazasi_id.country_id.name or ''"/>
+                        <!-- Onarımı Tamamla ve SMS Gönder sonrası (teslim_edildi durumu) -->
+                        <t t-if="o.state == 'teslim_edildi'">
+                            <!-- Teslim Mağazası seçilmişse -->
+                            <t t-if="o.teslim_alan == 'Teslim Mağazası' and o.teslim_magazasi_id">
+                                <t t-esc="o.teslim_magazasi_id.name"/><br/>
+                                <t t-esc="o.teslim_magazasi_id.street or ''"/><br/>
+                                <t t-esc="o.teslim_magazasi_id.city or ''"/>, <t t-esc="o.teslim_magazasi_id.country_id.name or ''"/>
+                            </t>
+                            <!-- Adrese Gönderim seçilmişse -->
+                            <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.partner_id">
+                                <t t-esc="o.partner_id.name"/><br/>
+                                <t t-esc="o.partner_id.street or ''"/><br/>
+                                <t t-if="o.partner_id.street2" t-esc="o.partner_id.street2"/><br/>
+                                <t t-esc="o.partner_id.city or ''"/>, <t t-esc="o.partner_id.country_id.name or ''"/>
+                            </t>
+                            <!-- Eğer teslim alanı belirlenmemişse teknik servis adresi -->
+                            <t t-else="">
+                                <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                    DTL BEYOĞLU<br/>
+                                    Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
+                                    Beyoğlu, İstanbul
+                                </t>
+                                <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                    DTL OKMEYDANI<br/>
+                                    Okmeydanı Mah. Okmeydanı Cad. No:123<br/>
+                                    Şişli, İstanbul
+                                </t>
+                                <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                    ZUHAL ARIZA DEPO<br/>
+                                    Arıza Depo Mah. Depo Cad. No:456<br/>
+                                    İstanbul
+                                </t>
+                                <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                    ZUHAL NEFESLİ<br/>
+                                    Nefesli Mah. Nefesli Cad. No:789<br/>
+                                    İstanbul
+                                </t>
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
+                                    <t t-esc="o.tedarikci_id.name"/><br/>
+                                    <t t-esc="o.tedarikci_id.street or ''"/><br/>
+                                    <t t-esc="o.tedarikci_id.city or ''"/>, <t t-esc="o.tedarikci_id.country_id.name or ''"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-esc="o.teknik_servis"/>
+                                </t>
+                            </t>
                         </t>
-                        <!-- Adrese Gönderim seçilmişse -->
-                        <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.partner_id">
-                            <t t-esc="o.partner_id.name"/><br/>
-                            <t t-esc="o.partner_id.street or ''"/><br/>
-                            <t t-if="o.partner_id.street2" t-esc="o.partner_id.street2"/><br/>
-                            <t t-esc="o.partner_id.city or ''"/>, <t t-esc="o.partner_id.country_id.name or ''"/>
-                        </t>
-                        <!-- Eğer teslim alanı belirlenmemişse teknik servis adresi -->
+                        <!-- Diğer durumlar için eski mantık (teknik servis adresi) -->
                         <t t-else="">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 DTL BEYOĞLU<br/>
