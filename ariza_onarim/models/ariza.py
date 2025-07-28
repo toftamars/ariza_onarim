@@ -1005,12 +1005,8 @@ class ArizaKayit(models.Model):
         return picking
 
     def _send_sms_to_customer(self, message):
-        # Debug log ekle
-        self.message_post(body=f"İlk SMS koşulları kontrol ediliyor: islem_tipi={self.islem_tipi}, ariza_tipi={self.ariza_tipi}, ilk_sms_gonderildi={self.ilk_sms_gonderildi}")
-        
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != 'musteri':
-            self.message_post(body=f"SMS gönderilmedi: Arıza tipi müşteri değil ({self.ariza_tipi})")
             return
             
         if self.partner_id and self.partner_id.phone:
@@ -1033,9 +1029,8 @@ class ArizaKayit(models.Model):
                 self.message_post(body=error_msg)
                 _logger.error(f"SMS hatası: {self.name} - {str(e)}")
         else:
-            # Partner veya telefon yoksa log
+            # Partner veya telefon yoksa sadece log dosyasına yaz
             missing_info = f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}"
-            self.message_post(body=missing_info)
             _logger.warning(f"SMS koşulları eksik: {self.name} - {missing_info}")
             
         # SMS ile birlikte mail de gönder
