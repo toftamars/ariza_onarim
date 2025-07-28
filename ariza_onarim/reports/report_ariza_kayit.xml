@@ -131,7 +131,7 @@
                         </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
                             <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
-                                <t t-esc="o.analitik_hesap_id.name.replace('Perakende - ', '') if o.analitik_hesap_id.name and 'Perakende - ' in o.analitik_hesap_id.name else o.analitik_hesap_id.name"/>
+                                <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '').replace('Uniq', 'UNIQ MAĞAZA') + ' MAĞAZA') if o.analitik_hesap_id.name else ''"/>
                             </div>
                         </t>
                         <t t-else="">
