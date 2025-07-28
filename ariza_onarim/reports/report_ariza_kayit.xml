@@ -65,48 +65,48 @@
                     page-break-before: avoid !important;
                 }
                 
-                /* Kompakt tasarım için genel ayarlar */
+                /* Kompakt tasarım için genel ayarlar - boyutlar büyütüldü */
                 .row {
-                    margin-bottom: 8px !important;
+                    margin-bottom: 10px !important;
                 }
                 
                 .mb-4 {
-                    margin-bottom: 8px !important;
+                    margin-bottom: 10px !important;
                 }
                 
                 h2 {
-                    font-size: 16px !important;
-                    margin-bottom: 8px !important;
+                    font-size: 18px !important;
+                    margin-bottom: 10px !important;
                 }
                 
                 h5 {
-                    font-size: 12px !important;
-                    margin-bottom: 4px !important;
+                    font-size: 14px !important;
+                    margin-bottom: 6px !important;
                     font-weight: bold !important;
                 }
                 
                 .table {
-                    font-size: 10px !important;
-                    margin-bottom: 8px !important;
+                    font-size: 12px !important;
+                    margin-bottom: 10px !important;
                 }
                 
                 .table td {
-                    padding: 3px 6px !important;
+                    padding: 4px 8px !important;
                 }
                 
                 .table th {
-                    padding: 3px 6px !important;
+                    padding: 4px 8px !important;
                 }
                 
-                /* Gönderi adresi kompakt */
+                /* Gönderi adresi kompakt - boyutlar büyütüldü */
                 .gonderi-adresi {
-                    padding: 8px !important;
-                    font-size: 10px !important;
-                    margin-bottom: 8px !important;
+                    padding: 10px !important;
+                    font-size: 12px !important;
+                    margin-bottom: 10px !important;
                 }
                 
                 .gonderi-adresi strong {
-                    font-size: 12px !important;
+                    font-size: 14px !important;
                 }
             </style>
             <div class="page page-break-after" style="page-break-after: avoid !important;">
@@ -117,7 +117,7 @@
                     </div>
                 </div>
 
-                <!-- Gönderi Adresi (Tüm Teknik Servisler için) -->
+                <!-- Gönderi Adresi (Dinamik - Tüm Teknik Servisler için) -->
                 <div class="row mb-4" t-if="o.teknik_servis">
                     <div class="col-12">
                         <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
@@ -141,38 +141,12 @@
                                 <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
                             </t>
                             
-                            <!-- DTL BEYOĞLU için -->
-                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
-                                <span style="font-weight: bold;">DTL BEYOĞLU</span><br/>
-                                <span>Beyoğlu, İstanbul</span><br/>
-                                <span>Tel: 0212 XXX XX XX</span>
-                            </t>
-                            
-                            <!-- DTL OKMEYDANI için -->
-                            <t t-if="o.teknik_servis == 'DTL OKMEYDANI'">
-                                <span style="font-weight: bold;">DTL OKMEYDANI</span><br/>
-                                <span>Okmeydanı, İstanbul</span><br/>
-                                <span>Tel: 0212 XXX XX XX</span>
-                            </t>
-                            
-                            <!-- ZUHAL ARIZA DEPO için -->
-                            <t t-if="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
-                                <span style="font-weight: bold;">ZUHAL ARIZA DEPO</span><br/>
-                                <span>Arıza Depo Adresi</span><br/>
-                                <span>Tel: XXX XXX XX XX</span>
-                            </t>
-                            
-                            <!-- ZUHAL NEFESLİ için -->
-                            <t t-if="o.teknik_servis == 'ZUHAL NEFESLİ'">
-                                <span style="font-weight: bold;">ZUHAL NEFESLİ</span><br/>
-                                <span>Nefesli Adresi</span><br/>
-                                <span>Tel: XXX XXX XX XX</span>
-                            </t>
-                            
-                            <!-- Genel durum - adres bilgisi yoksa -->
-                            <t t-if="not o.tedarikci_id and o.teknik_servis not in ['MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
+                            <!-- Diğer tüm teknik servisler için dinamik adres -->
+                            <t t-if="o.teknik_servis not in ['TEDARİKÇİ', 'MAĞAZA']">
                                 <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
-                                <span>Adres bilgisi mevcut değil</span>
+                                <span t-if="o.teknik_servis_adres" t-esc="o.teknik_servis_adres"/><br/>
+                                <span t-if="o.teknik_servis_adres">Tel: <t t-esc="o.teknik_servis_adres"/></span>
+                                <span t-if="not o.teknik_servis_adres">Adres bilgisi mevcut değil</span>
                             </t>
                         </div>
                     </div>
