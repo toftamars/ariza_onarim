@@ -11,41 +11,60 @@
     <template id="report_ariza_kayit_document">
         <t t-call="web.external_layout">
             <style>
-                /* Boş sayfa kaldırma - güçlü kurallar */
-                .page-break-after {
-                    page-break-after: avoid !important;
-                }
-                /* Sayfa numarası font boyutunu küçült */
-                .page-number {
-                    font-size: 10px !important;
-                }
-                /* Sayfa sonunda boşluk bırakma */
-                .page {
-                    page-break-after: avoid !important;
-                }
-                /* Tüm sayfa geçişlerini engelle */
-                * {
-                    page-break-after: avoid !important;
-                }
-                /* Body ve html için sayfa geçişi engelleme */
-                body, html {
-                    page-break-after: avoid !important;
-                }
-                /* External layout için sayfa geçişi engelleme */
-                .o_report_layout_standard {
-                    page-break-after: avoid !important;
-                }
-                /* Sayfa sonu kontrolü */
+                /* Boş sayfa kaldırma - çok güçlü kurallar */
                 @page {
                     size: A4;
                     margin: 1cm;
                 }
+                
+                /* Tüm sayfa geçişlerini engelle */
+                * {
+                    page-break-after: avoid !important;
+                    page-break-before: avoid !important;
+                    page-break-inside: avoid !important;
+                }
+                
+                /* Body ve html için sayfa geçişi engelleme */
+                body, html {
+                    page-break-after: avoid !important;
+                    page-break-before: avoid !important;
+                }
+                
+                /* External layout için sayfa geçişi engelleme */
+                .o_report_layout_standard {
+                    page-break-after: avoid !important;
+                    page-break-before: avoid !important;
+                }
+                
                 /* Boş sayfa engelleme */
-                .o_report_layout_standard:after {
+                .o_report_layout_standard:after,
+                .o_report_layout_standard:before {
                     display: none !important;
                 }
+                
+                /* Sayfa numarası font boyutunu küçült */
+                .page-number {
+                    font-size: 10px !important;
+                }
+                
+                /* Sayfa sonunda boşluk bırakma */
+                .page {
+                    page-break-after: avoid !important;
+                    page-break-before: avoid !important;
+                }
+                
+                /* Boş sayfa engelleme - ek kurallar */
+                .o_report_layout_standard > *:last-child {
+                    page-break-after: avoid !important;
+                }
+                
+                /* Tüm div'ler için sayfa geçişi engelleme */
+                div {
+                    page-break-after: avoid !important;
+                    page-break-before: avoid !important;
+                }
             </style>
-            <div class="page page-break-after">
+            <div class="page page-break-after" style="page-break-after: avoid !important;">
                 <!-- Başlık -->
                 <div class="row">
                     <div class="col-12 text-center">
