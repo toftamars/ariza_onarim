@@ -8,8 +8,58 @@
         </t>
     </template>
 
+    <!-- Özelleştirilmiş External Layout -->
+    <template id="ariza_external_layout" inherit_id="web.external_layout">
+        <xpath expr="//div[@class='header']" position="replace">
+            <div class="header">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="oe-document-header">
+                            <div class="oe-document-header-content">
+                                <div class="oe-document-header-title">
+                                    <h2 class="oe-document-header-title-text">
+                                        <t t-if="company.logo">
+                                            <img t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
+                                        </t>
+                                        <span t-if="not company.logo" t-field="company.name"/>
+                                    </h2>
+                                </div>
+                                <div class="oe-document-header-info">
+                                    <div class="oe-document-header-address">
+                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
+                                            <div t-esc="o.analitik_hesap_id.adres"/>
+                                        </t>
+                                        <t t-else="">
+                                            <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div class="oe-document-header-right">
+                            <div class="oe-document-header-right-content">
+                                <div class="oe-document-header-right-info">
+                                    <div class="oe-document-header-right-address">
+                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">
+                                            <div>Tel: <t t-esc="o.analitik_hesap_id.telefon"/></div>
+                                        </t>
+                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.email">
+                                            <div>Email: <t t-esc="o.analitik_hesap_id.email"/></div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
     <template id="report_ariza_kayit_document">
-        <t t-call="web.external_layout">
+        <t t-call="ariza_onarim.ariza_external_layout">
             <style>
                 /* Tek sayfa boyutlandırma - kompakt tasarım */
                 @page {
