@@ -264,13 +264,6 @@
                 <div class="col-12">
                     <table class="table">
                         <tr>
-                            <td><strong>Kalan İş Günü:</strong></td>
-                            <td>
-                                <span t-if="o.kalan_is_gunu" t-field="o.kalan_is_gunu"/>
-                                <span t-else="">-</span>
-                            </td>
-                        </tr>
-                        <tr>
                             <td><strong>Onarım Ücreti:</strong></td>
                             <td>
                                 <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">
