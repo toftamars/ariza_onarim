@@ -126,7 +126,6 @@
             <div class="row mb-4" t-if="o.analitik_hesap_id">
                 <div class="col-6">
                     <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
-                        <strong>Şirket Bilgileri:</strong><br/>
                         <t t-if="o.analitik_hesap_id.adres">
                             <div t-esc="o.analitik_hesap_id.adres"/>
                         </t>
