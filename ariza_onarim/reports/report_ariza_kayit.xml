@@ -130,16 +130,16 @@
                 }
             </style>
             <div class="page page-break-after" style="page-break-after: avoid !important;">
-                <!-- Başlık -->
-                <div class="row">
-                    <div class="col-12 text-center">
+
+
+                <!-- Başlık ve Gönderi Adresi (Yan yana) -->
+                <div class="row mb-4">
+                    <!-- Sol taraf - Başlık -->
+                    <div class="col-6">
                         <h2 class="mb-4">ARIZA KAYIT FORMU</h2>
                     </div>
-                </div>
-
-                <!-- Gönderi Adresi (Dinamik - Tüm Teknik Servisler için) -->
-                <div class="row mb-4" t-if="o.teknik_servis">
-                    <div class="col-12">
+                    <!-- Sağ taraf - Gönderi Adresi -->
+                    <div class="col-6" t-if="o.teknik_servis">
                         <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
                             <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
                             
@@ -191,7 +191,7 @@
                             </t>
                             
                             <!-- Genel durum - eğer yukarıdakilerden hiçbiri değilse -->
-                            <t t-if="o.teknik_servis not in ['TEDARİKÇİ', 'MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
+                            <t t-if="o.teknik_servis not in ['TEDARİKÇI', 'MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
                                 <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
                                 <span>Adres bilgisi mevcut değil</span>
                             </t>
