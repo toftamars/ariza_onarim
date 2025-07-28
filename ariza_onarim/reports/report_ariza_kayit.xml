@@ -123,16 +123,25 @@
             </style>
             
             <!-- Analitik Hesap Bilgileri - Üst Kısım -->
-            <div class="row mb-4" t-if="o.analitik_hesap_id">
+            <div class="row mb-4">
                 <div class="col-6">
                     <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
-                        <t t-if="o.analitik_hesap_id.adres">
+                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
                             <div t-esc="o.analitik_hesap_id.adres"/>
                         </t>
-                        <t t-if="o.analitik_hesap_id.telefon">
+                        <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
+                            <div t-esc="o.analitik_hesap_id.name"/><br/>
+                            <div t-esc="o.analitik_hesap_id.street or ''"/><br/>
+                            <div t-esc="o.analitik_hesap_id.city or ''"/>, <t t-esc="o.analitik_hesap_id.country_id.name or ''"/>
+                        </t>
+                        <t t-else="">
+                            <div t-field="company.name"/><br/>
+                            <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                        </t>
+                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">
                             <div>Tel: <t t-esc="o.analitik_hesap_id.telefon"/></div>
                         </t>
-                        <t t-if="o.analitik_hesap_id.email">
+                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.email">
                             <div>Email: <t t-esc="o.analitik_hesap_id.email"/></div>
                         </t>
                     </div>
