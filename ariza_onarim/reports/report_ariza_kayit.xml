@@ -130,9 +130,7 @@
                             <div t-esc="o.analitik_hesap_id.adres"/>
                         </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
-                            <div t-esc="o.analitik_hesap_id.name"/><br/>
-                            <div t-esc="o.analitik_hesap_id.street or ''"/><br/>
-                            <div t-esc="o.analitik_hesap_id.city or ''"/>, <t t-esc="o.analitik_hesap_id.country_id.name or ''"/>
+                            <div t-esc="o.analitik_hesap_id.name"/>
                         </t>
                         <t t-else="">
                             <div t-field="company.name"/><br/>
