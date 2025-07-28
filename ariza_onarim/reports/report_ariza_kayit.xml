@@ -162,12 +162,38 @@
                                 <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
                             </t>
                             
-                            <!-- Diğer tüm teknik servisler için dinamik adres -->
-                            <t t-if="o.teknik_servis not in ['TEDARİKÇİ', 'MAĞAZA']">
+                            <!-- DTL BEYOĞLU için -->
+                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                <span style="font-weight: bold;">DTL BEYOĞLU</span><br/>
+                                <span>Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47</span><br/>
+                                <span>Tel: 0212 555 55 56</span>
+                            </t>
+                            
+                            <!-- DTL OKMEYDANI için -->
+                            <t t-if="o.teknik_servis == 'DTL OKMEYDANI'">
+                                <span style="font-weight: bold;">DTL OKMEYDANI</span><br/>
+                                <span>MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI</span><br/>
+                                <span>Tel: 0212 555 55 57</span>
+                            </t>
+                            
+                            <!-- ZUHAL ARIZA DEPO için -->
+                            <t t-if="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                <span style="font-weight: bold;">ZUHAL ARIZA DEPO</span><br/>
+                                <span>Halkalı merkez mh. Dereboyu cd. No:8/B</span><br/>
+                                <span>Tel: 0212 555 55 55</span>
+                            </t>
+                            
+                            <!-- ZUHAL NEFESLİ için -->
+                            <t t-if="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                <span style="font-weight: bold;">ZUHAL NEFESLİ</span><br/>
+                                <span>Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul</span><br/>
+                                <span>Tel: 0212 555 55 58</span>
+                            </t>
+                            
+                            <!-- Genel durum - eğer yukarıdakilerden hiçbiri değilse -->
+                            <t t-if="o.teknik_servis not in ['TEDARİKÇİ', 'MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
                                 <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
-                                <span t-if="o.teknik_servis_adres" t-esc="o.teknik_servis_adres"/><br/>
-                                <span t-if="o.teknik_servis_telefon">Tel: <t t-esc="o.teknik_servis_telefon"/></span>
-                                <span t-if="not o.teknik_servis_adres">Adres bilgisi mevcut değil</span>
+                                <span>Adres bilgisi mevcut değil</span>
                             </t>
                         </div>
                     </div>
