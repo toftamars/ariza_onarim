@@ -10,7 +10,21 @@
 
     <template id="report_ariza_kayit_document">
         <t t-call="web.external_layout">
-            <div class="page">
+            <style>
+                /* Boş sayfa kaldırma */
+                .page-break-after {
+                    page-break-after: avoid;
+                }
+                /* Sayfa numarası font boyutunu küçült */
+                .page-number {
+                    font-size: 10px !important;
+                }
+                /* Sayfa sonunda boşluk bırakma */
+                .page {
+                    page-break-after: avoid;
+                }
+            </style>
+            <div class="page page-break-after">
                 <!-- Başlık -->
                 <div class="row">
                     <div class="col-12 text-center">
