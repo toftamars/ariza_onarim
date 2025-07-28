@@ -117,18 +117,63 @@
                     </div>
                 </div>
 
-                <!-- Gönderi Adresi (Tedarikçi için) -->
-                <div class="row mb-4" t-if="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
+                <!-- Gönderi Adresi (Tüm Teknik Servisler için) -->
+                <div class="row mb-4" t-if="o.teknik_servis">
                     <div class="col-12">
                         <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
                             <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
-                            <span t-field="o.tedarikci_id.name" style="font-weight: bold;"/><br/>
-                            <span t-if="o.tedarikci_id.street" t-field="o.tedarikci_id.street"/><br/>
-                            <span t-if="o.tedarikci_id.street2" t-field="o.tedarikci_id.street2"/><br/>
-                            <span t-if="o.tedarikci_id.city" t-field="o.tedarikci_id.city"/>
-                            <span t-if="o.tedarikci_id.state_id" t-field="o.tedarikci_id.state_id.name"/>
-                            <span t-if="o.tedarikci_id.zip" t-field="o.tedarikci_id.zip"/><br/>
-                            <span t-if="o.tedarikci_id.country_id" t-field="o.tedarikci_id.country_id.name"/>
+                            
+                            <!-- TEDARİKÇİ için -->
+                            <t t-if="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
+                                <span t-field="o.tedarikci_id.name" style="font-weight: bold;"/><br/>
+                                <span t-if="o.tedarikci_id.street" t-field="o.tedarikci_id.street"/><br/>
+                                <span t-if="o.tedarikci_id.street2" t-field="o.tedarikci_id.street2"/><br/>
+                                <span t-if="o.tedarikci_id.city" t-field="o.tedarikci_id.city"/>
+                                <span t-if="o.tedarikci_id.state_id" t-field="o.tedarikci_id.state_id.name"/>
+                                <span t-if="o.tedarikci_id.zip" t-field="o.tedarikci_id.zip"/><br/>
+                                <span t-if="o.tedarikci_id.country_id" t-field="o.tedarikci_id.country_id.name"/>
+                            </t>
+                            
+                            <!-- MAĞAZA için -->
+                            <t t-if="o.teknik_servis == 'MAĞAZA'">
+                                <span style="font-weight: bold;">MAĞAZA</span><br/>
+                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-esc="o.analitik_hesap_id.adres"/><br/>
+                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
+                            </t>
+                            
+                            <!-- DTL BEYOĞLU için -->
+                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                <span style="font-weight: bold;">DTL BEYOĞLU</span><br/>
+                                <span>Beyoğlu, İstanbul</span><br/>
+                                <span>Tel: 0212 XXX XX XX</span>
+                            </t>
+                            
+                            <!-- DTL OKMEYDANI için -->
+                            <t t-if="o.teknik_servis == 'DTL OKMEYDANI'">
+                                <span style="font-weight: bold;">DTL OKMEYDANI</span><br/>
+                                <span>Okmeydanı, İstanbul</span><br/>
+                                <span>Tel: 0212 XXX XX XX</span>
+                            </t>
+                            
+                            <!-- ZUHAL ARIZA DEPO için -->
+                            <t t-if="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                <span style="font-weight: bold;">ZUHAL ARIZA DEPO</span><br/>
+                                <span>Arıza Depo Adresi</span><br/>
+                                <span>Tel: XXX XXX XX XX</span>
+                            </t>
+                            
+                            <!-- ZUHAL NEFESLİ için -->
+                            <t t-if="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                <span style="font-weight: bold;">ZUHAL NEFESLİ</span><br/>
+                                <span>Nefesli Adresi</span><br/>
+                                <span>Tel: XXX XXX XX XX</span>
+                            </t>
+                            
+                            <!-- Genel durum - adres bilgisi yoksa -->
+                            <t t-if="not o.tedarikci_id and o.teknik_servis not in ['MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
+                                <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
+                                <span>Adres bilgisi mevcut değil</span>
+                            </t>
                         </div>
                     </div>
                 </div>
