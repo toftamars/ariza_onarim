@@ -83,7 +83,13 @@ class ArizaKayit(models.Model):
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
+        ('musteri_urunu', 'Müşteri Ürünü'),
+        ('teknik_servis', 'Teknik Servis'),
     ], string='İşlem Tipi', required=True, tracking=True)
+    
+
+    
+
     ariza_tipi = fields.Selection([
         ('musteri', 'Müşteri Ürünü'),
         ('magaza', 'Mağaza Ürünü')
@@ -570,6 +576,9 @@ class ArizaKayit(models.Model):
 
     @api.onchange('teknik_servis')
     def _onchange_teknik_servis(self):
+        # İşlem tipi kontrolü - sadece MAĞAZA VE TEDARİKÇİ seçildiğinde ek seçenekler
+        if self.teknik_servis not in ['MAĞAZA', 'TEDARİKÇİ'] and self.islem_tipi not in ['kabul']:
+            self.islem_tipi = 'kabul'
         if not self.analitik_hesap_id:
             return
 
