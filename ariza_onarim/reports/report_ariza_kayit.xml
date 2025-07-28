@@ -264,6 +264,13 @@
                 <div class="col-12">
                     <table class="table">
                         <tr>
+                            <td><strong>Onarım Bilgisi:</strong></td>
+                            <td>
+                                <span t-if="o.onarim_bilgisi" t-field="o.onarim_bilgisi"/>
+                                <span t-else="">Teknik Servis Tarafından doldurulacaktır</span>
+                            </td>
+                        </tr>
+                        <tr>
                             <td><strong>Onarım Ücreti:</strong></td>
                             <td>
                                 <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">
