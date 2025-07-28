@@ -265,6 +265,7 @@
                 <field name="urun"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
+                <field name="kalan_is_gunu" string="Kalan Onarım Süresi"/>
                 <field name="state"/>
             </tree>
         </field>
