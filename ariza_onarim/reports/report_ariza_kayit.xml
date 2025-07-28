@@ -11,10 +11,10 @@
     <template id="report_ariza_kayit_document">
         <t t-call="web.external_layout">
             <style>
-                /* Boş sayfa kaldırma - çok güçlü kurallar */
+                /* Tek sayfa boyutlandırma - kompakt tasarım */
                 @page {
                     size: A4;
-                    margin: 1cm;
+                    margin: 0.5cm;
                 }
                 
                 /* Tüm sayfa geçişlerini engelle */
@@ -28,6 +28,7 @@
                 body, html {
                     page-break-after: avoid !important;
                     page-break-before: avoid !important;
+                    font-size: 11px !important;
                 }
                 
                 /* External layout için sayfa geçişi engelleme */
@@ -44,7 +45,7 @@
                 
                 /* Sayfa numarası font boyutunu küçült */
                 .page-number {
-                    font-size: 10px !important;
+                    font-size: 8px !important;
                 }
                 
                 /* Sayfa sonunda boşluk bırakma */
@@ -63,6 +64,50 @@
                     page-break-after: avoid !important;
                     page-break-before: avoid !important;
                 }
+                
+                /* Kompakt tasarım için genel ayarlar */
+                .row {
+                    margin-bottom: 8px !important;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 8px !important;
+                }
+                
+                h2 {
+                    font-size: 16px !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                h5 {
+                    font-size: 12px !important;
+                    margin-bottom: 4px !important;
+                    font-weight: bold !important;
+                }
+                
+                .table {
+                    font-size: 10px !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                .table td {
+                    padding: 3px 6px !important;
+                }
+                
+                .table th {
+                    padding: 3px 6px !important;
+                }
+                
+                /* Gönderi adresi kompakt */
+                .gonderi-adresi {
+                    padding: 8px !important;
+                    font-size: 10px !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                .gonderi-adresi strong {
+                    font-size: 12px !important;
+                }
             </style>
             <div class="page page-break-after" style="page-break-after: avoid !important;">
                 <!-- Başlık -->
@@ -75,8 +120,8 @@
                 <!-- Gönderi Adresi (Tedarikçi için) -->
                 <div class="row mb-4" t-if="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                     <div class="col-12">
-                        <div class="text-right" style="border: 3px solid #000; padding: 15px; background-color: #f0f0f0; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
-                            <strong style="font-size: 16px; color: #000;">GÖNDERİ ADRESİ:</strong><br/>
+                        <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
+                            <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
                             <span t-field="o.tedarikci_id.name" style="font-weight: bold;"/><br/>
                             <span t-if="o.tedarikci_id.street" t-field="o.tedarikci_id.street"/><br/>
                             <span t-if="o.tedarikci_id.street2" t-field="o.tedarikci_id.street2"/><br/>
