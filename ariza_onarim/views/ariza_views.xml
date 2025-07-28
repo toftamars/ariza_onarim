@@ -15,6 +15,8 @@
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
+                    <!-- İptal butonu - teknik ekip için -->
+                    <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', '=', 'iptal')]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi,teslim_edildi"/>
                 </header>
                 <sheet>
@@ -181,6 +183,8 @@
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
                     <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
+                    <!-- İptal butonu - hem yöneticiler hem kullanıcılar için -->
+                    <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', '=', 'iptal')]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi,teslim_edildi"/>
                 </header>
                 <sheet>

@@ -1276,6 +1276,22 @@ Arıza Kaydı Tamamlandı.<br/>
                 }
             }
 
+    def action_iptal(self):
+        """Arıza kaydını iptal et"""
+        # İptal durumuna geç
+        self.state = 'iptal'
+        
+        # İptal mesajı gönder
+        self.message_post(
+            body=_('Arıza kaydı iptal edildi.'),
+            subject="Arıza Kaydı İptal Edildi"
+        )
+        
+        # Log kaydı
+        _logger.info(f"Arıza kaydı iptal edildi: {self.name} - Kullanıcı: {self.env.user.login}")
+        
+        return True
+
     def action_kullanici_tamamla(self):
         """Kullanıcı tamamlama işlemi - Sadece tamamlandi durumundan çalışır"""
         for record in self:
