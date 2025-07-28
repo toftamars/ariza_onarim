@@ -11,9 +11,9 @@
     <template id="report_ariza_kayit_document">
         <t t-call="web.external_layout">
             <style>
-                /* Boş sayfa kaldırma */
+                /* Boş sayfa kaldırma - güçlü kurallar */
                 .page-break-after {
-                    page-break-after: avoid;
+                    page-break-after: avoid !important;
                 }
                 /* Sayfa numarası font boyutunu küçült */
                 .page-number {
@@ -21,7 +21,28 @@
                 }
                 /* Sayfa sonunda boşluk bırakma */
                 .page {
-                    page-break-after: avoid;
+                    page-break-after: avoid !important;
+                }
+                /* Tüm sayfa geçişlerini engelle */
+                * {
+                    page-break-after: avoid !important;
+                }
+                /* Body ve html için sayfa geçişi engelleme */
+                body, html {
+                    page-break-after: avoid !important;
+                }
+                /* External layout için sayfa geçişi engelleme */
+                .o_report_layout_standard {
+                    page-break-after: avoid !important;
+                }
+                /* Sayfa sonu kontrolü */
+                @page {
+                    size: A4;
+                    margin: 1cm;
+                }
+                /* Boş sayfa engelleme */
+                .o_report_layout_standard:after {
+                    display: none !important;
                 }
             </style>
             <div class="page page-break-after">
