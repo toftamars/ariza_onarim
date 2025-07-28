@@ -186,8 +186,8 @@
                             <!-- ZUHAL NEFESLİ için -->
                             <t t-if="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                 <span style="font-weight: bold;">ZUHAL NEFESLİ</span><br/>
-                                <span>Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul</span><br/>
-                                <span>Tel: 0212 555 55 58</span>
+                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-esc="o.analitik_hesap_id.adres"/><br/>
+                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
                             </t>
                             
                             <!-- Genel durum - eğer yukarıdakilerden hiçbiri değilse -->
