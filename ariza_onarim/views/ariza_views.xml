@@ -365,6 +365,7 @@
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
                 <field name="state_manager"/>
+                <field name="state"/>
                 <field name="ariza_tanimi"/>
                 <field name="partner_id"/>
                 <field name="onarim_durumu"/>
