@@ -75,9 +75,9 @@
                 <!-- Gönderi Adresi (Tedarikçi için) -->
                 <div class="row mb-4" t-if="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                     <div class="col-12">
-                        <div class="text-right" style="border: 2px solid #000; padding: 10px; background-color: #f8f9fa;">
-                            <strong>GÖNDERİ ADRESİ:</strong><br/>
-                            <span t-field="o.tedarikci_id.name"/><br/>
+                        <div class="text-right" style="border: 3px solid #000; padding: 15px; background-color: #f0f0f0; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
+                            <strong style="font-size: 16px; color: #000;">GÖNDERİ ADRESİ:</strong><br/>
+                            <span t-field="o.tedarikci_id.name" style="font-weight: bold;"/><br/>
                             <span t-if="o.tedarikci_id.street" t-field="o.tedarikci_id.street"/><br/>
                             <span t-if="o.tedarikci_id.street2" t-field="o.tedarikci_id.street2"/><br/>
                             <span t-if="o.tedarikci_id.city" t-field="o.tedarikci_id.city"/>
