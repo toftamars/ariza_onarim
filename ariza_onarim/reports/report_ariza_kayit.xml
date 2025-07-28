@@ -271,13 +271,6 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><strong>Beklenen Tamamlanma Tarihi:</strong></td>
-                            <td>
-                                <span t-if="o.beklenen_tamamlanma_tarihi" t-field="o.beklenen_tamamlanma_tarihi"/>
-                                <span t-else="">-</span>
-                            </td>
-                        </tr>
-                        <tr>
                             <td><strong>Kalan İş Günü:</strong></td>
                             <td>
                                 <span t-if="o.kalan_is_gunu" t-field="o.kalan_is_gunu"/>
