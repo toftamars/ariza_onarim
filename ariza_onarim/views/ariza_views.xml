@@ -8,9 +8,9 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false">
                 <header>
-                    <!-- Yöneticiler için koşulsuz butonlar -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" groups="ariza_onarim.group_ariza_manager"/>
-                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" groups="ariza_onarim.group_ariza_manager"/>
+                    <!-- Yöneticiler için koşulsuz butonlar - her durumda görünür -->
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için koşullu butonlar -->
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
@@ -172,9 +172,9 @@
             <form string="Arıza Kaydı">
                 <header>
                     <button name="action_personel_onayla" string="Onayla" type="object" class="oe_highlight" states="draft" groups="ariza_onarim.group_ariza_user"/>
-                    <!-- Yöneticiler için koşulsuz butonlar -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" groups="ariza_onarim.group_ariza_manager"/>
-                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" groups="ariza_onarim.group_ariza_manager"/>
+                    <!-- Yöneticiler için koşulsuz butonlar - her durumda görünür -->
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için koşullu butonlar -->
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
