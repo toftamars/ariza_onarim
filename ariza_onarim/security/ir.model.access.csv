@@ -1,7 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ariza_kayit_user,ariza.kayit.user,model_ariza_kayit,ariza_onarim.group_ariza_user,1,1,1,1
+access_ariza_kayit_user,ariza.kayit.user,model_ariza_kayit,ariza_onarim.group_ariza_user,1,1,1,0
 access_ariza_kayit_manager,ariza.kayit.manager,model_ariza_kayit,ariza_onarim.group_ariza_manager,1,1,1,1
-access_ariza_kayit_all,ariza.kayit.all,model_ariza_kayit,base.group_user,1,1,1,1
+access_ariza_kayit_all,ariza.kayit.all,model_ariza_kayit,base.group_user,1,1,1,0
 access_ariza_onarim_bilgi_wizard_manager,ariza.onarim.bilgi.wizard.manager,model_ariza_onarim_bilgi_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ariza_onarim_bilgi_wizard_user,ariza.onarim.bilgi.wizard.user,model_ariza_onarim_bilgi_wizard,ariza_onarim.group_ariza_user,1,1,1,1
 access_ariza_teslim_wizard_user,ariza.teslim.wizard.user,model_ariza_teslim_wizard,ariza_onarim.group_ariza_user,1,1,1,1
