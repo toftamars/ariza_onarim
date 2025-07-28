@@ -8,56 +8,8 @@
         </t>
     </template>
 
-    <!-- Özelleştirilmiş External Layout -->
-    <template id="ariza_external_layout" inherit_id="web.external_layout">
-        <xpath expr="//div[@class='oe-document-header']" position="replace">
-            <div class="oe-document-header">
-                <div class="row">
-                    <div class="col-3">
-                        <div class="oe-document-header-content">
-                            <div class="oe-document-header-title">
-                                <h2 class="oe-document-header-title-text">
-                                    <t t-if="company.logo">
-                                        <img t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
-                                    </t>
-                                    <span t-if="not company.logo" t-field="company.name"/>
-                                </h2>
-                            </div>
-                            <div class="oe-document-header-info">
-                                <div class="oe-document-header-address">
-                                    <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
-                                        <div t-esc="o.analitik_hesap_id.adres"/>
-                                    </t>
-                                    <t t-else="">
-                                        <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
-                                    </t>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-9">
-                        <div class="oe-document-header-right">
-                            <div class="oe-document-header-right-content">
-                                <div class="oe-document-header-right-info">
-                                    <div class="oe-document-header-right-address">
-                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">
-                                            <div>Tel: <t t-esc="o.analitik_hesap_id.telefon"/></div>
-                                        </t>
-                                        <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.email">
-                                            <div>Email: <t t-esc="o.analitik_hesap_id.email"/></div>
-                                        </t>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </xpath>
-    </template>
-
     <template id="report_ariza_kayit_document">
-        <t t-call="ariza_onarim.ariza_external_layout">
+        <t t-call="web.external_layout">
             <style>
                 /* Tek sayfa boyutlandırma - kompakt tasarım */
                 @page {
@@ -154,7 +106,6 @@
                     font-weight: bold !important;
                 }
                 
-                /* Gönderi adresi düzenli - boyutlar büyütüldü */
                 .gonderi-adresi {
                     padding: 12px !important;
                     font-size: 13px !important;
@@ -166,257 +117,195 @@
                     font-size: 15px !important;
                 }
                 
-                /* Genel metin boyutları */
-                body, html {
-                    font-size: 12px !important;
-                }
-                
-                /* Başlık ve etiketler */
                 strong {
-                    font-weight: bold !important;
                     color: #2c3e50 !important;
                 }
             </style>
-            <div class="page page-break-after" style="page-break-after: avoid !important;">
-
-
-                <!-- Başlık ve Gönderi Adresi (Yan yana) -->
-                <div class="row mb-4">
-                    <!-- Sol taraf - Başlık -->
-                    <div class="col-6">
-                        <h2 class="mb-4">ARIZA KAYIT FORMU</h2>
-                    </div>
-                    <!-- Sağ taraf - Gönderi Adresi -->
-                    <div class="col-6" t-if="o.teknik_servis">
-                        <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
-                            <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
-                            
-                            <!-- TEDARİKÇİ için -->
-                            <t t-if="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
-                                <span t-field="o.tedarikci_id.name" style="font-weight: bold;"/><br/>
-                                <span t-if="o.tedarikci_id.street" t-field="o.tedarikci_id.street"/><br/>
-                                <span t-if="o.tedarikci_id.street2" t-field="o.tedarikci_id.street2"/><br/>
-                                <span t-if="o.tedarikci_id.city" t-field="o.tedarikci_id.city"/>
-                                <span t-if="o.tedarikci_id.state_id" t-field="o.tedarikci_id.state_id.name"/>
-                                <span t-if="o.tedarikci_id.zip" t-field="o.tedarikci_id.zip"/><br/>
-                                <span t-if="o.tedarikci_id.country_id" t-field="o.tedarikci_id.country_id.name"/><br/>
-                                <span t-if="o.tedarikci_id.phone or o.tedarikci_id.mobile">Tel: <t t-esc="o.tedarikci_id.phone or o.tedarikci_id.mobile"/></span>
-                            </t>
-                            
-                            <!-- MAĞAZA için -->
-                            <t t-if="o.teknik_servis == 'MAĞAZA'">
-                                <span style="font-weight: bold;">MAĞAZA</span><br/>
-                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-esc="o.analitik_hesap_id.adres"/><br/>
-                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
-                            </t>
-                            
-                            <!-- DTL BEYOĞLU için -->
-                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
-                                <span style="font-weight: bold;">DTL BEYOĞLU</span><br/>
-                                <span>Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47</span><br/>
-                                <span>Tel: 0212 555 55 56</span>
-                            </t>
-                            
-                            <!-- DTL OKMEYDANI için -->
-                            <t t-if="o.teknik_servis == 'DTL OKMEYDANI'">
-                                <span style="font-weight: bold;">DTL OKMEYDANI</span><br/>
-                                <span>MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI</span><br/>
-                                <span>Tel: 0212 555 55 57</span>
-                            </t>
-                            
-                            <!-- ZUHAL ARIZA DEPO için -->
-                            <t t-if="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
-                                <span style="font-weight: bold;">ZUHAL ARIZA DEPO</span><br/>
-                                <span>Halkalı merkez mh. Dereboyu cd. No:8/B</span><br/>
-                                <span>Tel: 0212 555 55 55</span>
-                            </t>
-                            
-                            <!-- ZUHAL NEFESLİ için -->
-                            <t t-if="o.teknik_servis == 'ZUHAL NEFESLİ'">
-                                <span style="font-weight: bold;">ZUHAL NEFESLİ</span><br/>
-                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres" t-esc="o.analitik_hesap_id.adres"/><br/>
-                                <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.telefon">Tel: <t t-esc="o.analitik_hesap_id.telefon"/></span>
-                            </t>
-                            
-                            <!-- Genel durum - eğer yukarıdakilerden hiçbiri değilse -->
-                            <t t-if="o.teknik_servis not in ['TEDARİKÇI', 'MAĞAZA', 'DTL BEYOĞLU', 'DTL OKMEYDANI', 'ZUHAL ARIZA DEPO', 'ZUHAL NEFESLİ']">
-                                <span style="font-weight: bold;"><t t-esc="o.teknik_servis"/></span><br/>
-                                <span>Adres bilgisi mevcut değil</span>
-                            </t>
-                        </div>
+            
+            <!-- Analitik Hesap Bilgileri - Üst Kısım -->
+            <div class="row mb-4" t-if="o.analitik_hesap_id">
+                <div class="col-6">
+                    <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
+                        <strong>Şirket Bilgileri:</strong><br/>
+                        <t t-if="o.analitik_hesap_id.adres">
+                            <div t-esc="o.analitik_hesap_id.adres"/>
+                        </t>
+                        <t t-if="o.analitik_hesap_id.telefon">
+                            <div>Tel: <t t-esc="o.analitik_hesap_id.telefon"/></div>
+                        </t>
+                        <t t-if="o.analitik_hesap_id.email">
+                            <div>Email: <t t-esc="o.analitik_hesap_id.email"/></div>
+                        </t>
                     </div>
                 </div>
-
-                <!-- Arıza No ve Tarih -->
-                <div class="row mb-4">
-                    <div class="col-6">
-                        <strong>Arıza No:</strong> <span t-field="o.name"/>
-                    </div>
-                    <div class="col-6 text-right">
-                        <strong>Tarih:</strong> <span t-field="o.tarih"/>
-                    </div>
-                </div>
-
-                <!-- Müşteri Bilgileri -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h5>Müşteri Bilgileri</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td width="30%"><strong>Müşteri:</strong></td>
-                                <td><span t-field="o.partner_id.name"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Analitik Hesap:</strong></td>
-                                <td><span t-field="o.analitik_hesap_id.name"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Adres:</strong></td>
-                                <td>
-                                    <span t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres"> <t t-esc="o.analitik_hesap_id.adres"/> </span>
-                                    <span t-else="">Adres bilgisi yok</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Müşteri Telefon:</strong></td>
-                                <td>
-                                    <span t-field="o.partner_id.phone"/>
-                                </td>
-                            </tr>
-                        </table>
+                <div class="col-6">
+                    <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
+                        <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
+                        <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                            DTL BEYOĞLU<br/>
+                            Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
+                            Beyoğlu, İstanbul
+                        </t>
+                        <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                            DTL OKMEYDANI<br/>
+                            Okmeydanı Mah. Okmeydanı Cad. No:123<br/>
+                            Şişli, İstanbul
+                        </t>
+                        <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                            ZUHAL ARIZA DEPO<br/>
+                            Arıza Depo Mah. Depo Cad. No:456<br/>
+                            İstanbul
+                        </t>
+                        <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                            ZUHAL NEFESLİ<br/>
+                            Nefesli Mah. Nefesli Cad. No:789<br/>
+                            İstanbul
+                        </t>
+                        <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
+                            <t t-esc="o.tedarikci_id.name"/><br/>
+                            <t t-esc="o.tedarikci_id.street or ''"/><br/>
+                            <t t-esc="o.tedarikci_id.city or ''"/>, <t t-esc="o.tedarikci_id.country_id.name or ''"/>
+                        </t>
+                        <t t-else="">
+                            <t t-esc="o.teknik_servis"/>
+                        </t>
                     </div>
                 </div>
-
-                <!-- Ürün ve Garanti Bilgileri -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h5>Ürün ve Garanti Bilgileri</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td width="30%"><strong>Ürün:</strong></td>
-                                <td><span t-field="o.urun"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Model:</strong></td>
-                                <td><span t-field="o.model"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Marka:</strong></td>
-                                <td>
-                                    <span t-if="o.marka_id" t-field="o.marka_id.name"/>
-                                    <span t-else="" t-field="o.marka_manu"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tedarikçi:</strong></td>
-                                <td><span t-field="o.tedarikci_id.name"/></td>
-                            </tr>
-                        </table>
+            </div>
+            
+            <!-- Başlık -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="mb-4">ARIZA KAYIT FORMU</h2>
+                </div>
+            </div>
+            
+            <!-- Arıza Bilgileri -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Arıza No:</strong></td>
+                            <td><span t-field="o.name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tarih:</strong></td>
+                            <td><span t-field="o.tarih"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>İşlem Tipi:</strong></td>
+                            <td><span t-field="o.islem_tipi"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Arıza Tipi:</strong></td>
+                            <td><span t-field="o.ariza_tipi"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Teknik Servis:</strong></td>
+                            <td><span t-field="o.teknik_servis"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sorumlu:</strong></td>
+                            <td><span t-field="o.sorumlu_id"/></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-6">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Müşteri:</strong></td>
+                            <td>
+                                <span t-if="o.partner_id" t-field="o.partner_id"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ürün:</strong></td>
+                            <td><span t-field="o.urun"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Model:</strong></td>
+                            <td><span t-field="o.model"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Marka:</strong></td>
+                            <td>
+                                <span t-if="o.marka_id" t-field="o.marka_id"/>
+                                <span t-elif="o.marka_manu" t-field="o.marka_manu"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fatura Tarihi:</strong></td>
+                            <td>
+                                <span t-if="o.fatura_tarihi" t-field="o.fatura_tarihi"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Durum:</strong></td>
+                            <td><span t-field="o.state"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Arıza Tanımı -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5>Arıza Tanımı:</h5>
+                    <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa; min-height: 60px;">
+                        <span t-field="o.ariza_tanimi"/>
                     </div>
                 </div>
-
-                <!-- Arıza Bilgileri -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h5>Arıza Bilgileri</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td width="30%"><strong>Arıza Tipi:</strong></td>
-                                <td><span t-field="o.ariza_tipi"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Teknik Servis:</strong></td>
-                                <td><span t-field="o.teknik_servis"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Teknik Servis Adresi:</strong></td>
-                                <td><span t-field="o.teknik_servis_adres"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Arıza Tanımı:</strong></td>
-                                <td><span t-field="o.ariza_tanimi"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Onarım Bilgisi:</strong></td>
-                                <td>
-                                    <span t-if="o.onarim_bilgisi">
-                                        <span t-field="o.onarim_bilgisi"/>
-                                    </span>
-                                    <span t-else="">
-                                        Teknik Servis Tarafından doldurulacaktır
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Garanti Kapsamında:</strong></td>
-                                <td>
-                                    <span t-if="o.garanti_kapsaminda_mi">
-                                        <span t-field="o.garanti_kapsaminda_mi"/>
-                                    </span>
-                                    <span t-else="">
-                                        Teknik Servis Tarafından doldurulacaktır
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Onarım Ücreti:</strong></td>
-                                <td>
-                                    <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">
-                                        <span t-field="o.onarim_ucreti"/>
-                                    </span>
-                                    <span t-else="">
-                                        Teknik Servis Tarafından doldurulacaktır
-                                    </span>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+            </div>
+            
+            <!-- Onarım Bilgileri -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Onarım Başlangıç Tarihi:</strong></td>
+                            <td>
+                                <span t-if="o.onarim_baslangic_tarihi" t-field="o.onarim_baslangic_tarihi"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Beklenen Tamamlanma Tarihi:</strong></td>
+                            <td>
+                                <span t-if="o.beklenen_tamamlanma_tarihi" t-field="o.beklenen_tamamlanma_tarihi"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kalan İş Günü:</strong></td>
+                            <td>
+                                <span t-if="o.kalan_is_gunu" t-field="o.kalan_is_gunu"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Onarım Ücreti:</strong></td>
+                            <td>
+                                <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">
+                                    <span t-field="o.onarim_ucreti"/>
+                                </span>
+                                <span t-else="">
+                                    Teknik Servis Tarafından doldurulacaktır
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-
-                <!-- Transfer Bilgileri -->
-                <div class="row mb-4" t-if="o.transfer_id">
-                    <div class="col-12">
-                        <h5>Transfer Bilgileri</h5>
-                        <table class="table table-bordered">
-                            <tr>
-                                <td width="30%"><strong>Transfer No:</strong></td>
-                                <td><span t-field="o.transfer_id.name"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Transfer Durumu:</strong></td>
-                                <td><span t-field="o.transfer_id.state"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Transfer Metodu:</strong></td>
-                                <td><span t-field="o.transfer_metodu"/></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Notlar -->
-                <div class="row mb-4" t-if="o.notlar">
-                    <div class="col-12">
-                        <h5>Notlar</h5>
-                        <div class="border p-3">
-                            <span t-field="o.notlar"/>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- İmza Alanları -->
-                <div class="row mt-5">
-                    <div class="col-6">
-                        <div class="border-top pt-3">
-                            <strong>Müşteri İmzası:</strong>
-                            <div class="mt-3" style="height: 60px; border-bottom: 1px solid #ccc;"></div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border-top pt-3">
-                            <strong>Yetkili İmzası:</strong>
-                            <div class="mt-3" style="height: 60px; border-bottom: 1px solid #ccc;"></div>
-                        </div>
+            </div>
+            
+            <!-- Notlar -->
+            <div class="row mb-4" t-if="o.notlar">
+                <div class="col-12">
+                    <h5>Notlar:</h5>
+                    <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
+                        <span t-field="o.notlar"/>
                     </div>
                 </div>
             </div>
