@@ -492,28 +492,27 @@ class ArizaKayit(models.Model):
                 record.garanti_bitis_tarihi = False
                 record.kalan_garanti = False
 
-    @api.depends('onarim_baslangic_tarihi')
+    @api.depends('onarim_baslangic_tarihi', 'tarih')
     def _compute_beklenen_tamamlanma_tarihi(self):
         """Onarım başlangıç tarihinden 20 iş günü sonrasını hesapla"""
         for record in self:
-            if record.onarim_baslangic_tarihi:
-                # 20 iş günü sonrasını hesapla (hafta sonları hariç)
-                from datetime import datetime, timedelta
-                from dateutil.relativedelta import relativedelta
-                
-                baslangic = record.onarim_baslangic_tarihi
-                is_gunu_sayisi = 0
-                hedef_tarih = baslangic
-                
-                while is_gunu_sayisi < 20:
-                    hedef_tarih += timedelta(days=1)
-                    # Hafta sonu değilse iş günü say
-                    if hedef_tarih.weekday() < 5:  # 0-4 = Pazartesi-Cuma
-                        is_gunu_sayisi += 1
-                
-                record.beklenen_tamamlanma_tarihi = hedef_tarih
-            else:
-                record.beklenen_tamamlanma_tarihi = False
+            from datetime import datetime, timedelta
+            from dateutil.relativedelta import relativedelta
+            
+            # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan, yoksa arıza tarihini kullan
+            baslangic_tarihi = record.onarim_baslangic_tarihi or record.tarih or fields.Date.today()
+            
+            # 20 iş günü sonrasını hesapla (hafta sonları hariç)
+            is_gunu_sayisi = 0
+            hedef_tarih = baslangic_tarihi
+            
+            while is_gunu_sayisi < 20:
+                hedef_tarih += timedelta(days=1)
+                # Hafta sonu değilse iş günü say
+                if hedef_tarih.weekday() < 5:  # 0-4 = Pazartesi-Cuma
+                    is_gunu_sayisi += 1
+            
+            record.beklenen_tamamlanma_tarihi = hedef_tarih
 
     @api.depends('onarim_baslangic_tarihi', 'beklenen_tamamlanma_tarihi')
     def _compute_kalan_is_gunu(self):
