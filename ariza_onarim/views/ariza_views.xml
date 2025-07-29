@@ -321,23 +321,7 @@
         </field>
     </record>
     
-    <record id="action_ariza_kayit" model="ir.actions.act_window">
-        <field name="name">Arıza Kayıtları</field>
-        <field name="res_model">ariza.kayit</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
-        <field name="search_view_id" ref="view_ariza_kayit_search"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Yeni bir arıza kaydı oluşturun
-            </p>
-        </field>
-    </record>
-    
-    <menuitem id="menu_ariza_kayit" 
-              name="Arıza Kayıtları" 
-              parent="menu_ariza_root" 
-              action="action_ariza_kayit" 
-              sequence="10"/>
+    <!-- Ana action menu_views.xml'de tanımlandı -->
               
     <record id="view_ariza_kayit_pivot" model="ir.ui.view">
         <field name="name">ariza.kayit.pivot</field>
