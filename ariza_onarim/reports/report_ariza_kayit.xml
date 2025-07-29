@@ -212,6 +212,12 @@
                                     ZUHAL NEFESLİ<br/>
                                     Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                                 </t>
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
+                                    <t t-esc="o.marka_id.partner_id.name"/><br/>
+                                    <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
+                                    <t t-if="o.marka_id.partner_id.street2"><t t-esc="o.marka_id.partner_id.street2"/><br/></t>
+                                    <t t-esc="o.marka_id.partner_id.city or ''"/>, <t t-esc="o.marka_id.partner_id.country_id.name or ''"/>
+                                </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                     <t t-esc="o.tedarikci_id.name"/><br/>
                                     <t t-esc="o.tedarikci_id.street or ''"/><br/>
@@ -242,6 +248,12 @@
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                 ZUHAL NEFESLİ<br/>
                                 Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
+                                <t t-esc="o.marka_id.partner_id.name"/><br/>
+                                <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
+                                <t t-if="o.marka_id.partner_id.street2"><t t-esc="o.marka_id.partner_id.street2"/><br/></t>
+                                <t t-esc="o.marka_id.partner_id.city or ''"/>, <t t-esc="o.marka_id.partner_id.country_id.name or ''"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                 <t t-esc="o.tedarikci_id.name"/><br/>
