@@ -146,6 +146,26 @@
                             <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
                                 <t t-esc="o.analitik_hesap_id.name.replace('Perakende - ', '') if o.analitik_hesap_id.name else ''"/>
                             </div>
+                            <!-- Zuhal Dış Ticaret A.Ş. altındaki kontaklarda analitik hesap adresini ara -->
+                            <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
+                            <t t-if="zuhal_partner">
+                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', o.analitik_hesap_id.name.replace('Perakende - ', ''))], limit=1)"/>
+                                <t t-if="magaza_kontak">
+                                    <div>
+                                        <t t-esc="magaza_kontak.street or ''"/>
+                                        <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
+                                        <t t-if="magaza_kontak.city"><br/><t t-esc="magaza_kontak.city"/></t>
+                                        <t t-if="magaza_kontak.state_id"><br/><t t-esc="magaza_kontak.state_id.name"/></t>
+                                        <t t-if="magaza_kontak.zip"><br/><t t-esc="magaza_kontak.zip"/></t>
+                                        <t t-if="magaza_kontak.country_id"><br/><t t-esc="magaza_kontak.country_id.name"/></t>
+                                    </div>
+                                </t>
+                            </t>
+                        </t>
+                        <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
+                                <t t-esc="o.analitik_hesap_id.name.replace('Perakende - ', '') if o.analitik_hesap_id.name else ''"/>
+                            </div>
                         </t>
                         <t t-else="">
                             <div t-field="company.name"/><br/>
