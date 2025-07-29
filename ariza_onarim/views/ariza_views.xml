@@ -71,6 +71,12 @@
                                 <field name="notlar" readonly="1"/>
                             </group>
                         </page>
+                        <page string="İmza Bilgileri" name="imza_bilgileri">
+                            <group>
+                                <field name="musteri_imzasi" readonly="1" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                                <field name="yetkili_kisi_imzasi" readonly="1"/>
+                            </group>
+                        </page>
                         
                         <page string="Müşteri Bilgileri" name="musteri_bilgileri" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}">
                             <group>
@@ -259,6 +265,12 @@
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="seri_no"/>
                                 <field name="notlar"/>
+                            </group>
+                        </page>
+                        <page string="İmza Bilgileri">
+                            <group>
+                                <field name="musteri_imzasi" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                                <field name="yetkili_kisi_imzasi"/>
                             </group>
                         </page>
                     </notebook>

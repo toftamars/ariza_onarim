@@ -50,6 +50,12 @@
                                     <field name="ucret_bilgisi"/>
                                 </group>
                             </page>
+                            <page string="İMZA BİLGİLERİ">
+                                <group>
+                                    <field name="musteri_imzasi" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                                    <field name="yetkili_kisi_imzasi"/>
+                                </group>
+                            </page>
                             <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
                                 <group>
                                     <field name="teslim_alan" readonly="1"/>
