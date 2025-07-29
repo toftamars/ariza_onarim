@@ -173,8 +173,8 @@
                                 </t>
                                 <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
                                     DTL OKMEYDANI<br/>
-                                    Okmeydanı Mah. Okmeydanı Cad. No:123<br/>
-                                    Şişli, İstanbul
+                                    MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
+                                    İstanbul
                                 </t>
                                                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 ZUHAL ARIZA DEPO<br/>
@@ -183,8 +183,7 @@
                             </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                     ZUHAL NEFESLİ<br/>
-                                    Nefesli Mah. Nefesli Cad. No:789<br/>
-                                    İstanbul
+                                    Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                                 </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                     <t t-esc="o.tedarikci_id.name"/><br/>
@@ -205,8 +204,8 @@
                             </t>
                             <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
                                 DTL OKMEYDANI<br/>
-                                Okmeydanı Mah. Okmeydanı Cad. No:123<br/>
-                                Şişli, İstanbul
+                                MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
+                                İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 ZUHAL ARIZA DEPO<br/>
@@ -215,8 +214,7 @@
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                 ZUHAL NEFESLİ<br/>
-                                Nefesli Mah. Nefesli Cad. No:789<br/>
-                                İstanbul
+                                Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                 <t t-esc="o.tedarikci_id.name"/><br/>
