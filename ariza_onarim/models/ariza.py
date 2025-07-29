@@ -182,8 +182,6 @@ class ArizaKayit(models.Model):
     teslim_alan_telefon = fields.Char(string='Teslim Alan Telefon')
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
-    musteri_imzasi = fields.Binary(string='Müşteri İmzası', tracking=True)
-    yetkili_kisi_imzasi = fields.Binary(string='Yetkili Kişi İmzası', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
     
