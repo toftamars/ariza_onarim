@@ -103,6 +103,7 @@
                     <field name="urun"/>
                     <field name="model"/>
                     <field name="ariza_tipi"/>
+                    <field name="teknik_servis"/>
                     <field name="state"/>
                     <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi"/>
                 </tree>
@@ -119,6 +120,7 @@
                     <field name="partner_id"/>
                     <field name="urun"/>
                     <field name="analitik_hesap_id"/>
+                    <field name="teknik_servis"/>
                     <filter string="TASLAK" name="draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="ONAYLANDI" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                     <filter string="TAMAMLANDI" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
@@ -126,6 +128,7 @@
                         <filter string="ARIZA TİPİ" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
                         <filter string="DURUM" name="state" context="{'group_by': 'state'}"/>
                         <filter string="MAĞAZA" name="analitik_hesap_id" context="{'group_by': 'analitik_hesap_id'}"/>
+                        <filter string="TEKNİK SERVİS" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
                     </group>
                 </search>
             </field>
