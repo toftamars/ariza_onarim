@@ -277,7 +277,7 @@
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi'" decoration-warning="state == 'tamamlandi'" decoration-danger="state == 'iptal'" decoration-danger="kalan_is_gunu == 0" decoration-warning="kalan_is_gunu &lt;= 7 and kalan_is_gunu &gt; 0">
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="partner_id"/>
@@ -285,7 +285,7 @@
                 <field name="urun"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
-                <field name="kalan_is_gunu" string="Kalan Onarım Süresi"/>
+                <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi"/>
                 <field name="state"/>
             </tree>
         </field>

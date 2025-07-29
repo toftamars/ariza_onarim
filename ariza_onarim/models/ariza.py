@@ -189,6 +189,7 @@ class ArizaKayit(models.Model):
     onarim_baslangic_tarihi = fields.Date(string='Onarım Başlangıç Tarihi', tracking=True)
     beklenen_tamamlanma_tarihi = fields.Date(string='Beklenen Tamamlanma Tarihi', compute='_compute_beklenen_tamamlanma_tarihi', store=True)
     kalan_is_gunu = fields.Integer(string='Kalan İş Günü', compute='_compute_kalan_is_gunu', store=True)
+    kalan_sure_gosterimi = fields.Char(string='Kalan Süre Gösterimi', compute='_compute_kalan_sure_gosterimi', store=True)
     onarim_durumu = fields.Selection([
         ('beklemede', 'Beklemede'),
         ('devam_ediyor', 'Devam Ediyor'),
@@ -547,7 +548,18 @@ class ArizaKayit(models.Model):
                     if kalan_gun <= 5 and record.onarim_durumu == 'beklemede':
                         record.onarim_durumu = 'devam_ediyor'
             else:
-                record.kalan_is_gunu = 0
+                                    record.kalan_is_gunu = 0
+
+    @api.depends('kalan_is_gunu')
+    def _compute_kalan_sure_gosterimi(self):
+        """Kalan süreye göre özel gösterim metni oluştur"""
+        for record in self:
+            if record.kalan_is_gunu == 0:
+                record.kalan_sure_gosterimi = "Süre Aşıldı"
+            elif record.kalan_is_gunu <= 7:
+                record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
+            else:
+                record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
 
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):

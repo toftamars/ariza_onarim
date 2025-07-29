@@ -104,7 +104,7 @@
                     <field name="model"/>
                     <field name="ariza_tipi"/>
                     <field name="state"/>
-                    <field name="kalan_is_gunu" string="Kalan Onarım Süresi"/>
+                    <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi"/>
                 </tree>
             </field>
         </record>
