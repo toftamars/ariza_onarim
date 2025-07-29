@@ -64,6 +64,7 @@
                         <page string="Arıza Tanımı" name="ariza_tanimi">
                             <group>
                                 <field name="ariza_tanimi" readonly="1"/>
+                                <field name="seri_no" readonly="1"/>
                                 <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
                                 <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
                                 <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
@@ -111,6 +112,7 @@
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
                 <field name="ariza_tanimi"/>
+                <field name="seri_no"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -252,6 +254,7 @@
                         <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
+                                <field name="seri_no"/>
                                 <field name="notlar"/>
                             </group>
                         </page>
@@ -426,6 +429,11 @@
                                             <strong>Arıza:</strong> <field name="ariza_tanimi"/>
                                         </div>
                                     </div>
+                                    <div class="row" t-if="record.seri_no.raw_value">
+                                        <div class="col-12">
+                                            <strong>Seri No:</strong> <field name="seri_no"/>
+                                        </div>
+                                    </div>
                                     <div class="row" t-if="record.onarim_durumu.raw_value">
                                         <div class="col-6">
                                             <strong>Onarım Durumu:</strong> <field name="onarim_durumu"/>
@@ -487,6 +495,7 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="ariza_tanimi"/>
+                <field name="seri_no"/>
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
                 <field name="tarih"/>

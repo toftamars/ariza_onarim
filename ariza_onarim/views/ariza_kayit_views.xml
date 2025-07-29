@@ -44,6 +44,7 @@
                             <page string="ARIZA BİLGİLERİ">
                                 <group>
                                     <field name="ariza_tanimi"/>
+                                    <field name="seri_no"/>
                                     <field name="onarim_bilgisi"/>
                                     <field name="garanti_kapsaminda_mi"/>
                                     <field name="ucret_bilgisi"/>

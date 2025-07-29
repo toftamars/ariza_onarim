@@ -146,6 +146,7 @@ class ArizaKayit(models.Model):
         ('urun_degisimi', 'Ürün Değişimi'),
     ], string='Garanti Kapsamında mı?', tracking=True)
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
+    seri_no = fields.Char(string='Seri No', tracking=True)
     notlar = fields.Text(string='Notlar')
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
