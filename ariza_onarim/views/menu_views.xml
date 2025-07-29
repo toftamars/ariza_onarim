@@ -5,6 +5,8 @@
         <field name="res_model">ariza.kayit</field>
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_ariza_kayit_search"/>
+        <field name="domain">[]</field>
+        <field name="context">{'order': 'tarih desc'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Henüz arıza kaydı bulunmuyor.
