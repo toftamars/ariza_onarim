@@ -663,6 +663,11 @@ class ArizaKayit(models.Model):
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
+        # Önce adres bilgilerini temizle
+        self.teslim_adresi = ''
+        self.tedarikci_telefon = ''
+        self.tedarikci_email = ''
+        
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             # Dosya yolu
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
@@ -1543,12 +1548,7 @@ Arıza Kaydı Tamamlandı.<br/>
             'auto_delete': True,
         }).send()
 
-    @api.onchange('analitik_hesap_id')
-    def _onchange_analitik_hesap_id_adres(self):
-        if self.analitik_hesap_id and self.analitik_hesap_id.adres:
-            self.teslim_adresi = self.analitik_hesap_id.adres
-        else:
-            self.teslim_adresi = ''
+
 
     @api.depends('partner_id')
     def _compute_musteri_telefon(self):
