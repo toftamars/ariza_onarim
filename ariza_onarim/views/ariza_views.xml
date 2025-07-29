@@ -109,6 +109,8 @@
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="ariza_tipi"/>
+                <field name="partner_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
                 <field name="ariza_tanimi"/>
@@ -212,6 +214,7 @@
                         </group>
                         <group>
                             <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
+                            <field name="musteri_telefon" readonly="1" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
                             <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                             <field name="analitik_hesap_id" options='{"no_create": true, "no_open": true}' required="1"/>
@@ -277,6 +280,7 @@
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="partner_id"/>
+                <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="urun"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
@@ -293,6 +297,7 @@
             <search string="Arıza Kayıtları">
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="musteri_telefon"/>
                 <field name="urun"/>
                 <field name="model"/>
                 <field name="teknik_servis"/>
