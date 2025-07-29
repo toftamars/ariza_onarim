@@ -176,11 +176,11 @@
                                     Okmeydanı Mah. Okmeydanı Cad. No:123<br/>
                                     Şişli, İstanbul
                                 </t>
-                                <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
-                                    ZUHAL ARIZA DEPO<br/>
-                                    Arıza Depo Mah. Depo Cad. No:456<br/>
-                                    İstanbul
-                                </t>
+                                                            <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                ZUHAL ARIZA DEPO<br/>
+                                Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
+                                İstanbul
+                            </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                     ZUHAL NEFESLİ<br/>
                                     Nefesli Mah. Nefesli Cad. No:789<br/>
@@ -210,7 +210,7 @@
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 ZUHAL ARIZA DEPO<br/>
-                                Arıza Depo Mah. Depo Cad. No:456<br/>
+                                Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
                                 İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
