@@ -129,6 +129,19 @@
                         <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
                             <div t-esc="o.analitik_hesap_id.adres"/>
                         </t>
+                        <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
+                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
+                                <t t-esc="o.analitik_hesap_id.name.replace('Perakende - ', '') if o.analitik_hesap_id.name else ''"/>
+                            </div>
+                            <div>
+                                <t t-esc="o.analitik_hesap_id.partner_id.street or ''"/>
+                                <t t-if="o.analitik_hesap_id.partner_id.street2"><br/><t t-esc="o.analitik_hesap_id.partner_id.street2"/></t>
+                                <t t-if="o.analitik_hesap_id.partner_id.city"><br/><t t-esc="o.analitik_hesap_id.partner_id.city"/></t>
+                                <t t-if="o.analitik_hesap_id.partner_id.state_id"><br/><t t-esc="o.analitik_hesap_id.partner_id.state_id.name"/></t>
+                                <t t-if="o.analitik_hesap_id.partner_id.zip"><br/><t t-esc="o.analitik_hesap_id.partner_id.zip"/></t>
+                                <t t-if="o.analitik_hesap_id.partner_id.country_id"><br/><t t-esc="o.analitik_hesap_id.partner_id.country_id.name"/></t>
+                            </div>
+                        </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
                             <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
                                 <t t-esc="o.analitik_hesap_id.name.replace('Perakende - ', '') if o.analitik_hesap_id.name else ''"/>
