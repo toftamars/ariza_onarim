@@ -258,7 +258,6 @@
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="seri_no"/>
-                                <field name="musteri_telefon" readonly="1" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                                 <field name="notlar"/>
                             </group>
                         </page>
