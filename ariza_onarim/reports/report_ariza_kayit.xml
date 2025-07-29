@@ -126,7 +126,6 @@
             <div class="row mb-4">
                 <div class="col-6">
                     <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px;">
-                        <strong style="color: #000;">ANALİTİK HESAP ADRESİ:</strong><br/>
                         <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
                             <div style="font-size: 14px; font-weight: bold;"><t t-esc="o.analitik_hesap_id.adres"/></div>
                         </t>
