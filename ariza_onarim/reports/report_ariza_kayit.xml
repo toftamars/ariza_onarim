@@ -218,6 +218,9 @@
                                     <t t-if="o.marka_id.partner_id.street2"><t t-esc="o.marka_id.partner_id.street2"/><br/></t>
                                     <t t-esc="o.marka_id.partner_id.city or ''"/>, <t t-esc="o.marka_id.partner_id.country_id.name or ''"/>
                                 </t>
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and not o.marka_id.partner_id">
+                                    <t t-esc="o.marka_id.name"/> - Tedarikçi Adresi Tanımlı Değil
+                                </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                     <t t-esc="o.tedarikci_id.name"/><br/>
                                     <t t-esc="o.tedarikci_id.street or ''"/><br/>
@@ -254,6 +257,9 @@
                                 <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
                                 <t t-if="o.marka_id.partner_id.street2"><t t-esc="o.marka_id.partner_id.street2"/><br/></t>
                                 <t t-esc="o.marka_id.partner_id.city or ''"/>, <t t-esc="o.marka_id.partner_id.country_id.name or ''"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and not o.marka_id.partner_id">
+                                <t t-esc="o.marka_id.name"/> - Tedarikçi Adresi Tanımlı Değil
                             </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                 <t t-esc="o.tedarikci_id.name"/><br/>
