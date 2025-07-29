@@ -276,6 +276,13 @@
                             </td>
                         </tr>
                         <tr>
+                            <td><strong>Müşteri Telefon:</strong></td>
+                            <td>
+                                <span t-if="o.musteri_telefon" t-field="o.musteri_telefon"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
                             <td><strong>Ürün:</strong></td>
                             <td><span t-field="o.urun"/></td>
                         </tr>
@@ -348,6 +355,65 @@
                     <h5>Notlar:</h5>
                     <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
                         <span t-field="o.notlar"/>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teslim Bilgileri -->
+            <div class="row mb-4" t-if="o.state == 'teslim_edildi'">
+                <div class="col-12">
+                    <h5>Teslim Bilgileri:</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>Teslim Alan:</strong></td>
+                                    <td>
+                                        <span t-if="o.teslim_alan" t-field="o.teslim_alan"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teslim Alan TC:</strong></td>
+                                    <td>
+                                        <span t-if="o.teslim_alan_tc" t-field="o.teslim_alan_tc"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teslim Alan Telefon:</strong></td>
+                                    <td>
+                                        <span t-if="o.teslim_alan_telefon" t-field="o.teslim_alan_telefon"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <table class="table">
+                                <tr>
+                                    <td><strong>Teslim Eden:</strong></td>
+                                    <td>
+                                        <span t-if="o.sorumlu_id" t-field="o.sorumlu_id"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teslim Tarihi:</strong></td>
+                                    <td>
+                                        <span t-if="o.write_date" t-field="o.write_date"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teslim Notu:</strong></td>
+                                    <td>
+                                        <span t-if="o.teslim_notu" t-field="o.teslim_notu"/>
+                                        <span t-else="">-</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
