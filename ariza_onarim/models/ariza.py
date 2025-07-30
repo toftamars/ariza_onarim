@@ -1012,6 +1012,14 @@ class ArizaKayit(models.Model):
                 _logger.info(f"Araç No ayarlandı: {vehicle_id} - Transfer: {self.name}")
             else:
                 _logger.warning(f"Araç No bulunamadı - Transfer: {self.name}")
+            
+            # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
+            if vehicle_id:
+                delivery_carrier.vehicle_id = vehicle_id
+                picking_vals['vehicle_id'] = vehicle_id
+                _logger.info(f"Araç No ayarlandı: {vehicle_id} - Transfer: {self.name}")
+            else:
+                _logger.warning(f"Araç No bulunamadı - Transfer: {self.name}")
         
 
         
