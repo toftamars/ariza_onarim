@@ -1588,23 +1588,22 @@ class StockPicking(models.Model):
         # Standart Odoo işleyişini kullan
         result = super().button_validate()
         
-        # Eğer transfer doğrulandıysa (result True ise) arıza kaydına dön
-        if result is True:
-            for picking in self:
-                if picking.origin:
-                    ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                    if ariza:
-                        # Transfer sayısını artır
-                        ariza.transfer_sayisi += 1
-                        
-                        # Transfer doğrulandıktan sonra arıza kaydına dön
-                        return {
-                            'type': 'ir.actions.act_window',
-                            'res_model': 'ariza.kayit',
-                            'res_id': ariza.id,
-                            'view_mode': 'form',
-                            'target': 'current',
-                        }
+        # Transfer doğrulandıktan sonra arıza kaydına dön
+        for picking in self:
+            if picking.origin and picking.state == 'done':
+                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                if ariza:
+                    # Transfer sayısını artır
+                    ariza.transfer_sayisi += 1
+                    
+                    # Transfer doğrulandıktan sonra arıza kaydına dön
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ariza.kayit',
+                        'res_id': ariza.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
         
         # Normal davranışı sürdür
         return result 
