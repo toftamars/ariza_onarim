@@ -1594,9 +1594,9 @@ class StockPicking(models.Model):
             if picking.state != 'done':
                 picking.state = 'done'
                 # Transfer hareketlerini de doğrula
-                for move in picking.move_ids:
+                for move in picking.move_line_ids:
                     if move.state != 'done':
-                        move.quantity_done = move.product_uom_qty
+                        move.qty_done = move.product_uom_qty
                         move.state = 'done'
             
             # Arıza kaydına dön
