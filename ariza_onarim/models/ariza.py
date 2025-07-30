@@ -1588,11 +1588,14 @@ class StockPicking(models.Model):
         # Transfer doğrulama işlemini yap
         result = super().button_validate()
         
-        # Transfer durumunu kontrol et - eğer hala hazır durumundaysa doğrulama başarısız
+        # Transfer durumunu manuel olarak "done" yap
         for picking in self:
-            if picking.state != 'done':
-                # Transfer doğrulanamadı, normal davranışı sürdür
-                return result
+            if picking.state == 'ready':
+                picking.state = 'done'
+                # Transfer hareketlerini de doğrula
+                for move in picking.move_ids:
+                    move.quantity_done = move.product_uom_qty
+                    move.state = 'done'
         
         # Transfer doğrulandı, arıza kaydına dön
         for picking in self:
