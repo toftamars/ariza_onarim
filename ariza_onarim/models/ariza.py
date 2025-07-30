@@ -102,6 +102,30 @@ class ArizaKayit(models.Model):
         ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
         ('TEDARİKÇİ', 'TEDARİKÇİ')
     ], string='Teknik Servis')
+    
+    @api.depends('ariza_tipi')
+    def _compute_teknik_servis_selection(self):
+        """Arıza tipine göre teknik servis seçeneklerini ayarla"""
+        for record in self:
+            if record.ariza_tipi == 'magaza':
+                # Mağaza ürünü için MAĞAZA seçeneğini kaldır
+                record.teknik_servis = fields.Selection([
+                    ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
+                    ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
+                    ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
+                    ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
+                    ('TEDARİKÇİ', 'TEDARİKÇİ')
+                ], string='Teknik Servis')
+            else:
+                # Diğer arıza tipleri için tüm seçenekler mevcut
+                record.teknik_servis = fields.Selection([
+                    ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
+                    ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
+                    ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
+                    ('MAĞAZA', 'MAĞAZA'),
+                    ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
+                    ('TEDARİKÇİ', 'TEDARİKÇİ')
+                ], string='Teknik Servis')
     transfer_metodu = fields.Selection([
         ('arac', 'Araç'),
         ('ucretsiz_kargo', 'Ücretsiz Kargo'),
@@ -579,6 +603,8 @@ class ArizaKayit(models.Model):
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+            # Mağaza ürünü için MAĞAZA seçeneğini kaldır
+            return {'domain': {'teknik_servis': [('id', 'not in', [])]}}
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
