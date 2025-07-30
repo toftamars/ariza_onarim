@@ -999,11 +999,23 @@ class ArizaKayit(models.Model):
         try:
             picking = self.env['stock.picking'].sudo().create(picking_vals)
             _logger.info(f"Transfer oluşturuldu: {picking.name} - Araç No: {picking.vehicle_id.name if picking.vehicle_id else 'Boş'}")
+            
+            # Transfer oluşturulduktan sonra Araç No'yu manuel olarak ayarla
+            if vehicle_id and not picking.vehicle_id:
+                picking.sudo().write({'vehicle_id': vehicle_id})
+                _logger.info(f"Araç No manuel olarak ayarlandı: {vehicle_id} - Transfer: {picking.name}")
+                
         except Exception as e:
             # Güvenlik hatası alırsa, daha geniş yetki ile dene
             try:
                 picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
                 _logger.info(f"Transfer oluşturuldu (geniş yetki): {picking.name} - Araç No: {picking.vehicle_id.name if picking.vehicle_id else 'Boş'}")
+                
+                # Transfer oluşturulduktan sonra Araç No'yu manuel olarak ayarla
+                if vehicle_id and not picking.vehicle_id:
+                    picking.sudo().write({'vehicle_id': vehicle_id})
+                    _logger.info(f"Araç No manuel olarak ayarlandı: {vehicle_id} - Transfer: {picking.name}")
+                    
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         
