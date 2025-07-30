@@ -998,12 +998,12 @@ class ArizaKayit(models.Model):
                             ('is_driver', '=', True),
                             ('name', 'ilike', '34PLK34')
                         ], limit=1)
-                
-                if vehicle_aras:
-                    vehicle_id = vehicle_aras.id
-                    _logger.info(f"Sürücü bulundu: {vehicle_aras.name} - ID: {vehicle_aras.id}")
-                else:
-                    _logger.error(f"Sürücü bulunamadı! Mevcut sürücüler: {self.env['res.partner'].search([('is_driver', '=', True)]).mapped('name')}")
+                    
+                    if vehicle_aras:
+                        vehicle_id = vehicle_aras.id
+                        _logger.info(f"Sürücü bulundu: {vehicle_aras.name} - ID: {vehicle_aras.id}")
+                    else:
+                        _logger.error(f"Sürücü bulunamadı! Mevcut sürücüler: {self.env['res.partner'].search([('is_driver', '=', True)]).mapped('name')}")
             
             # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
             if vehicle_id:
