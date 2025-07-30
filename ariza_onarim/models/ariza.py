@@ -102,30 +102,6 @@ class ArizaKayit(models.Model):
         ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
         ('TEDARİKÇİ', 'TEDARİKÇİ')
     ], string='Teknik Servis')
-    
-    @api.depends('ariza_tipi')
-    def _compute_teknik_servis_selection(self):
-        """Arıza tipine göre teknik servis seçeneklerini ayarla"""
-        for record in self:
-            if record.ariza_tipi == 'magaza':
-                # Mağaza ürünü için MAĞAZA seçeneğini kaldır
-                record.teknik_servis = fields.Selection([
-                    ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
-                    ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
-                    ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
-                    ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
-                    ('TEDARİKÇİ', 'TEDARİKÇİ')
-                ], string='Teknik Servis')
-            else:
-                # Diğer arıza tipleri için tüm seçenekler mevcut
-                record.teknik_servis = fields.Selection([
-                    ('DTL BEYOĞLU', 'DTL BEYOĞLU'),
-                    ('DTL OKMEYDANI', 'DTL OKMEYDANI'),
-                    ('ZUHAL ARIZA DEPO', 'ZUHAL ARIZA DEPO'),
-                    ('MAĞAZA', 'MAĞAZA'),
-                    ('ZUHAL NEFESLİ', 'ZUHAL NEFESLİ'),
-                    ('TEDARİKÇİ', 'TEDARİKÇİ')
-                ], string='Teknik Servis')
     transfer_metodu = fields.Selection([
         ('arac', 'Araç'),
         ('ucretsiz_kargo', 'Ücretsiz Kargo'),
@@ -603,8 +579,6 @@ class ArizaKayit(models.Model):
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-            # Mağaza ürünü için MAĞAZA seçeneğini kaldır
-            return {'domain': {'teknik_servis': [('id', 'not in', [])]}}
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
@@ -972,9 +946,10 @@ class ArizaKayit(models.Model):
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
-            # Delivery carrier'ın vehicle_id alanını ayarla
+            # Araç bilgisini belirle
+            vehicle_id = False
             if self.vehicle_id:
-                delivery_carrier.vehicle_id = self.vehicle_id.id
+                vehicle_id = self.vehicle_id.id
             else:
                 # Eğer arıza kaydında vehicle_id yoksa, 34PLK34 plakalı sürücüyü bul
                 vehicle_34plk34 = self.env['res.partner'].search([
@@ -982,11 +957,7 @@ class ArizaKayit(models.Model):
                     ('name', 'ilike', '34PLK34')
                 ], limit=1)
                 if vehicle_34plk34:
-                    delivery_carrier.vehicle_id = vehicle_34plk34.id
-            
-        # Araç bilgisi ekle - basit yöntem
-        if self.vehicle_id:
-            picking_vals['vehicle_id'] = self.vehicle_id.id
+                    vehicle_id = vehicle_34plk34.id
             
             # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
             if vehicle_id:
@@ -994,7 +965,7 @@ class ArizaKayit(models.Model):
                 picking_vals['vehicle_id'] = vehicle_id
                 _logger.info(f"Araç No ayarlandı: {vehicle_id} - Transfer: {self.name}")
             else:
-                _logger.warning(f"Araç No bulunamadı - Transfer: {self.name}")
+                _logger.warning(f"Araç No bulunamadı! Transfer: {self.name}")
         
 
         
@@ -1008,24 +979,18 @@ class ArizaKayit(models.Model):
 
         try:
             picking = self.env['stock.picking'].sudo().create(picking_vals)
-            _logger.info(f"Transfer oluşturuldu: {picking.name} - Araç No: {picking.vehicle_id.name if picking.vehicle_id else 'Boş'}")
-            
-            # Transfer oluşturulduktan sonra Araç No'yu manuel olarak ayarla
-            if vehicle_id and not picking.vehicle_id:
-                picking.sudo().write({'vehicle_id': vehicle_id})
-                _logger.info(f"Araç No manuel olarak ayarlandı: {vehicle_id} - Transfer: {picking.name}")
-                
+            # Transfer oluşturulduktan sonra Araç No'yu kontrol et ve gerekirse ayarla
+            if not picking.vehicle_id and vehicle_id:
+                picking.vehicle_id = vehicle_id
+                _logger.info(f"Transfer sonrası Araç No ayarlandı: {vehicle_id} - Transfer: {picking.name}")
         except Exception as e:
             # Güvenlik hatası alırsa, daha geniş yetki ile dene
             try:
                 picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
-                _logger.info(f"Transfer oluşturuldu (geniş yetki): {picking.name} - Araç No: {picking.vehicle_id.name if picking.vehicle_id else 'Boş'}")
-                
-                # Transfer oluşturulduktan sonra Araç No'yu manuel olarak ayarla
-                if vehicle_id and not picking.vehicle_id:
-                    picking.sudo().write({'vehicle_id': vehicle_id})
-                    _logger.info(f"Araç No manuel olarak ayarlandı: {vehicle_id} - Transfer: {picking.name}")
-                    
+                # Transfer oluşturulduktan sonra Araç No'yu kontrol et ve gerekirse ayarla
+                if not picking.vehicle_id and vehicle_id:
+                    picking.vehicle_id = vehicle_id
+                    _logger.info(f"Transfer sonrası Araç No ayarlandı: {vehicle_id} - Transfer: {picking.name}")
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         
