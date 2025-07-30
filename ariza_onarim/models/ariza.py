@@ -972,46 +972,21 @@ class ArizaKayit(models.Model):
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
-            # Araç bilgisini belirle
-            vehicle_id = False
+            # Delivery carrier'ın vehicle_id alanını ayarla
             if self.vehicle_id:
-                vehicle_id = self.vehicle_id.id
+                delivery_carrier.vehicle_id = self.vehicle_id.id
             else:
-                # Eğer arıza kaydında vehicle_id yoksa, sistemdeki sürücüyü bul
-                # Sürücü ID'si 12345678950 olan sürücüyü ara
-                vehicle_aras = self.env['res.partner'].browse(12345678950)
-                
-                # Sürücü var mı ve sürücü mü kontrol et
-                if vehicle_aras.exists() and vehicle_aras.is_driver:
-                    vehicle_id = vehicle_aras.id
-                    _logger.info(f"Sürücü bulundu (ID: 12345678950): {vehicle_aras.name}")
-                else:
-                    # ID ile bulunamazsa isimle ara
-                    vehicle_aras = self.env['res.partner'].search([
-                        ('is_driver', '=', True),
-                        ('name', 'ilike', 'Aras')
-                    ], limit=1)
-                    
-                    # Aras sürücüsü yoksa 34PLK34 plakalı sürücüyü ara
-                    if not vehicle_aras:
-                        vehicle_aras = self.env['res.partner'].search([
-                            ('is_driver', '=', True),
-                            ('name', 'ilike', '34PLK34')
-                        ], limit=1)
-                    
-                    if vehicle_aras:
-                        vehicle_id = vehicle_aras.id
-                        _logger.info(f"Sürücü bulundu: {vehicle_aras.name} - ID: {vehicle_aras.id}")
-                    else:
-                        _logger.error(f"Sürücü bulunamadı! Mevcut sürücüler: {self.env['res.partner'].search([('is_driver', '=', True)]).mapped('name')}")
+                # Eğer arıza kaydında vehicle_id yoksa, 34PLK34 plakalı sürücüyü bul
+                vehicle_34plk34 = self.env['res.partner'].search([
+                    ('is_driver', '=', True),
+                    ('name', 'ilike', '34PLK34')
+                ], limit=1)
+                if vehicle_34plk34:
+                    delivery_carrier.vehicle_id = vehicle_34plk34.id
             
-            # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
-            if vehicle_id:
-                delivery_carrier.vehicle_id = vehicle_id
-                picking_vals['vehicle_id'] = vehicle_id
-                _logger.info(f"Araç No ayarlandı: {vehicle_id} - Transfer: {self.name}")
-            else:
-                _logger.warning(f"Araç No bulunamadı - Transfer: {self.name}")
+        # Araç bilgisi ekle - basit yöntem
+        if self.vehicle_id:
+            picking_vals['vehicle_id'] = self.vehicle_id.id
             
             # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
             if vehicle_id:
