@@ -952,11 +952,18 @@ class ArizaKayit(models.Model):
                 vehicle_id = self.vehicle_id.id
             else:
                 # Eğer arıza kaydında vehicle_id yoksa, sistemdeki sürücüyü bul
-                # Önce "Aras/Sürücü" sürücüsünü ara
+                # Önce ID'si 12345678950 olan "Aras/Sürücü" sürücüsünü ara
                 vehicle_aras = self.env['res.partner'].search([
                     ('is_driver', '=', True),
-                    ('name', 'ilike', 'Aras')
+                    ('id', '=', 12345678950)
                 ], limit=1)
+                
+                # ID ile bulunamazsa isimle ara
+                if not vehicle_aras:
+                    vehicle_aras = self.env['res.partner'].search([
+                        ('is_driver', '=', True),
+                        ('name', 'ilike', 'Aras')
+                    ], limit=1)
                 
                 # Aras sürücüsü yoksa 34PLK34 plakalı sürücüyü ara
                 if not vehicle_aras:
