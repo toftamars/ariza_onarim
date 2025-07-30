@@ -1585,37 +1585,35 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
-        # Transfer doğrulama işlemini yap
-        result = super().button_validate()
-        
-        # Transfer durumunu manuel olarak "done" yap
+        # Transfer doğrulama işlemini manuel olarak yap
         for picking in self:
             if picking.state == 'ready':
-                picking.state = 'done'
-                # Transfer hareketlerini de doğrula
+                # Transfer hareketlerini doğrula
                 for move in picking.move_ids:
                     move.quantity_done = move.product_uom_qty
                     move.state = 'done'
-        
-        # Transfer doğrulandı, arıza kaydına dön
-        for picking in self:
-            if picking.origin:
-                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza:
-                    # Transfer sayısını artır
-                    ariza.transfer_sayisi += 1
-                    
-                    # Transfer doğrulandıktan sonra arıza kaydına dön
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'res_model': 'ariza.kayit',
-                        'res_id': ariza.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
+                
+                # Transfer durumunu "done" yap
+                picking.state = 'done'
+                
+                # Origin alanı üzerinden arıza kaydını bul
+                if picking.origin:
+                    ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                    if ariza:
+                        # Transfer sayısını artır
+                        ariza.transfer_sayisi += 1
+                        
+                        # Transfer doğrulandıktan sonra arıza kaydına dön
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
         
         # Eğer arıza kaydı bulunamazsa normal davranışı sürdür
-        return result 
+        return super().button_validate() 
 
 
 class DeliveryCarrier(models.Model):
