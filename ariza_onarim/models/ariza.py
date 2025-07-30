@@ -1585,7 +1585,9 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
+        # Önce transfer doğrulamasını yap
         res = super().button_validate()
+        
         # Origin alanı üzerinden arıza kaydını bul
         for picking in self:
             if picking.origin:
@@ -1593,6 +1595,8 @@ class StockPicking(models.Model):
                 if ariza:
                     # Transfer sayısını artır
                     ariza.transfer_sayisi += 1
+                    
+                    # Transfer doğrulandıktan sonra arıza kaydına dön
                     return {
                         'type': 'ir.actions.act_window',
                         'res_model': 'ariza.kayit',
@@ -1600,6 +1604,8 @@ class StockPicking(models.Model):
                         'view_mode': 'form',
                         'target': 'current',
                     }
+        
+        # Eğer arıza kaydı bulunamazsa normal davranışı sürdür
         return res 
 
 
