@@ -1585,37 +1585,28 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
-        # Önce normal transfer doğrulama işlemini yap
+        # Standart Odoo işleyişini kullan
         result = super().button_validate()
         
-        # Transfer doğrulandıktan sonra durumu kontrol et ve güncelle
-        for picking in self:
-            # Transfer durumunu zorla "done" yap
-            if picking.state != 'done':
-                picking.state = 'done'
-                # Transfer hareketlerini de doğrula
-                for move in picking.move_line_ids:
-                    if move.state != 'done':
-                        move.qty_done = move.product_uom_qty
-                        move.state = 'done'
-            
-            # Arıza kaydına dön
-            if picking.origin:
-                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza:
-                    # Transfer sayısını artır
-                    ariza.transfer_sayisi += 1
-                    
-                    # Transfer doğrulandıktan sonra arıza kaydına dön
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'res_model': 'ariza.kayit',
-                        'res_id': ariza.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
+        # Eğer transfer doğrulandıysa (result True ise) arıza kaydına dön
+        if result is True:
+            for picking in self:
+                if picking.origin:
+                    ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                    if ariza:
+                        # Transfer sayısını artır
+                        ariza.transfer_sayisi += 1
+                        
+                        # Transfer doğrulandıktan sonra arıza kaydına dön
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
         
-        # Eğer arıza kaydı bulunamazsa normal davranışı sürdür
+        # Normal davranışı sürdür
         return result 
 
 
