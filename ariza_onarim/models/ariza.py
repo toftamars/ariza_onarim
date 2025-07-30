@@ -952,25 +952,26 @@ class ArizaKayit(models.Model):
                 vehicle_id = self.vehicle_id.id
             else:
                 # Eğer arıza kaydında vehicle_id yoksa, sistemdeki sürücüyü bul
-                # Önce ID'si 12345678950 olan "Aras/Sürücü" sürücüsünü ara
-                vehicle_aras = self.env['res.partner'].search([
-                    ('is_driver', '=', True),
-                    ('id', '=', 12345678950)
-                ], limit=1)
+                # Sürücü ID'si 12345678950 olan sürücüyü ara
+                vehicle_aras = self.env['res.partner'].browse(12345678950)
                 
-                # ID ile bulunamazsa isimle ara
-                if not vehicle_aras:
+                # Sürücü var mı ve sürücü mü kontrol et
+                if vehicle_aras.exists() and vehicle_aras.is_driver:
+                    vehicle_id = vehicle_aras.id
+                    _logger.info(f"Sürücü bulundu (ID: 12345678950): {vehicle_aras.name}")
+                else:
+                    # ID ile bulunamazsa isimle ara
                     vehicle_aras = self.env['res.partner'].search([
                         ('is_driver', '=', True),
                         ('name', 'ilike', 'Aras')
                     ], limit=1)
-                
-                # Aras sürücüsü yoksa 34PLK34 plakalı sürücüyü ara
-                if not vehicle_aras:
-                    vehicle_aras = self.env['res.partner'].search([
-                        ('is_driver', '=', True),
-                        ('name', 'ilike', '34PLK34')
-                    ], limit=1)
+                    
+                    # Aras sürücüsü yoksa 34PLK34 plakalı sürücüyü ara
+                    if not vehicle_aras:
+                        vehicle_aras = self.env['res.partner'].search([
+                            ('is_driver', '=', True),
+                            ('name', 'ilike', '34PLK34')
+                        ], limit=1)
                 
                 if vehicle_aras:
                     vehicle_id = vehicle_aras.id
