@@ -1588,9 +1588,19 @@ class StockPicking(models.Model):
         # Önce normal transfer doğrulama işlemini yap
         result = super().button_validate()
         
-        # Transfer doğrulandıktan sonra arıza kaydına dön
+        # Transfer doğrulandıktan sonra durumu kontrol et ve güncelle
         for picking in self:
-            if picking.origin and picking.state == 'done':
+            # Transfer durumunu zorla "done" yap
+            if picking.state != 'done':
+                picking.state = 'done'
+                # Transfer hareketlerini de doğrula
+                for move in picking.move_ids:
+                    if move.state != 'done':
+                        move.quantity_done = move.product_uom_qty
+                        move.state = 'done'
+            
+            # Arıza kaydına dön
+            if picking.origin:
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
                 if ariza:
                     # Transfer sayısını artır
