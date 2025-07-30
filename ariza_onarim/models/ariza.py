@@ -1585,28 +1585,30 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
-        # Önce transfer doğrulamasını yap
-        res = super().button_validate()
+        # Transfer doğrulama işlemini yap ve sonucunu bekle
+        result = super().button_validate()
         
-        # Origin alanı üzerinden arıza kaydını bul
-        for picking in self:
-            if picking.origin:
-                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza:
-                    # Transfer sayısını artır
-                    ariza.transfer_sayisi += 1
-                    
-                    # Transfer doğrulandıktan sonra arıza kaydına dön
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'res_model': 'ariza.kayit',
-                        'res_id': ariza.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
+        # Transfer doğrulama başarılı olduysa arıza kaydına dön
+        if result is True or (isinstance(result, dict) and result.get('type') == 'ir.actions.act_window'):
+            # Origin alanı üzerinden arıza kaydını bul
+            for picking in self:
+                if picking.origin:
+                    ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                    if ariza:
+                        # Transfer sayısını artır
+                        ariza.transfer_sayisi += 1
+                        
+                        # Transfer doğrulandıktan sonra arıza kaydına dön
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
         
-        # Eğer arıza kaydı bulunamazsa normal davranışı sürdür
-        return res 
+        # Eğer arıza kaydı bulunamazsa veya transfer doğrulama başarısızsa normal davranışı sürdür
+        return result 
 
 
 class DeliveryCarrier(models.Model):
