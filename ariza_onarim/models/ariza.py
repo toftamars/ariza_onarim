@@ -946,9 +946,10 @@ class ArizaKayit(models.Model):
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
-            # Delivery carrier'ın vehicle_id alanını ayarla
+            # Araç bilgisini belirle
+            vehicle_id = False
             if self.vehicle_id:
-                delivery_carrier.vehicle_id = self.vehicle_id.id
+                vehicle_id = self.vehicle_id.id
             else:
                 # Eğer arıza kaydında vehicle_id yoksa, 34PLK34 plakalı sürücüyü bul
                 vehicle_34plk34 = self.env['res.partner'].search([
@@ -956,11 +957,12 @@ class ArizaKayit(models.Model):
                     ('name', 'ilike', '34PLK34')
                 ], limit=1)
                 if vehicle_34plk34:
-                    delivery_carrier.vehicle_id = vehicle_34plk34.id
+                    vehicle_id = vehicle_34plk34.id
             
-        # Araç bilgisi ekle - basit yöntem
-        if self.vehicle_id:
-            picking_vals['vehicle_id'] = self.vehicle_id.id
+            # Hem delivery_carrier'a hem de picking_vals'a araç bilgisini ekle
+            if vehicle_id:
+                delivery_carrier.vehicle_id = vehicle_id
+                picking_vals['vehicle_id'] = vehicle_id
         
 
         
