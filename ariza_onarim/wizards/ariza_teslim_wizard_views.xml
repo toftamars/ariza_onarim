@@ -11,6 +11,7 @@
                         <field name="urun" readonly="1" attrs="{'invisible': [('ariza_id.ariza_tipi', '=', 'magaza')]}"/>
                         <field name="is_ikinci_transfer" invisible="1"/>
                         <field name="company_id" invisible="1"/>
+                        <field name="ariza_id" invisible="1"/>
                     </group>
                 </group>
                 <group attrs="{'invisible': [('is_ikinci_transfer', '=', True)]}">
