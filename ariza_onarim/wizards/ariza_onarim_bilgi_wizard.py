@@ -49,15 +49,26 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             
             # Mağaza ürünü için 2. transfer bilgilerini hesapla
             if ariza.ariza_tipi == 'magaza':
-                # Kaynak: Teknik Servis
-                kaynak_adi = ariza.teknik_servis if ariza.teknik_servis else 'Teknik Servis'
+                # 1. transferin bilgilerini al
+                birinci_transfer = self.env['stock.picking'].search([
+                    ('origin', '=', ariza.name),
+                    ('picking_type_code', '=', 'outgoing')  # İlk transfer çıkış transferi
+                ], limit=1)
                 
-                # Hedef: Mağaza
-                hedef_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else 'Mağaza'
+                if birinci_transfer:
+                    # 2. transfer kaynağı = 1. transfer hedefi
+                    ikinci_kaynak = birinci_transfer.location_dest_id.complete_name if birinci_transfer.location_dest_id else 'Teknik Servis'
+                    
+                    # 2. transfer hedefi = 1. transfer kaynağı
+                    ikinci_hedef = birinci_transfer.location_id.complete_name if birinci_transfer.location_id else 'Mağaza'
+                else:
+                    # 1. transfer bulunamazsa varsayılan değerler
+                    ikinci_kaynak = ariza.teknik_servis if ariza.teknik_servis else 'Teknik Servis'
+                    ikinci_hedef = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else 'Mağaza'
                 
                 res.update({
-                    'ikinci_transfer_kaynak': kaynak_adi,
-                    'ikinci_transfer_hedef': hedef_adi,
+                    'ikinci_transfer_kaynak': ikinci_kaynak,
+                    'ikinci_transfer_hedef': ikinci_hedef,
                 })
         return res
 
