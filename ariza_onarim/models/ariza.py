@@ -957,12 +957,12 @@ class ArizaKayit(models.Model):
             if dtl_partner:
                 picking_vals['partner_id'] = dtl_partner.id
         elif self.teknik_servis == 'DTL OKMEYDANI':
-            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti alt kontağı DTL OK meydanı'nı bul
+            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti alt kontağı DTL OKMEYDANI'nı bul
             dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
             if dtl_partner:
                 dtl_okmeydani = self.env['res.partner'].search([
                     ('parent_id', '=', dtl_partner.id),
-                    ('name', 'ilike', 'DTL OK meydanı')
+                    ('name', 'ilike', 'DTL OKMEYDANI')
                 ], limit=1)
                 if dtl_okmeydani:
                     picking_vals['partner_id'] = dtl_okmeydani.id

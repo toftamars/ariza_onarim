@@ -142,7 +142,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 if dtl_partner:
                     dtl_okmeydani = self.env['res.partner'].search([
                         ('parent_id', '=', dtl_partner.id),
-                        ('name', 'ilike', 'DTL OK meydanı')
+                        ('name', 'ilike', 'DTL OKMEYDANI')
                     ], limit=1)
                     if dtl_okmeydani:
                         picking_vals['partner_id'] = dtl_okmeydani.id
