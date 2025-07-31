@@ -83,8 +83,6 @@ class ArizaKayit(models.Model):
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
-        ('musteri_urunu', 'Müşteri Ürünü'),
-        ('teknik_servis', 'Teknik Servis'),
     ], string='İşlem Tipi', required=True, tracking=True)
     
 
