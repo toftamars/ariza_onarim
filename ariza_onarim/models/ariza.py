@@ -1387,6 +1387,7 @@ Arıza Kaydı Tamamlandı.<br/>
                     'default_musteri_adi': self.partner_id.name if self.partner_id else '',
                     'default_urun': self.urun,
                     'default_is_ikinci_transfer': False,
+                    'default_ariza_tipi': 'musteri',
                 }
             }
 
@@ -1411,6 +1412,7 @@ Arıza Kaydı Tamamlandı.<br/>
                     'default_musteri_adi': self.partner_id.name if self.partner_id else '',
                     'default_urun': self.urun,
                     'default_is_ikinci_transfer': True,
+                    'default_ariza_tipi': 'magaza',
                 }
             }
 
