@@ -1559,6 +1559,9 @@ Arıza Kaydı Tamamlandı.<br/>
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
         
+        # Teslimat türünü matbu olarak ayarla
+        tamir_alim_transfer.write({'delivery_type': 'matbu'})
+        
         # Transfer satırını oluştur
         move_vals = {
             'name': f"{self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen Ürün'} - {self.name}",
