@@ -112,6 +112,7 @@ class ArizaKayit(models.Model):
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
+    teknik_servis_location_id = fields.Many2one('stock.location', string='Teknik Servis Konumu', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
     marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
     marka_manu = fields.Char(string='Marka (Manuel)', tracking=True)
