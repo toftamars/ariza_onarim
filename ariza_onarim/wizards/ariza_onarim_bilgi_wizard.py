@@ -81,8 +81,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 # Mağazadan teslim seçildi
                 ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
         
-        # Durumu güncelle - Adrese gönderim seçildiyse direkt teslim edildi durumuna geç
-        if self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
+        # Durumu güncelle - Mağaza ürünü için yönetici tamamlandı, müşteri ürünü için normal akış
+        if self.ariza_tipi == 'magaza':
+            ariza.state = 'yonetici_tamamlandi'
+        elif self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.state = 'teslim_edildi'
             # Adrese gönderim için teslim bilgilerini güncelle
             ariza.teslim_alan = 'Adrese Gönderim'
@@ -118,90 +120,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         
 
         
-        # Mağaza ürünü işlemleri için 2. transfer oluştur (Teknik Servis → Mağaza)
-        if ariza.ariza_tipi == 'magaza':
-            # 2. transfer için gerekli bilgileri hazırla
-            picking_type_domain = [('code', '=', 'outgoing')]  # Tamir Teslimatları
-            if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.warehouse_id:
-                picking_type_domain.append(('warehouse_id', '=', ariza.teslim_magazasi_id.warehouse_id.id))
-            
-            picking_vals = {
-                'picking_type_id': self.env['stock.picking.type'].search(picking_type_domain, limit=1).id,
-                'location_id': ariza.teknik_servis_location_id.id if ariza.teknik_servis_location_id else False,
-                'location_dest_id': ariza.teslim_magazasi_id.location_id.id if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.location_id else False,
-                'origin': ariza.name,
-                'scheduled_date': fields.Datetime.now(),
-                'date': fields.Datetime.now(),
-                'delivery_type': 'matbu',
-            }
-            
-            # Teknik servise göre partner_id ayarla (2. transfer için)
-            if ariza.teknik_servis == 'TEDARİKÇİ' and ariza.tedarikci_id:
-                picking_vals['partner_id'] = ariza.tedarikci_id.id
-            elif ariza.teknik_servis == 'DTL BEYOĞLU':
-                dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
-                if dtl_partner:
-                    picking_vals['partner_id'] = dtl_partner.id
-            elif ariza.teknik_servis == 'DTL OKMEYDANI':
-                dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
-                if dtl_partner:
-                    dtl_okmeydani = self.env['res.partner'].search([
-                        ('parent_id', '=', dtl_partner.id),
-                        ('name', 'ilike', 'DTL OKMEYDANI')
-                    ], limit=1)
-                    if dtl_okmeydani:
-                        picking_vals['partner_id'] = dtl_okmeydani.id
-                    else:
-                        picking_vals['partner_id'] = dtl_partner.id
-            elif ariza.teknik_servis == 'ZUHAL ARIZA DEPO':
-                zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
-                if zuhal_partner:
-                    zuhal_ariza = self.env['res.partner'].search([
-                        ('parent_id', '=', zuhal_partner.id),
-                        ('name', 'ilike', 'Arıza Depo')
-                    ], limit=1)
-                    if zuhal_ariza:
-                        picking_vals['partner_id'] = zuhal_ariza.id
-                    else:
-                        picking_vals['partner_id'] = zuhal_partner.id
-            elif ariza.teknik_servis == 'ZUHAL NEFESLİ':
-                zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
-                if zuhal_partner:
-                    zuhal_nefesli = self.env['res.partner'].search([
-                        ('parent_id', '=', zuhal_partner.id),
-                        ('name', 'ilike', 'Nefesli Arıza')
-                    ], limit=1)
-                    if zuhal_nefesli:
-                        picking_vals['partner_id'] = zuhal_nefesli.id
-                    else:
-                        picking_vals['partner_id'] = zuhal_partner.id
-            
-            # 2. transferi oluştur
-            if picking_vals['location_id'] and picking_vals['location_dest_id']:
-                ikinci_transfer = self.env['stock.picking'].create(picking_vals)
-                
-                # Transfer satırını oluştur
-                move_vals = {
-                    'name': f"{ariza.urun} - {ariza.name}",
-                    'product_id': ariza.magaza_urun_id.id if ariza.magaza_urun_id else False,
-                    'product_uom_qty': 1.0,
-                    'product_uom': ariza.magaza_urun_id.uom_id.id if ariza.magaza_urun_id else False,
-                    'picking_id': ikinci_transfer.id,
-                    'location_id': picking_vals['location_id'],
-                    'location_dest_id': picking_vals['location_dest_id'],
-                }
-                
-                if move_vals['product_id'] and move_vals['product_uom']:
-                    self.env['stock.move'].create(move_vals)
-                
-                # 2. transfere yönlendir
-                return {
-                    'type': 'ir.actions.act_window',
-                    'res_model': 'stock.picking',
-                    'res_id': ikinci_transfer.id,
-                    'view_mode': 'form',
-                    'target': 'current',
-                }
+        # Mağaza ürünü işlemleri için 2. transfer artık kullanıcı "Teslim AL" butonuna bastığında oluşacak
         
         # Mesaj gönder
         if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
@@ -211,8 +130,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. 2. transfer (Teknik Servis → Mağaza) otomatik oluşturuldu.",
-                subject="Onarım Tamamlandı - 2. Transfer Oluşturuldu"
+                body=f"Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.",
+                subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor"
             )
         else:
             ariza.message_post(

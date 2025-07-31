@@ -112,6 +112,7 @@ class ArizaKayit(models.Model):
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
+    teknik_servis_location_id = fields.Many2one('stock.location', string='Teknik Servis Konumu', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
     marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
     marka_manu = fields.Char(string='Marka (Manuel)', tracking=True)
@@ -125,6 +126,7 @@ class ArizaKayit(models.Model):
         ('personel_onay', 'Personel Onayı'),
         ('teknik_onarim', 'Teknik Onarım'),
         ('onaylandi', 'Onaylandı'),
+        ('yonetici_tamamlandi', 'Yönetici Tamamlandı'),
         ('tamamlandi', 'Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
@@ -1429,27 +1431,113 @@ Arıza Kaydı Tamamlandı.<br/>
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
     
     def action_teslim_al(self):
-        """Mağaza ürünü teslim al işlemi"""
+        """Mağaza ürünü teslim al işlemi - Tamir Alımlar transferi oluşturur"""
         self.ensure_one()
         
-        # Durumu teslim edildi olarak güncelle
-        self.state = 'teslim_edildi'
+        if self.ariza_tipi != 'magaza':
+            raise UserError('Bu işlem sadece mağaza ürünü işlemleri için kullanılabilir!')
         
-        # Teslim bilgilerini güncelle
-        self.teslim_alan = self.env.user.name
-        self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı."
+        if self.state != 'yonetici_tamamlandi':
+            raise UserError('Bu işlem sadece yönetici tamamlandı durumundaki kayıtlar için kullanılabilir!')
         
-        # Başarı mesajı göster
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Başarılı',
-                'message': f'{self.name} numaralı arıza kaydı teslim alındı.',
-                'type': 'success',
-                'sticky': False,
+        # İlk transferin tam tersi olan "Tamir Alımlar" transferi oluştur
+        # Kaynak: Teslim mağazası, Hedef: Teknik servis
+        picking_type_domain = [('code', '=', 'incoming')]  # Tamir Alımlar
+        if self.teslim_magazasi_id and self.teslim_magazasi_id.warehouse_id:
+            picking_type_domain.append(('warehouse_id', '=', self.teslim_magazasi_id.warehouse_id.id))
+        
+        picking_vals = {
+            'picking_type_id': self.env['stock.picking.type'].search(picking_type_domain, limit=1).id,
+            'location_id': self.teslim_magazasi_id.location_id.id if self.teslim_magazasi_id and self.teslim_magazasi_id.location_id else False,
+            'location_dest_id': self.teknik_servis_location_id.id if self.teknik_servis_location_id else False,
+            'origin': self.name,
+            'scheduled_date': fields.Datetime.now(),
+            'date': fields.Datetime.now(),
+            'delivery_type': 'matbu',
+        }
+        
+        # Teknik servise göre partner_id ayarla
+        if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+            picking_vals['partner_id'] = self.tedarikci_id.id
+        elif self.teknik_servis == 'DTL BEYOĞLU':
+            dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
+            if dtl_partner:
+                picking_vals['partner_id'] = dtl_partner.id
+        elif self.teknik_servis == 'DTL OKMEYDANI':
+            dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
+            if dtl_partner:
+                dtl_okmeydani = self.env['res.partner'].search([
+                    ('parent_id', '=', dtl_partner.id),
+                    ('name', 'ilike', 'DTL OKMEYDANI')
+                ], limit=1)
+                if dtl_okmeydani:
+                    picking_vals['partner_id'] = dtl_okmeydani.id
+                else:
+                    picking_vals['partner_id'] = dtl_partner.id
+        elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
+            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
+            if zuhal_partner:
+                zuhal_ariza = self.env['res.partner'].search([
+                    ('parent_id', '=', zuhal_partner.id),
+                    ('name', 'ilike', 'Arıza Depo')
+                ], limit=1)
+                if zuhal_ariza:
+                    picking_vals['partner_id'] = zuhal_ariza.id
+                else:
+                    picking_vals['partner_id'] = zuhal_partner.id
+        elif self.teknik_servis == 'ZUHAL NEFESLİ':
+            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
+            if zuhal_partner:
+                zuhal_nefesli = self.env['res.partner'].search([
+                    ('parent_id', '=', zuhal_partner.id),
+                    ('name', 'ilike', 'Nefesli Arıza')
+                ], limit=1)
+                if zuhal_nefesli:
+                    picking_vals['partner_id'] = zuhal_nefesli.id
+                else:
+                    picking_vals['partner_id'] = zuhal_partner.id
+        
+        # Tamir Alımlar transferini oluştur
+        if picking_vals['location_id'] and picking_vals['location_dest_id']:
+            tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
+            
+            # Transfer satırını oluştur
+            move_vals = {
+                'name': f"{self.urun} - {self.name}",
+                'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
+                'product_uom_qty': 1.0,
+                'product_uom': self.magaza_urun_id.uom_id.id if self.magaza_urun_id else False,
+                'picking_id': tamir_alim_transfer.id,
+                'location_id': picking_vals['location_id'],
+                'location_dest_id': picking_vals['location_dest_id'],
             }
-        } 
+            
+            if move_vals['product_id'] and move_vals['product_uom']:
+                self.env['stock.move'].create(move_vals)
+            
+            # Durumu tamamlandı olarak güncelle
+            self.state = 'tamamlandi'
+            
+            # Teslim bilgilerini güncelle
+            self.teslim_alan = self.env.user.name
+            self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı. Tamir Alımlar transferi oluşturuldu."
+            
+            # Mesaj gönder
+            self.message_post(
+                body=f"Mağaza ürünü teslim alındı. Tamir Alımlar transferi (Teknik Servis → Mağaza) otomatik oluşturuldu.",
+                subject="Mağaza Ürünü Teslim Alındı"
+            )
+            
+            # Tamir Alımlar transferine yönlendir
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'stock.picking',
+                'res_id': tamir_alim_transfer.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        else:
+            raise UserError('Transfer oluşturmak için gerekli konum bilgileri eksik!') 
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
@@ -1656,7 +1744,7 @@ Arıza Kaydı Tamamlandı.<br/>
         for record in self:
             record.teslim_al_visible = (
                 record.ariza_tipi == 'magaza' and 
-                record.state == 'tamamlandi'
+                record.state == 'yonetici_tamamlandi'
             )
 
 
