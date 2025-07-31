@@ -211,8 +211,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. 2. transfer (Teknik Servis → Mağaza) otomatik oluşturuldu.",
-                subject="Onarım Tamamlandı - 2. Transfer Oluşturuldu"
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi.",
+                subject="Onarım Tamamlandı"
             )
         else:
             ariza.message_post(
