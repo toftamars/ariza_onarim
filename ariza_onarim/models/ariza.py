@@ -1513,6 +1513,7 @@ Arıza Kaydı Tamamlandı.<br/>
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
             'edespatch_delivery_type': 'printed',
+            'driver_ids': [(6, 0, [12345678950])],  # Aras sürücüsünü ata
         }
         
         # Teknik servise göre partner_id ayarla
@@ -1564,6 +1565,13 @@ Arıza Kaydı Tamamlandı.<br/>
             'edespatch_delivery_type': 'printed',
             'driver_ids': [(6, 0, [12345678950])]  # Aras sürücüsünü ata
         })
+        
+        # Sürücü atamasını tekrar kontrol et
+        if not tamir_alim_transfer.driver_ids:
+            # Sürücüyü manuel olarak ekle
+            driver = self.env['res.partner'].browse(12345678950)
+            if driver.exists():
+                tamir_alim_transfer.driver_ids = [(4, driver.id)]
         
         # Sürücü ataması yap
         driver_partners = self.env['res.partner'].search([
