@@ -1629,7 +1629,29 @@ Arıza Kaydı Tamamlandı.<br/>
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
- 
+    def button_validate(self):
+        # Önce normal transfer doğrulama işlemini yap
+        result = super().button_validate()
+        
+        # Transfer doğrulandıktan sonra arıza kaydına dön
+        for picking in self:
+            if picking.origin and picking.state == 'done':
+                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                if ariza:
+                    # Transfer sayısını artır
+                    ariza.transfer_sayisi += 1
+                    
+                    # Transfer doğrulandıktan sonra arıza kaydına dön
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ariza.kayit',
+                        'res_id': ariza.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
+        
+        # Normal davranışı sürdür
+        return result 
 
 
 class DeliveryCarrier(models.Model):
