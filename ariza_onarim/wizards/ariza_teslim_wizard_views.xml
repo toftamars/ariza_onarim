@@ -18,7 +18,7 @@
                 <group attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}">
                     <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
                 </group>
-                <group attrs="{'invisible': ['|', ('is_ikinci_transfer', '=', False), ('ariza_tipi', '=', 'musteri')]}">
+                <group attrs="{'invisible': [('ariza_tipi', '=', 'musteri')]}">
                     <group>
                         <field name="ikinci_transfer_kaynak" required="1"/>
                         <field name="ikinci_transfer_hedef" required="1"/>
@@ -26,7 +26,7 @@
                 </group>
                 <footer>
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                    <button name="action_teslim_et" string="2. Transfer Oluştur" type="object" class="btn-primary" attrs="{'invisible': ['|', ('is_ikinci_transfer', '=', False), ('ariza_tipi', '=', 'musteri')]}"/>
+                    <button name="action_teslim_et" string="2. Transfer Oluştur" type="object" class="btn-primary" attrs="{'invisible': [('ariza_tipi', '=', 'musteri')]}"/>
                     <button string="İptal" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
