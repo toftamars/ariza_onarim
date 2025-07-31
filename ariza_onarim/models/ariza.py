@@ -1459,37 +1459,48 @@ Arıza Kaydı Tamamlandı.<br/>
         if not kaynak_konum or not hedef_konum:
             raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
         
-        # Tamir Alımlar transferi oluştur - Analitik hesabın warehouse'una göre picking type seç
+        # Tamir Alımlar transferi oluştur - İlk transferdeki gibi analitik hesap adından warehouse bul
         picking_type = False
         
-        # Analitik hesabın warehouse'una göre Tamir Alımlar picking type'ını bul
-        if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id:
-            warehouse_name = self.analitik_hesap_id.warehouse_id.name
-            picking_type_domain = [
-                ('code', '=', 'incoming'),
-                ('name', 'ilike', 'Tamir Alımlar'),
-                ('warehouse_id', '=', self.analitik_hesap_id.warehouse_id.id)
-            ]
-            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+        # Analitik hesap adını al ve "Perakende -" önekini temizle
+        magaza_adi = ""
+        if self.analitik_hesap_id and self.analitik_hesap_id.name:
+            magaza_adi = self.analitik_hesap_id.name
+            # "Perakende -" önekini temizle
+            if magaza_adi.startswith("Perakende - "):
+                magaza_adi = magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+
+        # Depo bilgisini al - İlk transferdeki gibi
+        warehouse = False
+        if self.analitik_hesap_id and self.analitik_hesap_id.name:
+            # Analitik hesap adından depo adını çıkar
+            magaza_adi = self.analitik_hesap_id.name
+            if magaza_adi.startswith("Perakende - "):
+                magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
             
-            if not picking_type:
-                # Warehouse'a göre sadece incoming ara
-                picking_type_domain = [
-                    ('code', '=', 'incoming'),
-                    ('warehouse_id', '=', self.analitik_hesap_id.warehouse_id.id)
-                ]
-                picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+            # Mağaza adına göre depo ara
+            warehouse = self.env['stock.warehouse'].search([
+                ('name', 'ilike', magaza_adi)
+            ], limit=1)
+
+        # Operasyon tipi seçimi - İlk transferdeki gibi depo bazlı 'Tamir Alımlar' ara
+        if warehouse:
+            # Depodan "Tamir Alımlar" ara (Arıza: öneki olmayan)
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Alımlar'),
+                ('name', 'not ilike', 'Arıza:'),
+                ('warehouse_id', '=', warehouse.id)
+            ], limit=1)
         
-        # Hala bulunamazsa genel Tamir Alımlar ara
+        # Depo bulunamazsa, genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
         if not picking_type:
-            picking_type_domain = [
-                ('code', '=', 'incoming'),
-                ('name', 'ilike', 'Tamir Alımlar')
-            ]
-            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Tamir Alımlar'),
+                ('name', 'not ilike', 'Arıza:')
+            ], limit=1)
         
         if not picking_type:
-            warehouse_name = self.analitik_hesap_id.warehouse_id.name if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id else 'Bilinmeyen'
+            warehouse_name = warehouse.name if warehouse else 'Bilinmeyen'
             raise UserError(f'"{warehouse_name}: Tamir Alımlar" picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.')
         
         picking_vals = {
