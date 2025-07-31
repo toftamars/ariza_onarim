@@ -1512,7 +1512,7 @@ Arıza Kaydı Tamamlandı.<br/>
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
-            'delivery_type': 'fixed',
+            'delivery_type': 'matbu',
         }
         
         # Teknik servise göre partner_id ayarla
@@ -1559,8 +1559,8 @@ Arıza Kaydı Tamamlandı.<br/>
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
         
-        # Teslimat türünü fixed olarak ayarla
-        tamir_alim_transfer.write({'delivery_type': 'fixed'})
+        # Teslimat türünü matbu olarak ayarla
+        tamir_alim_transfer.write({'delivery_type': 'matbu'})
         
         # Transfer satırını oluştur
         move_vals = {
