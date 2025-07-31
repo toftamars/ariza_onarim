@@ -1561,10 +1561,10 @@ Arıza Kaydı Tamamlandı.<br/>
         
         # Transfer satırını oluştur
         move_vals = {
-            'name': f"{self.urun} - {self.name}",
+            'name': f"{self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen Ürün'} - {self.name}",
             'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
             'product_uom_qty': 1.0,
-            'product_uom': self.magaza_urun_id.uom_id.id if self.magaza_urun_id else False,
+            'product_uom': self.magaza_urun_id.uom_id.id if self.magaza_urun_id and self.magaza_urun_id.uom_id else False,
             'picking_id': tamir_alim_transfer.id,
             'location_id': kaynak_konum.id,
             'location_dest_id': hedef_konum.id,
@@ -1572,6 +1572,8 @@ Arıza Kaydı Tamamlandı.<br/>
         
         if move_vals['product_id'] and move_vals['product_uom']:
             self.env['stock.move'].create(move_vals)
+        else:
+            raise UserError(f"Transfer satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         
         # Durumu tamamlandı olarak güncelle
         self.state = 'tamamlandi'
