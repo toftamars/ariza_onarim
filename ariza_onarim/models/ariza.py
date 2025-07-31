@@ -18,6 +18,7 @@ class AccountAnalyticAccount(models.Model):
     adres = fields.Text(string='Adres')
     telefon = fields.Char(string='Telefon')
     email = fields.Char(string='E-posta')
+    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
 
     @api.model
     def _setup_zuhal_addresses(self):
