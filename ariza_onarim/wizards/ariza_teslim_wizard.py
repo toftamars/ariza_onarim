@@ -9,6 +9,10 @@ class ArizaTeslimWizard(models.TransientModel):
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
     teslim_alan = fields.Char(string='Teslim Alan Kişi', required=True)
+    ariza_tipi = fields.Selection([
+        ('musteri', 'Müşteri Ürünü'),
+        ('magaza', 'Mağaza Ürünü')
+    ], string='Arıza Tipi', readonly=True)
     
     # 2. transfer için alanlar
     is_ikinci_transfer = fields.Boolean(string='2. Transfer mi?', default=False)
@@ -25,6 +29,7 @@ class ArizaTeslimWizard(models.TransientModel):
                 'ariza_id': ariza.id,
                 'musteri_adi': ariza.partner_id.name if ariza.partner_id else '',
                 'urun': ariza.urun if ariza.urun else '',
+                'ariza_tipi': ariza.ariza_tipi,
             })
             
             # 2. transfer için konumları hesapla
