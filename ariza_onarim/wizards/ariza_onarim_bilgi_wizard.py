@@ -145,11 +145,12 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Mağaza ürünü işlemleri için 2. transfer oluştur (Teknik Servis → Mağaza)
         if ariza.ariza_tipi == 'magaza':
             # 2. transfer için gerekli bilgileri hazırla
+            picking_type_domain = [('code', '=', 'incoming')]
+            if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.warehouse_id:
+                picking_type_domain.append(('warehouse_id', '=', ariza.teslim_magazasi_id.warehouse_id.id))
+            
             picking_vals = {
-                'picking_type_id': self.env['stock.picking.type'].search([
-                    ('code', '=', 'incoming'),
-                    ('warehouse_id', '=', ariza.teslim_magazasi_id.warehouse_id.id) if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.warehouse_id else []
-                ], limit=1).id,
+                'picking_type_id': self.env['stock.picking.type'].search(picking_type_domain, limit=1).id,
                 'location_id': ariza.teknik_servis_location_id.id if ariza.teknik_servis_location_id else False,
                 'location_dest_id': ariza.teslim_magazasi_id.location_id.id if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.location_id else False,
                 'origin': ariza.name,
