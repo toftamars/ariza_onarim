@@ -952,25 +952,46 @@ class ArizaKayit(models.Model):
         if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
             picking_vals['partner_id'] = self.tedarikci_id.id
         elif self.teknik_servis == 'DTL BEYOĞLU':
-            # DTL Beyoğlu partner'ını bul
-            dtl_beyoglu = self.env['res.partner'].search([('name', 'ilike', 'DTL BEYOĞLU')], limit=1)
-            if dtl_beyoglu:
-                picking_vals['partner_id'] = dtl_beyoglu.id
+            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti partner'ını bul
+            dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
+            if dtl_partner:
+                picking_vals['partner_id'] = dtl_partner.id
         elif self.teknik_servis == 'DTL OKMEYDANI':
-            # DTL Okmeydanı partner'ını bul
-            dtl_okmeydani = self.env['res.partner'].search([('name', 'ilike', 'DTL OKMEYDANI')], limit=1)
-            if dtl_okmeydani:
-                picking_vals['partner_id'] = dtl_okmeydani.id
+            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti alt kontağı DTL OK meydanı'nı bul
+            dtl_partner = self.env['res.partner'].search([('name', 'ilike', 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti')], limit=1)
+            if dtl_partner:
+                dtl_okmeydani = self.env['res.partner'].search([
+                    ('parent_id', '=', dtl_partner.id),
+                    ('name', 'ilike', 'DTL OK meydanı')
+                ], limit=1)
+                if dtl_okmeydani:
+                    picking_vals['partner_id'] = dtl_okmeydani.id
+                else:
+                    picking_vals['partner_id'] = dtl_partner.id
         elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
-            # Zuhal Arıza Depo partner'ını bul
-            zuhal_ariza = self.env['res.partner'].search([('name', 'ilike', 'ZUHAL ARIZA DEPO')], limit=1)
-            if zuhal_ariza:
-                picking_vals['partner_id'] = zuhal_ariza.id
+            # Zuhal Dış Ticaret A.Ş. alt kontağı Arıza Depo'yu bul
+            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
+            if zuhal_partner:
+                zuhal_ariza = self.env['res.partner'].search([
+                    ('parent_id', '=', zuhal_partner.id),
+                    ('name', 'ilike', 'Arıza Depo')
+                ], limit=1)
+                if zuhal_ariza:
+                    picking_vals['partner_id'] = zuhal_ariza.id
+                else:
+                    picking_vals['partner_id'] = zuhal_partner.id
         elif self.teknik_servis == 'ZUHAL NEFESLİ':
-            # Zuhal Nefesli partner'ını bul
-            zuhal_nefesli = self.env['res.partner'].search([('name', 'ilike', 'ZUHAL NEFESLİ')], limit=1)
-            if zuhal_nefesli:
-                picking_vals['partner_id'] = zuhal_nefesli.id
+            # Zuhal Dış Ticaret A.Ş. alt kontağı Nefesli Arıza'yı bul
+            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', 'Zuhal Dış Ticaret A.Ş.')], limit=1)
+            if zuhal_partner:
+                zuhal_nefesli = self.env['res.partner'].search([
+                    ('parent_id', '=', zuhal_partner.id),
+                    ('name', 'ilike', 'Nefesli Arıza')
+                ], limit=1)
+                if zuhal_nefesli:
+                    picking_vals['partner_id'] = zuhal_nefesli.id
+                else:
+                    picking_vals['partner_id'] = zuhal_partner.id
         
         # Nakliye bilgilerini ekle
         # Kargo şirketini bul (ücretsiz kargo)
