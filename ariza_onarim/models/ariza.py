@@ -1562,7 +1562,7 @@ Arıza Kaydı Tamamlandı.<br/>
         # Teslimat türünü Matbu olarak ayarla
         tamir_alim_transfer.write({'edespatch_delivery_type': 'printed'})
         
-        # Transfer satırını oluştur
+        # Transfer satırını oluştur - stock.move
         move_vals = {
             'name': f"{self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen Ürün'} - {self.name}",
             'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
@@ -1574,7 +1574,23 @@ Arıza Kaydı Tamamlandı.<br/>
         }
         
         if move_vals['product_id'] and move_vals['product_uom']:
-            self.env['stock.move'].create(move_vals)
+            move = self.env['stock.move'].create(move_vals)
+            
+            # Hareket satırını oluştur - stock.move.line
+            move_line_vals = {
+                'move_id': move.id,
+                'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
+                'product_uom_id': self.magaza_urun_id.uom_id.id if self.magaza_urun_id and self.magaza_urun_id.uom_id else False,
+                'qty_done': 1.0,
+                'location_id': kaynak_konum.id,
+                'location_dest_id': hedef_konum.id,
+                'picking_id': tamir_alim_transfer.id,
+            }
+            
+            if move_line_vals['product_id'] and move_line_vals['product_uom_id']:
+                self.env['stock.move.line'].create(move_line_vals)
+            else:
+                raise UserError(f"Hareket satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         else:
             raise UserError(f"Transfer satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         
