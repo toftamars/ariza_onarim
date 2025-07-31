@@ -1458,17 +1458,28 @@ Arıza Kaydı Tamamlandı.<br/>
         if not kaynak_konum or not hedef_konum:
             raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
         
-        # Tamir Alımlar transferi oluştur - "Tünel: Tamir Alımlar" picking type'ını bul
-        picking_type_domain = [
-            ('code', '=', 'incoming'),
-            ('name', 'ilike', 'Tamir Alımlar'),
-            ('warehouse_id.name', 'ilike', 'Tünel')
-        ]
+        # Tamir Alımlar transferi oluştur - Analitik hesabın warehouse'una göre picking type seç
+        picking_type = False
         
-        # Önce Tünel: Tamir Alımlar'ı ara
-        picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+        # Analitik hesabın warehouse'una göre Tamir Alımlar picking type'ını bul
+        if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id:
+            warehouse_name = self.analitik_hesap_id.warehouse_id.name
+            picking_type_domain = [
+                ('code', '=', 'incoming'),
+                ('name', 'ilike', 'Tamir Alımlar'),
+                ('warehouse_id', '=', self.analitik_hesap_id.warehouse_id.id)
+            ]
+            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+            
+            if not picking_type:
+                # Warehouse'a göre sadece incoming ara
+                picking_type_domain = [
+                    ('code', '=', 'incoming'),
+                    ('warehouse_id', '=', self.analitik_hesap_id.warehouse_id.id)
+                ]
+                picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
         
-        # Bulunamazsa sadece Tamir Alımlar ara
+        # Hala bulunamazsa genel Tamir Alımlar ara
         if not picking_type:
             picking_type_domain = [
                 ('code', '=', 'incoming'),
@@ -1476,16 +1487,9 @@ Arıza Kaydı Tamamlandı.<br/>
             ]
             picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
         
-        # Hala bulunamazsa warehouse'a göre ara
-        if not picking_type and self.teslim_magazasi_id and self.teslim_magazasi_id.warehouse_id:
-            picking_type_domain = [
-                ('code', '=', 'incoming'),
-                ('warehouse_id', '=', self.teslim_magazasi_id.warehouse_id.id)
-            ]
-            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
-        
         if not picking_type:
-            raise UserError('"Tünel: Tamir Alımlar" picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.')
+            warehouse_name = self.analitik_hesap_id.warehouse_id.name if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id else 'Bilinmeyen'
+            raise UserError(f'"{warehouse_name}: Tamir Alımlar" picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.')
         
         picking_vals = {
             'picking_type_id': picking_type.id,
