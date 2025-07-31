@@ -1440,16 +1440,33 @@ Arıza Kaydı Tamamlandı.<br/>
         if self.state != 'yonetici_tamamlandi':
             raise UserError('Bu işlem sadece yönetici tamamlandı durumundaki kayıtlar için kullanılabilir!')
         
-        # İlk transferin tam tersi olan "Tamir Alımlar" transferi oluştur
-        # Kaynak: Teslim mağazası, Hedef: Teknik servis
+        # İlk transferi bul
+        ilk_transfer = self.env['stock.picking'].search([
+            ('origin', '=', self.name),
+            ('state', '=', 'done')
+        ], order='create_date asc', limit=1)
+        
+        if not ilk_transfer:
+            raise UserError('İlk transfer bulunamadı! Lütfen önce ilk transferin tamamlandığından emin olun.')
+        
+        # İlk transferin konumlarını al ve tam tersini yap
+        # İlk transfer: Kaynak → Hedef
+        # İkinci transfer: Hedef → Kaynak (tam tersi)
+        kaynak_konum = ilk_transfer.location_dest_id  # İlk transferin hedefi, ikinci transferin kaynağı
+        hedef_konum = ilk_transfer.location_id  # İlk transferin kaynağı, ikinci transferin hedefi
+        
+        if not kaynak_konum or not hedef_konum:
+            raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
+        
+        # Tamir Alımlar transferi oluştur
         picking_type_domain = [('code', '=', 'incoming')]  # Tamir Alımlar
         if self.teslim_magazasi_id and self.teslim_magazasi_id.warehouse_id:
             picking_type_domain.append(('warehouse_id', '=', self.teslim_magazasi_id.warehouse_id.id))
         
         picking_vals = {
             'picking_type_id': self.env['stock.picking.type'].search(picking_type_domain, limit=1).id,
-            'location_id': self.teslim_magazasi_id.location_id.id if self.teslim_magazasi_id and self.teslim_magazasi_id.location_id else False,
-            'location_dest_id': self.teknik_servis_location_id.id if self.teknik_servis_location_id else False,
+            'location_id': kaynak_konum.id,  # İlk transferin hedefi
+            'location_dest_id': hedef_konum.id,  # İlk transferin kaynağı
             'origin': self.name,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
@@ -1498,46 +1515,43 @@ Arıza Kaydı Tamamlandı.<br/>
                     picking_vals['partner_id'] = zuhal_partner.id
         
         # Tamir Alımlar transferini oluştur
-        if picking_vals['location_id'] and picking_vals['location_dest_id']:
-            tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
-            
-            # Transfer satırını oluştur
-            move_vals = {
-                'name': f"{self.urun} - {self.name}",
-                'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
-                'product_uom_qty': 1.0,
-                'product_uom': self.magaza_urun_id.uom_id.id if self.magaza_urun_id else False,
-                'picking_id': tamir_alim_transfer.id,
-                'location_id': picking_vals['location_id'],
-                'location_dest_id': picking_vals['location_dest_id'],
-            }
-            
-            if move_vals['product_id'] and move_vals['product_uom']:
-                self.env['stock.move'].create(move_vals)
-            
-            # Durumu tamamlandı olarak güncelle
-            self.state = 'tamamlandi'
-            
-            # Teslim bilgilerini güncelle
-            self.teslim_alan = self.env.user.name
-            self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı. Tamir Alımlar transferi oluşturuldu."
-            
-            # Mesaj gönder
-            self.message_post(
-                body=f"Mağaza ürünü teslim alındı. Tamir Alımlar transferi (Teknik Servis → Mağaza) otomatik oluşturuldu.",
-                subject="Mağaza Ürünü Teslim Alındı"
-            )
-            
-            # Tamir Alımlar transferine yönlendir
-            return {
-                'type': 'ir.actions.act_window',
-                'res_model': 'stock.picking',
-                'res_id': tamir_alim_transfer.id,
-                'view_mode': 'form',
-                'target': 'current',
-            }
-        else:
-            raise UserError('Transfer oluşturmak için gerekli konum bilgileri eksik!') 
+        tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
+        
+        # Transfer satırını oluştur
+        move_vals = {
+            'name': f"{self.urun} - {self.name}",
+            'product_id': self.magaza_urun_id.id if self.magaza_urun_id else False,
+            'product_uom_qty': 1.0,
+            'product_uom': self.magaza_urun_id.uom_id.id if self.magaza_urun_id else False,
+            'picking_id': tamir_alim_transfer.id,
+            'location_id': kaynak_konum.id,
+            'location_dest_id': hedef_konum.id,
+        }
+        
+        if move_vals['product_id'] and move_vals['product_uom']:
+            self.env['stock.move'].create(move_vals)
+        
+        # Durumu tamamlandı olarak güncelle
+        self.state = 'tamamlandi'
+        
+        # Teslim bilgilerini güncelle
+        self.teslim_alan = self.env.user.name
+        self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı. Tamir Alımlar transferi oluşturuldu."
+        
+        # Mesaj gönder
+        self.message_post(
+            body=f"Mağaza ürünü teslim alındı. Tamir Alımlar transferi ({kaynak_konum.name} → {hedef_konum.name}) otomatik oluşturuldu.",
+            subject="Mağaza Ürünü Teslim Alındı"
+        )
+        
+        # Tamir Alımlar transferine yönlendir
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking',
+            'res_id': tamir_alim_transfer.id,
+            'view_mode': 'form',
+            'target': 'current',
+        } 
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
