@@ -112,6 +112,9 @@
                 <field name="ariza_tipi"/>
                 <field name="partner_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                <field name="model"/>
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
                 <field name="ariza_tanimi"/>
@@ -282,7 +285,8 @@
                 <field name="tarih"/>
                 <field name="partner_id"/>
                 <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
-                <field name="urun"/>
+                <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
                 <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi"/>
