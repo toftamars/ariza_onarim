@@ -65,9 +65,9 @@
                             <group>
                                 <field name="ariza_tanimi" readonly="1"/>
                                 <field name="seri_no" readonly="1"/>
-                                                        <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'kabul')]}" groups="ariza_onarim.group_ariza_manager"/>
-                        <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'kabul')]}" groups="ariza_onarim.group_ariza_manager"/>
-                        <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'kabul')]}" groups="ariza_onarim.group_ariza_manager"/>
+                                <field name="onarim_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
+                                <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
+                                <field name="ucret_bilgisi" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" groups="ariza_onarim.group_ariza_manager"/>
                                 <field name="notlar" readonly="1"/>
                             </group>
                         </page>
@@ -187,8 +187,7 @@
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
-                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true}'/>
-                    <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'onarim_tamamlandi'), ('ariza_tipi', '!=', 'magaza')]}" options='{"no_open": true}'/>
+                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
                     <!-- İptal butonu - hem yöneticiler hem kullanıcılar için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', '=', 'iptal')]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,tamamlandi,teslim_edildi"/>
@@ -201,7 +200,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'kabul')]}" options='{"no_open": true, "no_create": true}' invisible="1"/>
+                            <field name="ariza_kabul_id" attrs="{'invisible': [('islem_tipi', '!=', 'teslim')]}" options='{"no_open": true, "no_create": true}'/>
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
                             <field name="teknik_servis"/>

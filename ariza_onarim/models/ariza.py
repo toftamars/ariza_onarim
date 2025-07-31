@@ -83,6 +83,8 @@ class ArizaKayit(models.Model):
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection([
         ('kabul', 'Arıza Kabul'),
+        ('musteri_urunu', 'Müşteri Ürünü'),
+        ('teknik_servis', 'Teknik Servis'),
     ], string='İşlem Tipi', required=True, tracking=True)
     
 
@@ -110,7 +112,6 @@ class ArizaKayit(models.Model):
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
-    teknik_servis_location_id = fields.Many2one('stock.location', string='Teknik Servis Konumu', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
     marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
     marka_manu = fields.Char(string='Marka (Manuel)', tracking=True)
@@ -125,7 +126,6 @@ class ArizaKayit(models.Model):
         ('teknik_onarim', 'Teknik Onarım'),
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
-        ('onarim_tamamlandi', 'Onarım Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
@@ -218,6 +218,9 @@ class ArizaKayit(models.Model):
     # Transfer sayısı takibi
     transfer_sayisi = fields.Integer(string='Transfer Sayısı', default=0, tracking=True)
     musteri_telefon = fields.Char(string='Telefon', readonly=True, compute='_compute_musteri_telefon', store=False)
+    
+    # Mağaza ürünü teslim al butonu için
+    teslim_al_visible = fields.Boolean(string='Teslim Al Butonu Görünür', compute='_compute_teslim_al_visible', store=False)
 
     @api.depends('state')
     def _compute_state_manager(self):
@@ -1384,33 +1387,6 @@ Arıza Kaydı Tamamlandı.<br/>
                     'default_ariza_id': self.id,
                     'default_musteri_adi': self.partner_id.name if self.partner_id else '',
                     'default_urun': self.urun,
-                    'default_is_ikinci_transfer': False,
-                    'default_ariza_tipi': 'musteri',
-                }
-            }
-
-    def action_teslim_al(self):
-        """Mağaza ürünü teslim alma işlemi - 2. transfer konumlarını seçmek için wizard aç"""
-        for record in self:
-            if record.state != 'onarim_tamamlandi':
-                raise UserError('Sadece onarımı tamamlanmış kayıtlar teslim alınabilir!')
-            
-            if record.ariza_tipi != 'magaza':
-                raise UserError('Bu işlem sadece Mağaza ürünü için kullanılabilir!')
-            
-            # 2. transfer konumlarını seçmek için wizard aç
-            return {
-                'name': '2. Transfer Konumları',
-                'type': 'ir.actions.act_window',
-                'res_model': 'ariza.teslim.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {
-                    'default_ariza_id': self.id,
-                    'default_musteri_adi': self.partner_id.name if self.partner_id else '',
-                    'default_urun': self.urun,
-                    'default_is_ikinci_transfer': True,
-                    'default_ariza_tipi': 'magaza',
                 }
             }
 
@@ -1450,7 +1426,30 @@ Arıza Kaydı Tamamlandı.<br/>
 
     def action_print_delivery(self):
         if self.transfer_id:
-            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id) 
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+    
+    def action_teslim_al(self):
+        """Mağaza ürünü teslim al işlemi"""
+        self.ensure_one()
+        
+        # Durumu teslim edildi olarak güncelle
+        self.state = 'teslim_edildi'
+        
+        # Teslim bilgilerini güncelle
+        self.teslim_alan = self.env.user.name
+        self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı."
+        
+        # Başarı mesajı göster
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Başarılı',
+                'message': f'{self.name} numaralı arıza kaydı teslim alındı.',
+                'type': 'success',
+                'sticky': False,
+            }
+        } 
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
@@ -1650,6 +1649,15 @@ Arıza Kaydı Tamamlandı.<br/>
     def _compute_musteri_telefon(self):
         for rec in self:
             rec.musteri_telefon = rec.partner_id.phone or rec.partner_id.mobile or ''
+    
+    @api.depends('ariza_tipi', 'state')
+    def _compute_teslim_al_visible(self):
+        """Mağaza ürünü işlemlerinde teslim al butonunu göster"""
+        for record in self:
+            record.teslim_al_visible = (
+                record.ariza_tipi == 'magaza' and 
+                record.state == 'tamamlandi'
+            )
 
 
 

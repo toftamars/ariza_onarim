@@ -88,7 +88,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.teslim_alan = 'Adrese Gönderim'
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
         else:
-            ariza.state = 'onarim_tamamlandi'
+            ariza.state = 'tamamlandi'
         
         # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi (İkinci SMS)
         if ariza.partner_id and ariza.partner_id.phone and not ariza.ikinci_sms_gonderildi:
@@ -211,8 +211,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi.",
-                subject="Onarım Tamamlandı"
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. 2. transfer (Teknik Servis → Mağaza) otomatik oluşturuldu.",
+                subject="Onarım Tamamlandı - 2. Transfer Oluşturuldu"
             )
         else:
             ariza.message_post(

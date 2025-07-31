@@ -10,6 +10,7 @@
                     <header>
                         <button name="action_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
                         <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
+                        <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': [('teslim_al_visible', '=', False)]}" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                     </header>
                     <sheet>

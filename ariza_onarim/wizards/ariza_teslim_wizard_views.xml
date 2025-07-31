@@ -7,26 +7,15 @@
             <form string="Teslim Alan Bilgisi">
                 <group>
                     <group>
-                        <field name="musteri_adi" readonly="1" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        <field name="urun" readonly="1" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        <field name="is_ikinci_transfer" invisible="1"/>
-                        <field name="company_id" invisible="1"/>
-                        <field name="ariza_id" invisible="1"/>
-                        <field name="ariza_tipi" invisible="1"/>
+                        <field name="musteri_adi" readonly="1"/>
+                        <field name="urun" readonly="1"/>
                     </group>
                 </group>
-                <group attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}">
+                <group>
                     <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
                 </group>
-                <group attrs="{'invisible': [('ariza_tipi', '=', 'musteri')]}">
-                    <group>
-                        <field name="ikinci_transfer_kaynak" required="1"/>
-                        <field name="ikinci_transfer_hedef" required="1"/>
-                    </group>
-                </group>
                 <footer>
-                    <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                    <button name="action_teslim_et" string="2. Transfer Oluştur" type="object" class="btn-primary" attrs="{'invisible': [('ariza_tipi', '=', 'musteri')]}"/>
+                    <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary"/>
                     <button string="İptal" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
