@@ -1508,6 +1508,8 @@ Arıza Kaydı Tamamlandı.<br/>
             'location_id': kaynak_konum.id,  # İlk transferin hedefi
             'location_dest_id': hedef_konum.id,  # İlk transferin kaynağı
             'origin': self.name,
+            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen'}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
+            'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
             'delivery_type': 'matbu',
