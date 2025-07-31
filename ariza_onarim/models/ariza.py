@@ -1387,6 +1387,30 @@ Arıza Kaydı Tamamlandı.<br/>
                 }
             }
 
+    def action_teslim_al(self):
+        """Mağaza ürünü teslim alma işlemi - 2. transfer konumlarını seçmek için wizard aç"""
+        for record in self:
+            if record.state != 'tamamlandi':
+                raise UserError('Sadece tamamlanmış kayıtlar teslim alınabilir!')
+            
+            if record.ariza_tipi != 'magaza':
+                raise UserError('Bu işlem sadece Mağaza ürünü için kullanılabilir!')
+            
+            # 2. transfer konumlarını seçmek için wizard aç
+            return {
+                'name': '2. Transfer Konumları',
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.teslim.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_ariza_id': self.id,
+                    'default_musteri_adi': self.partner_id.name if self.partner_id else '',
+                    'default_urun': self.urun,
+                    'default_is_ikinci_transfer': True,
+                }
+            }
+
 
     
 
