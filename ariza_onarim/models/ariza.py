@@ -126,6 +126,7 @@ class ArizaKayit(models.Model):
         ('teknik_onarim', 'Teknik Onarım'),
         ('onaylandi', 'Onaylandı'),
         ('tamamlandi', 'Tamamlandı'),
+        ('onarim_tamamlandi', 'Onarım Tamamlandı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
@@ -1390,8 +1391,8 @@ Arıza Kaydı Tamamlandı.<br/>
     def action_teslim_al(self):
         """Mağaza ürünü teslim alma işlemi - 2. transfer konumlarını seçmek için wizard aç"""
         for record in self:
-            if record.state != 'tamamlandi':
-                raise UserError('Sadece tamamlanmış kayıtlar teslim alınabilir!')
+            if record.state != 'onarim_tamamlandi':
+                raise UserError('Sadece onarımı tamamlanmış kayıtlar teslim alınabilir!')
             
             if record.ariza_tipi != 'magaza':
                 raise UserError('Bu işlem sadece Mağaza ürünü için kullanılabilir!')
