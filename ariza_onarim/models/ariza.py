@@ -1559,8 +1559,28 @@ Arıza Kaydı Tamamlandı.<br/>
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
         
-        # Teslimat türünü Matbu olarak ayarla
-        tamir_alim_transfer.write({'edespatch_delivery_type': 'printed'})
+        # Teslimat türünü Matbu olarak ayarla ve sürücü ata
+        tamir_alim_transfer.write({
+            'edespatch_delivery_type': 'printed',
+            'driver_ids': [(6, 0, [12345678950])]  # Aras sürücüsünü ata
+        })
+        
+        # Sürücü ataması yap
+        driver_partners = self.env['res.partner'].search([
+            ('type', '=', 'driver'),
+            ('is_driver', '=', True)
+        ], limit=1)
+        
+        if driver_partners:
+            tamir_alim_transfer.write({'driver_ids': [(6, 0, driver_partners.ids)]})
+        else:
+            # Eğer sürücü bulunamazsa, 34PLK34 plakalı sürücüyü ara
+            vehicle_34plk34 = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('name', 'ilike', '34PLK34')
+            ], limit=1)
+            if vehicle_34plk34:
+                tamir_alim_transfer.write({'driver_ids': [(6, 0, [vehicle_34plk34.id])]})
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
@@ -1603,15 +1623,13 @@ Arıza Kaydı Tamamlandı.<br/>
         
         # Mesaj gönder
         transfer_bilgisi = f"""
-        <p><strong>🔄 Geri Dönüşüm Noktası - Yeni Transfer Oluşturuldu!</strong></p>
-        <p><strong>📋 Transfer No:</strong> {tamir_alim_transfer.name}</p>
-        <p><strong>📍 Kaynak:</strong> {kaynak_konum.name}</p>
-        <p><strong>🎯 Hedef:</strong> {hedef_konum.name}</p>
-        <p><strong>📅 Tarih:</strong> {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
-        <p><strong>⏰ Saat:</strong> {fields.Datetime.now().strftime('%H:%M')}</p>
-        <p><strong>📊 Durum:</strong> {tamir_alim_transfer.state}</p>
-        <p><strong>📱 SMS Gönderildi:</strong> Deaktif</p>
-        <p><strong>🔄 İşlem:</strong> Mağaza Ürünü Teslim Alındı - Tamir Alımlar Transferi</p>
+        <p><strong>Yeni transfer oluşturuldu!</strong></p>
+        <p><strong>Transfer No:</strong> {tamir_alim_transfer.name}</p>
+        <p><strong>Kaynak:</strong> {kaynak_konum.name}</p>
+        <p><strong>Hedef:</strong> {hedef_konum.name}</p>
+        <p><strong>Tarih:</strong> {fields.Datetime.now().strftime('%Y-%m-%d')}</p>
+        <p><strong>Durum:</strong> {tamir_alim_transfer.state}</p>
+        <p><strong>SMS Gönderildi:</strong> Deaktif</p>
         """
         
         self.message_post(
