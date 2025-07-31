@@ -16,7 +16,7 @@
                     </group>
                 </group>
                 <group attrs="{'invisible': [('is_ikinci_transfer', '=', True)]}">
-                    <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
+                    <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin" attrs="{'required': [('ariza_tipi', '!=', 'magaza')]}"/>
                 </group>
                 <group attrs="{'invisible': [('is_ikinci_transfer', '=', False)]}">
                     <group>
