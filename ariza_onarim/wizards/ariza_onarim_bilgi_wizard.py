@@ -28,6 +28,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
+    
+    # 2. transfer bilgileri (Mağaza ürünü için)
+    ikinci_transfer_kaynak = fields.Char(string='2. Transfer Kaynak', readonly=True)
+    ikinci_transfer_hedef = fields.Char(string='2. Transfer Hedef', readonly=True)
 
     @api.model
     def default_get(self, fields_list):
@@ -42,6 +46,19 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 'ariza_tipi': ariza.ariza_tipi,
                 'teslim_magazasi_id': ariza.teslim_magazasi_id.id if ariza.teslim_magazasi_id else False,
             })
+            
+            # Mağaza ürünü için 2. transfer bilgilerini hesapla
+            if ariza.ariza_tipi == 'magaza':
+                # Kaynak: Teknik Servis
+                kaynak_adi = ariza.teknik_servis if ariza.teknik_servis else 'Teknik Servis'
+                
+                # Hedef: Mağaza
+                hedef_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else 'Mağaza'
+                
+                res.update({
+                    'ikinci_transfer_kaynak': kaynak_adi,
+                    'ikinci_transfer_hedef': hedef_adi,
+                })
         return res
 
     def _temizle_magaza_adi(self, magaza_adi):
