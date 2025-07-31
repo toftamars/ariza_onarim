@@ -1563,9 +1563,19 @@ Arıza Kaydı Tamamlandı.<br/>
         self.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı. Tamir Alımlar transferi oluşturuldu."
         
         # Mesaj gönder
+        transfer_bilgisi = f"""
+        <p><strong>Yeni transfer oluşturuldu!</strong></p>
+        <p><strong>Transfer No:</strong> {tamir_alim_transfer.name}</p>
+        <p><strong>Kaynak:</strong> {kaynak_konum.name}</p>
+        <p><strong>Hedef:</strong> {hedef_konum.name}</p>
+        <p><strong>Tarih:</strong> {fields.Datetime.now().strftime('%Y-%m-%d')}</p>
+        <p><strong>Durum:</strong> {tamir_alim_transfer.state}</p>
+        <p><strong>SMS Gönderildi:</strong> Deaktif</p>
+        """
+        
         self.message_post(
-            body=f"Mağaza ürünü teslim alındı. Tamir Alımlar transferi ({kaynak_konum.name} → {hedef_konum.name}) otomatik oluşturuldu.",
-            subject="Mağaza Ürünü Teslim Alındı"
+            body=transfer_bilgisi,
+            subject="Mağaza Ürünü Teslim Alındı - Tamir Alımlar Transferi Oluşturuldu"
         )
         
         # Tamir Alımlar transferine yönlendir
