@@ -20,12 +20,7 @@
                 <group>
                     <field name="onarim_bilgisi" placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..."/>
                 </group>
-                <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
-                    <group>
-                        <field name="ikinci_transfer_kaynak"/>
-                        <field name="ikinci_transfer_hedef"/>
-                    </group>
-                </group>
+
                 <group>
                     <group>
                         <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>

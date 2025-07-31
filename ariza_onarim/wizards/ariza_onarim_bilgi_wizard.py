@@ -29,9 +29,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
     
-    # 2. transfer bilgileri (Mağaza ürünü için)
-    ikinci_transfer_kaynak = fields.Char(string='2. Transfer Kaynak', readonly=True)
-    ikinci_transfer_hedef = fields.Char(string='2. Transfer Hedef', readonly=True)
+
 
     @api.model
     def default_get(self, fields_list):
@@ -47,29 +45,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 'teslim_magazasi_id': ariza.teslim_magazasi_id.id if ariza.teslim_magazasi_id else False,
             })
             
-            # Mağaza ürünü için 2. transfer bilgilerini hesapla
-            if ariza.ariza_tipi == 'magaza':
-                # 1. transferin bilgilerini al
-                birinci_transfer = self.env['stock.picking'].search([
-                    ('origin', '=', ariza.name),
-                    ('picking_type_code', '=', 'outgoing')  # İlk transfer çıkış transferi
-                ], limit=1)
-                
-                if birinci_transfer:
-                    # 2. transfer kaynağı = 1. transfer hedefi
-                    ikinci_kaynak = birinci_transfer.location_dest_id.complete_name if birinci_transfer.location_dest_id else 'Teknik Servis'
-                    
-                    # 2. transfer hedefi = 1. transfer kaynağı
-                    ikinci_hedef = birinci_transfer.location_id.complete_name if birinci_transfer.location_id else 'Mağaza'
-                else:
-                    # 1. transfer bulunamazsa varsayılan değerler
-                    ikinci_kaynak = ariza.teknik_servis if ariza.teknik_servis else 'Teknik Servis'
-                    ikinci_hedef = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else 'Mağaza'
-                
-                res.update({
-                    'ikinci_transfer_kaynak': ikinci_kaynak,
-                    'ikinci_transfer_hedef': ikinci_hedef,
-                })
+
         return res
 
     def _temizle_magaza_adi(self, magaza_adi):
@@ -145,7 +121,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Mağaza ürünü işlemleri için 2. transfer oluştur (Teknik Servis → Mağaza)
         if ariza.ariza_tipi == 'magaza':
             # 2. transfer için gerekli bilgileri hazırla
-            picking_type_domain = [('code', '=', 'incoming')]
+            picking_type_domain = [('code', '=', 'outgoing')]  # Tamir Teslimatları
             if ariza.teslim_magazasi_id and ariza.teslim_magazasi_id.warehouse_id:
                 picking_type_domain.append(('warehouse_id', '=', ariza.teslim_magazasi_id.warehouse_id.id))
             
