@@ -1585,18 +1585,16 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     def button_validate(self):
-        # Standart Odoo işleyişini kullan
+        # Önce normal transfer doğrulama işlemini yap
         result = super().button_validate()
         
-        # Transfer doğrulandıktan sonra arıza kaydına dön
+        # Origin alanı üzerinden arıza kaydını bul
         for picking in self:
-            if picking.origin and picking.state == 'done':
+            if picking.origin:
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
                 if ariza:
                     # Transfer sayısını artır
                     ariza.transfer_sayisi += 1
-                    
-                    # Transfer doğrulandıktan sonra arıza kaydına dön
                     return {
                         'type': 'ir.actions.act_window',
                         'res_model': 'ariza.kayit',
@@ -1604,8 +1602,6 @@ class StockPicking(models.Model):
                         'view_mode': 'form',
                         'target': 'current',
                     }
-        
-        # Normal davranışı sürdür
         return result 
 
 
