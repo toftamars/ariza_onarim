@@ -948,6 +948,30 @@ class ArizaKayit(models.Model):
             'delivery_type': 'matbu',  # Her zaman matbu
         }
         
+        # Teknik servise göre partner_id ayarla
+        if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+            picking_vals['partner_id'] = self.tedarikci_id.id
+        elif self.teknik_servis == 'DTL BEYOĞLU':
+            # DTL Beyoğlu partner'ını bul
+            dtl_beyoglu = self.env['res.partner'].search([('name', 'ilike', 'DTL BEYOĞLU')], limit=1)
+            if dtl_beyoglu:
+                picking_vals['partner_id'] = dtl_beyoglu.id
+        elif self.teknik_servis == 'DTL OKMEYDANI':
+            # DTL Okmeydanı partner'ını bul
+            dtl_okmeydani = self.env['res.partner'].search([('name', 'ilike', 'DTL OKMEYDANI')], limit=1)
+            if dtl_okmeydani:
+                picking_vals['partner_id'] = dtl_okmeydani.id
+        elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
+            # Zuhal Arıza Depo partner'ını bul
+            zuhal_ariza = self.env['res.partner'].search([('name', 'ilike', 'ZUHAL ARIZA DEPO')], limit=1)
+            if zuhal_ariza:
+                picking_vals['partner_id'] = zuhal_ariza.id
+        elif self.teknik_servis == 'ZUHAL NEFESLİ':
+            # Zuhal Nefesli partner'ını bul
+            zuhal_nefesli = self.env['res.partner'].search([('name', 'ilike', 'ZUHAL NEFESLİ')], limit=1)
+            if zuhal_nefesli:
+                picking_vals['partner_id'] = zuhal_nefesli.id
+        
         # Nakliye bilgilerini ekle
         # Kargo şirketini bul (ücretsiz kargo)
         delivery_carrier = self.env['delivery.carrier'].search([
