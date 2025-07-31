@@ -12,7 +12,7 @@
                         <field name="musteri_adi"/>
                         <field name="urun"/>
                         <field name="ariza_tipi"/>
-                        <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('adresime_gonderilsin', '=', True), ('ariza_tipi', '=', 'magaza')]}"/>
+                        <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         <field name="adresime_gonderilsin" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False), ('ariza_tipi', '=', 'magaza')], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
                     </group>
@@ -24,7 +24,7 @@
                     <group>
                         <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         <field name="currency_id" invisible="1"/>
-                        <field name="onarim_ucreti" attrs="{'invisible': [('garanti_kapsaminda_mi', 'in', ['evet', 'urun_degisimi']), ('ariza_tipi', '=', 'magaza')], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
+                        <field name="onarim_ucreti" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
                     </group>
                     <group>
                         <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..." attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
