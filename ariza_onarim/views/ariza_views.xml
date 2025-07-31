@@ -187,7 +187,7 @@
                     <button name="action_lock" string="Kilitle" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_unlock" string="Kilidi Aç" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'kilitli')]}" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
-                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
+                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true}'/>
                     <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'onarim_tamamlandi'), ('ariza_tipi', '!=', 'magaza')]}" options='{"no_open": true}'/>
                     <!-- İptal butonu - hem yöneticiler hem kullanıcılar için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', '=', 'iptal')]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
