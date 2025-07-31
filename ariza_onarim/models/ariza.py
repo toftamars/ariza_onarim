@@ -1458,13 +1458,37 @@ Arıza Kaydı Tamamlandı.<br/>
         if not kaynak_konum or not hedef_konum:
             raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
         
-        # Tamir Alımlar transferi oluştur
-        picking_type_domain = [('code', '=', 'incoming')]  # Tamir Alımlar
-        if self.teslim_magazasi_id and self.teslim_magazasi_id.warehouse_id:
-            picking_type_domain.append(('warehouse_id', '=', self.teslim_magazasi_id.warehouse_id.id))
+        # Tamir Alımlar transferi oluştur - "Tünel: Tamir Alımlar" picking type'ını bul
+        picking_type_domain = [
+            ('code', '=', 'incoming'),
+            ('name', 'ilike', 'Tamir Alımlar'),
+            ('warehouse_id.name', 'ilike', 'Tünel')
+        ]
+        
+        # Önce Tünel: Tamir Alımlar'ı ara
+        picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+        
+        # Bulunamazsa sadece Tamir Alımlar ara
+        if not picking_type:
+            picking_type_domain = [
+                ('code', '=', 'incoming'),
+                ('name', 'ilike', 'Tamir Alımlar')
+            ]
+            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+        
+        # Hala bulunamazsa warehouse'a göre ara
+        if not picking_type and self.teslim_magazasi_id and self.teslim_magazasi_id.warehouse_id:
+            picking_type_domain = [
+                ('code', '=', 'incoming'),
+                ('warehouse_id', '=', self.teslim_magazasi_id.warehouse_id.id)
+            ]
+            picking_type = self.env['stock.picking.type'].search(picking_type_domain, limit=1)
+        
+        if not picking_type:
+            raise UserError('"Tünel: Tamir Alımlar" picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.')
         
         picking_vals = {
-            'picking_type_id': self.env['stock.picking.type'].search(picking_type_domain, limit=1).id,
+            'picking_type_id': picking_type.id,
             'location_id': kaynak_konum.id,  # İlk transferin hedefi
             'location_dest_id': hedef_konum.id,  # İlk transferin kaynağı
             'origin': self.name,
