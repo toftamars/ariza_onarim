@@ -3,16 +3,22 @@
     <!-- Arka plan daire -->
     <circle cx="70" cy="70" r="65" fill="#875A7B"/>
     
+    <!-- Ana arıza onarım sembolü -->
+    <!-- Çekiç -->
+    <path d="M50 60L70 40L90 60L80 70L60 70L50 60Z" fill="white"/>
+    <path d="M60 70L80 70L85 80L75 80L60 70Z" fill="white"/>
+    
     <!-- Anahtar -->
     <path d="M85 45L95 35L105 45L95 55L85 45Z" fill="white"/>
     <path d="M95 35L105 45L115 35L105 25L95 35Z" fill="white"/>
+    <circle cx="95" cy="30" r="3" fill="white"/>
     
-    <!-- Çark -->
-    <circle cx="70" cy="70" r="25" stroke="white" stroke-width="4" fill="none"/>
-    <circle cx="70" cy="70" r="15" stroke="white" stroke-width="4" fill="none"/>
-    <path d="M70 45L70 55M70 85L70 95M45 70L55 70M85 70L95 70" stroke="white" stroke-width="4"/>
+    <!-- Dişli/Çark -->
+    <circle cx="70" cy="70" r="20" stroke="white" stroke-width="3" fill="none"/>
+    <circle cx="70" cy="70" r="12" stroke="white" stroke-width="3" fill="none"/>
+    <path d="M70 50L70 55M70 85L70 90M50 70L55 70M85 70L90 70" stroke="white" stroke-width="3"/>
     
-    <!-- Çekiç -->
-    <path d="M45 85L55 95L65 85L55 75L45 85Z" fill="white"/>
-    <path d="M55 75L65 85L75 75L65 65L55 75Z" fill="white"/>
+    <!-- Onarım işareti -->
+    <path d="M40 90L50 100L60 90L50 80L40 90Z" fill="white"/>
+    <path d="M50 80L60 90L70 80L60 70L50 80Z" fill="white"/>
 </svg> 
