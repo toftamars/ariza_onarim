@@ -224,6 +224,9 @@ class ArizaKayit(models.Model):
     
     # Mağaza ürünü teslim al butonu için
     teslim_al_visible = fields.Boolean(string='Teslim Al Butonu Görünür', compute='_compute_teslim_al_visible', store=False)
+    
+    # Mağaza ürünü için ürün adı
+    magaza_urun_adi = fields.Char(string='Mağaza Ürün Adı', compute='_compute_magaza_urun_adi', store=True)
 
     @api.depends('state')
     def _compute_state_manager(self):
@@ -1864,6 +1867,20 @@ Arıza Kaydı Tamamlandı.<br/>
                 record.ariza_tipi == 'magaza' and 
                 record.state == 'yonetici_tamamlandi'
             )
+    
+    @api.depends('magaza_urun_id')
+    def _compute_magaza_urun_adi(self):
+        """Mağaza ürünü için ürün adını hesapla"""
+        for record in self:
+            if record.magaza_urun_id:
+                urun_adi = record.magaza_urun_id.name or ''
+                urun_kodu = record.magaza_urun_id.default_code or ''
+                if urun_kodu:
+                    record.magaza_urun_adi = f"[{urun_kodu}] {urun_adi}"
+                else:
+                    record.magaza_urun_adi = urun_adi
+            else:
+                record.magaza_urun_adi = ''
 
 
 
