@@ -1635,7 +1635,7 @@ Arıza Kaydı Tamamlandı.<br/>
         # Mesaj gönder
         transfer_bilgisi = f"""
         <p><strong>Yeni transfer oluşturuldu!</strong></p>
-        <p><strong>Transfer No:</strong> {tamir_alim_transfer.name}</p>
+        <p><strong>Transfer No:</strong> <a href="/web#id={tamir_alim_transfer.id}&model=stock.picking&view_type=form" target="_blank">{tamir_alim_transfer.name}</a></p>
         <p><strong>Kaynak:</strong> {kaynak_konum.name}</p>
         <p><strong>Hedef:</strong> {hedef_konum.name}</p>
         <p><strong>Tarih:</strong> {fields.Datetime.now().strftime('%Y-%m-%d')}</p>
