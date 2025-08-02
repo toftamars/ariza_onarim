@@ -111,6 +111,10 @@ git pull origin main
 
 LGPL-3
 
+## Geliştirici
+
+**Alper Tofta**
+
 ## İletişim
 
-GitHub: [@your-username](https://github.com/your-username) 
+GitHub: [@toftamars](https://github.com/toftamars) 

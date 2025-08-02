@@ -12,7 +12,7 @@
         - Raporlama
     """,
     'author': 'Alper Tofta',
-    'website': 'https://www.ariza.com',
+    'website': 'https://github.com/toftamars',
     'depends': [
         'base',
         'mail',
