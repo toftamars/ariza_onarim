@@ -1577,8 +1577,8 @@ Arıza Kaydı Tamamlandı.<br/>
         
         # Sürücü ataması yap
         driver_partners = self.env['res.partner'].search([
-            ('type', '=', 'driver'),
-            ('is_driver', '=', True)
+            ('is_driver', '=', True),
+            ('active', '=', True)
         ], limit=1)
         
         if driver_partners:
@@ -1587,7 +1587,8 @@ Arıza Kaydı Tamamlandı.<br/>
             # Eğer sürücü bulunamazsa, 34PLK34 plakalı sürücüyü ara
             vehicle_34plk34 = self.env['res.partner'].search([
                 ('is_driver', '=', True),
-                ('name', 'ilike', '34PLK34')
+                ('vehicle_plate', 'ilike', '34PLK34'),
+                ('active', '=', True)
             ], limit=1)
             if vehicle_34plk34:
                 tamir_alim_transfer.write({'driver_ids': [(6, 0, [vehicle_34plk34.id])]})
