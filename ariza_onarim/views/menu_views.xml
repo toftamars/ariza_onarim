@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Ana menü -->
+    <menuitem id="menu_ariza_root" name="Arıza Onarım" sequence="10"/>
+    
     <record id="action_ariza_kayit" model="ir.actions.act_window">
         <field name="name">Arıza Kayıtları</field>
         <field name="res_model">ariza.kayit</field>
