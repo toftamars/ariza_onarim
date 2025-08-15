@@ -38,6 +38,11 @@
         'wizards/ariza_onarim_bilgi_wizard_views.xml',
         'wizards/ariza_teslim_wizard_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'ariza_onarim/static/src/js/debranding_guard.js',
+        ],
+    },
     'icon': 'static/description/icon.png',
     'demo': [],
     'installable': True,
