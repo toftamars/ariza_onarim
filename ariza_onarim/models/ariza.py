@@ -238,6 +238,9 @@ class ArizaKayit(models.Model):
                 record.state_manager = 'onarimda'
             elif record.state == 'onaylandi':
                 record.state_manager = 'onarim_tamamlandi'
+            elif record.state == 'yonetici_tamamlandi':
+                # Yönetici tamamladı durumu, yöneticinin görünümünde "onarım tamamlandı" olarak gösterilsin
+                record.state_manager = 'onarim_tamamlandi'
             else:
                 record.state_manager = record.state
 
