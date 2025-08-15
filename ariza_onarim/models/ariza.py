@@ -1286,12 +1286,12 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     
                     if picking:
                         record.transfer_sayisi = record.transfer_sayisi + 1
-                        # Transfer oluşturulduğunda transfer'e yönlendir
+                        # Güvenlik kısıtı nedeniyle picking formuna yönlendirme yapma, arıza kaydında kal
                         return {
                             'type': 'ir.actions.act_window',
-                            'name': 'Transfer Belgesi',
-                            'res_model': 'stock.picking',
-                            'res_id': picking.id,
+                            'name': 'Arıza Kaydı',
+                            'res_model': 'ariza.kayit',
+                            'res_id': record.id,
                             'view_mode': 'form',
                             'target': 'current',
                         }
