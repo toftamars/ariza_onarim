@@ -203,11 +203,11 @@
                                     MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
                                     İstanbul
                                 </t>
-                                                            <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
-                                ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
-                                İstanbul
-                            </t>
+                                <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                    ZUHAL ARIZA DEPO<br/>
+                                    Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
+                                    İstanbul
+                                </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                     ZUHAL NEFESLİ<br/>
                                     Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
@@ -221,10 +221,16 @@
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and not o.marka_id.partner_id">
                                     <t t-esc="o.marka_id.name"/> - Tedarikçi Adresi Tanımlı Değil
                                 </t>
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.tedarikci_adresi">
+                                    <t t-esc="o.tedarikci_adresi"/>
+                                </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                     <t t-esc="o.tedarikci_id.name"/><br/>
                                     <t t-esc="o.tedarikci_id.street or ''"/><br/>
                                     <t t-esc="o.tedarikci_id.city or ''"/>, <t t-esc="o.tedarikci_id.country_id.name or ''"/>
+                                </t>
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.teknik_servis_adres">
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-else="">
                                     <t t-esc="o.teknik_servis"/>
@@ -261,10 +267,16 @@
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and not o.marka_id.partner_id">
                                 <t t-esc="o.marka_id.name"/> - Tedarikçi Adresi Tanımlı Değil
                             </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.tedarikci_adresi">
+                                <t t-esc="o.tedarikci_adresi"/>
+                            </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
                                 <t t-esc="o.tedarikci_id.name"/><br/>
                                 <t t-esc="o.tedarikci_id.street or ''"/><br/>
                                 <t t-esc="o.tedarikci_id.city or ''"/>, <t t-esc="o.tedarikci_id.country_id.name or ''"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.teknik_servis_adres">
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-else="">
                                 <t t-esc="o.teknik_servis"/>
