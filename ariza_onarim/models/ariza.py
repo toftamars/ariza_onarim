@@ -1079,9 +1079,7 @@ class ArizaKayit(models.Model):
 
         # Chatter'a mesaj ekle (2. transfer için picking linki vermeyelim)
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        transfer_no_html = (
-            picking.name if transfer_tipi == 'ikinci' else f"<a href='{transfer_url}'>{picking.name}</a>"
-        )
+        transfer_no_html = picking.name
         durum = dict(self._fields['state'].selection).get(self.state, self.state)
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
@@ -1524,10 +1522,7 @@ Arıza Kaydı Tamamlandı.<br/>
             'date': fields.Datetime.now(),
             'edespatch_delivery_type': 'printed',
         }
-        if transfer_tipi != 'ikinci':
-            picking_vals['note'] = (
-                f"Arıza Kaydı: {self.name}\nÜrün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen'}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}"
-            )
+        # Güvenlik kısıtı nedeniyle note alanına yazma
         
         # Teknik servise göre partner_id ayarla
         if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
