@@ -1077,13 +1077,16 @@ class ArizaKayit(models.Model):
                 pass
             raise UserError(_(f"Transfer oluşturulamadı: {str(e)}"))
 
-        # Chatter'a mesaj ekle
+        # Chatter'a mesaj ekle (2. transfer için picking linki vermeyelim)
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
+        transfer_no_html = (
+            picking.name if transfer_tipi == 'ikinci' else f"<a href='{transfer_url}'>{picking.name}</a>"
+        )
         durum = dict(self._fields['state'].selection).get(self.state, self.state)
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
             body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
-                 f"Transfer No: <a href='{transfer_url}'>{picking.name}</a><br/>"
+                 f"Transfer No: {transfer_no_html}<br/>"
                  f"Kaynak: {kaynak.display_name}<br/>"
                  f"Hedef: {hedef.display_name}<br/>"
                  f"Tarih: {fields.Date.today()}<br/>"
