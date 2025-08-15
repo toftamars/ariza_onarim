@@ -952,10 +952,14 @@ class ArizaKayit(models.Model):
             'location_id': kaynak.id,
             'location_dest_id': hedef.id,
             'origin': self.name,
-            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': 'matbu',  # Her zaman matbu
         }
+        # İkinci transferde güvenlik kısıtı nedeniyle note alanına yazma
+        if transfer_tipi != 'ikinci':
+            picking_vals['note'] = (
+                f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}"
+            )
         
         # Teknik servise göre partner_id ayarla
         if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
@@ -1029,9 +1033,7 @@ class ArizaKayit(models.Model):
         
 
         
-        # 2. transferde note alanına ilk transferin teslim_adresi bilgisini ekle
-        if transfer_tipi == 'ikinci' and self.teslim_adresi:
-            picking_vals['note'] += f"\nAlım Yapılan: {self.teslim_adresi}"
+        # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
         # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
         if transfer_tipi != 'ikinci' and self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
@@ -1172,9 +1174,9 @@ class ArizaKayit(models.Model):
         # Teslimat siparişi oluştur
         picking = sale_order.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
         if picking:
+            # Güvenlik kısıtı nedeniyle note yazma
             picking.write({
                 'origin': self.name,
-                'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}"
             })
             return picking
         return False
@@ -1511,12 +1513,15 @@ Arıza Kaydı Tamamlandı.<br/>
             'location_id': kaynak_konum.id,  # İlk transferin hedefi
             'location_dest_id': hedef_konum.id,  # İlk transferin kaynağı
             'origin': self.name,
-            'note': f"Arıza Kaydı: {self.name}\nÜrün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen'}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}",
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
             'edespatch_delivery_type': 'printed',
         }
+        if transfer_tipi != 'ikinci':
+            picking_vals['note'] = (
+                f"Arıza Kaydı: {self.name}\nÜrün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Bilinmeyen'}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}"
+            )
         
         # Teknik servise göre partner_id ayarla
         if self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
