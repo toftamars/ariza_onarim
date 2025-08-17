@@ -1554,10 +1554,10 @@ Arıza Kaydı Tamamlandı.<br/>
                     picking_vals['partner_id'] = zuhal_partner.id
         
         # Tamir Alımlar transferini oluştur
-        tamir_alim_transfer = self.env['stock.picking'].create(picking_vals)
+        tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
         
         # Teslimat türünü Matbu olarak ayarla ve sürücü ata
-        tamir_alim_transfer.write({
+        tamir_alim_transfer.sudo().write({
             'edespatch_delivery_type': 'printed',
         })
         
@@ -1568,7 +1568,7 @@ Arıza Kaydı Tamamlandı.<br/>
         
         if drivers:
             # İlk sürücüyü ata
-            tamir_alim_transfer.write({
+            tamir_alim_transfer.sudo().write({
                 'driver_ids': [(6, 0, [drivers[0].id])]
             })
         
@@ -1579,7 +1579,7 @@ Arıza Kaydı Tamamlandı.<br/>
         ], limit=1)
         
         if driver_partners:
-            tamir_alim_transfer.write({'driver_ids': [(6, 0, driver_partners.ids)]})
+            tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, driver_partners.ids)]})
         else:
             # Eğer sürücü bulunamazsa, 34PLK34 plakalı sürücüyü ara
             vehicle_34plk34 = self.env['res.partner'].search([
@@ -1588,7 +1588,7 @@ Arıza Kaydı Tamamlandı.<br/>
                 ('active', '=', True)
             ], limit=1)
             if vehicle_34plk34:
-                tamir_alim_transfer.write({'driver_ids': [(6, 0, [vehicle_34plk34.id])]})
+                tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, [vehicle_34plk34.id])]})
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
@@ -1602,7 +1602,7 @@ Arıza Kaydı Tamamlandı.<br/>
         }
         
         if move_vals['product_id'] and move_vals['product_uom']:
-            move = self.env['stock.move'].create(move_vals)
+            move = self.env['stock.move'].sudo().create(move_vals)
             
             # Hareket satırını oluştur - stock.move.line
             move_line_vals = {
@@ -1616,7 +1616,7 @@ Arıza Kaydı Tamamlandı.<br/>
             }
             
             if move_line_vals['product_id'] and move_line_vals['product_uom_id']:
-                self.env['stock.move.line'].create(move_line_vals)
+                self.env['stock.move.line'].sudo().create(move_line_vals)
             else:
                 raise UserError(f"Hareket satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         else:
