@@ -1011,24 +1011,12 @@ class ArizaKayit(models.Model):
         
         # Nakliye bilgilerini ekle
         # Kargo şirketini bul (ücretsiz kargo)
-        delivery_carrier = self.env['delivery.carrier'].search([
+        delivery_carrier = self.env['delivery.carrier'].sudo().search([
             ('delivery_type', '=', 'fixed'),
             ('fixed_price', '=', 0.0)
         ], limit=1)
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
-            
-            # Delivery carrier'ın vehicle_id alanını ayarla
-            if self.vehicle_id:
-                delivery_carrier.vehicle_id = self.vehicle_id.id
-            else:
-                # Eğer arıza kaydında vehicle_id yoksa, 34PLK34 plakalı sürücüyü bul
-                vehicle_34plk34 = self.env['res.partner'].search([
-                    ('is_driver', '=', True),
-                    ('name', 'ilike', '34PLK34')
-                ], limit=1)
-                if vehicle_34plk34:
-                    delivery_carrier.vehicle_id = vehicle_34plk34.id
             
         # Araç bilgisi ekle - basit yöntem
         if self.vehicle_id:
@@ -1151,7 +1139,7 @@ class ArizaKayit(models.Model):
             return False
 
         # Kargo şirketini bul
-        delivery_carrier = self.env['delivery.carrier'].search([
+        delivery_carrier = self.env['delivery.carrier'].sudo().search([
             ('delivery_type', '=', 'fixed'),
             ('fixed_price', '=', 0.0)
         ], limit=1)
