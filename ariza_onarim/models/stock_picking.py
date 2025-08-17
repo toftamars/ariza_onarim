@@ -15,6 +15,11 @@ class StockPicking(models.Model):
                     parent = node.getparent()
                     if parent is not None:
                         parent.remove(node)
+                # Chatter'ı da kaldır (mail_init_messaging çağrısını engellemek için)
+                for node in arch.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' oe_chatter ')]"):
+                    parent = node.getparent()
+                    if parent is not None:
+                        parent.remove(node)
                 res['arch'] = etree.tostring(arch, encoding='unicode')
             except Exception:
                 # lxml yoksa veya hata olursa sessizce geç
