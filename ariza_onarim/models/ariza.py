@@ -1206,6 +1206,7 @@ class ArizaKayit(models.Model):
                                 'res_model': 'stock.picking',
                                 'res_id': picking.id,
                                 'view_mode': 'form',
+                                'context': {'hide_note': True},
                                 'target': 'current',
                             }
                     # Diğer teknik servisler için normal transfer oluştur
@@ -1220,6 +1221,7 @@ class ArizaKayit(models.Model):
                                 'res_model': 'stock.picking',
                                 'res_id': picking.id,
                                 'view_mode': 'form',
+                                'context': {'hide_note': True},
                                 'target': 'current',
                             }
                 
@@ -1651,6 +1653,7 @@ Arıza Kaydı Tamamlandı.<br/>
             'res_model': 'stock.picking',
             'res_id': tamir_alim_transfer.id,
             'view_mode': 'form',
+            'context': {'hide_note': True},
             'target': 'current',
         } 
 
