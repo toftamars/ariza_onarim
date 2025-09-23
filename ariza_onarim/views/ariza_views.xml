@@ -531,8 +531,8 @@
     <record id="action_ariza_kayit_manager" model="ir.actions.act_window">
         <field name="name">Arıza Kayıtları - Yönetici Dashboard</field>
         <field name="res_model">ariza.kayit</field>
-        <field name="view_mode">kanban,tree,form,pivot,graph</field>
-        <field name="view_id" ref="view_ariza_kayit_dashboard_manager"/>
+        <field name="view_mode">tree,form,kanban,pivot,graph</field>
+        <field name="view_id" ref="view_ariza_kayit_tree"/>
         <field name="search_view_id" ref="view_ariza_kayit_search_manager"/>
         <field name="domain">[]</field>
         <field name="help" type="html">
