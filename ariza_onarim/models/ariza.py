@@ -83,9 +83,8 @@ class ArizaKayit(models.Model):
     name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection([
-        ('kabul', 'Arıza Kabul'),
         ('musteri_urunu', 'Müşteri Ürünü'),
-        ('teknik_servis', 'Teknik Servis'),
+        ('magaza_urunu', 'Mağaza Ürünü'),
     ], string='İşlem Tipi', required=True, tracking=True)
     
 
@@ -162,7 +161,7 @@ class ArizaKayit(models.Model):
         string='Marka Ürünleri',
         tracking=True
     )
-    ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'kabul')]", tracking=True)
+    ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain="[('islem_tipi', '=', 'musteri_urunu')]", tracking=True)
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
     magaza_urun_id = fields.Many2one(
@@ -320,7 +319,7 @@ class ArizaKayit(models.Model):
             if not vals.get('state'):
                 vals['state'] = 'draft'
             if not vals.get('islem_tipi'):
-                vals['islem_tipi'] = 'kabul'
+                vals['islem_tipi'] = 'musteri_urunu'
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = 'musteri'
             if not vals.get('sorumlu_id'):
@@ -613,8 +612,8 @@ class ArizaKayit(models.Model):
             }
         
         # İşlem tipi kontrolü - sadece MAĞAZA VE TEDARİKÇİ seçildiğinde ek seçenekler
-        if self.teknik_servis not in ['MAĞAZA', 'TEDARİKÇİ'] and self.islem_tipi not in ['kabul']:
-            self.islem_tipi = 'kabul'
+        if self.teknik_servis not in ['MAĞAZA', 'TEDARİKÇİ'] and self.islem_tipi not in ['musteri_urunu']:
+            self.islem_tipi = 'musteri_urunu'
         if not self.analitik_hesap_id:
             return
 
@@ -755,7 +754,7 @@ class ArizaKayit(models.Model):
         if self.invoice_line_id:
             product = self.invoice_line_id.product_id
             if product:
-                if self.islem_tipi == 'kabul' and self.ariza_tipi == 'musteri' and not self.siparis_yok:
+                if self.islem_tipi == 'musteri_urunu' and self.ariza_tipi == 'musteri' and not self.siparis_yok:
                     self.urun = product.name
                     self.model = product.default_code or ''
                     # Marka bilgisini ürün şablonundan al
@@ -845,7 +844,7 @@ class ArizaKayit(models.Model):
 
     @api.onchange('islem_tipi')
     def _onchange_islem_tipi(self):
-        if self.islem_tipi != 'teslim':
+        if self.islem_tipi != 'magaza_urunu':
             self.garanti_kapsaminda_mi = False
 
     @api.onchange('ariza_tipi')
@@ -1026,8 +1025,8 @@ class ArizaKayit(models.Model):
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
-        # Eğer mağaza ürünü, işlem tipi kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
-        if transfer_tipi != 'ikinci' and self.islem_tipi == 'kabul' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
+        # Eğer mağaza ürünü, işlem tipi müşteri ürünü ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
+        if transfer_tipi != 'ikinci' and self.islem_tipi == 'musteri_urunu' and self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.contact_id:
             picking_vals['partner_id'] = self.contact_id.id
 
         try:
@@ -1226,7 +1225,7 @@ class ArizaKayit(models.Model):
                             }
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
+                if record.islem_tipi == 'musteri_urunu' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
                     # Müşteriye e-posta gönder
@@ -1292,7 +1291,7 @@ Arıza Kaydı Personel Onaylandı.<br/>
                     raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
                 
                 # Tamamla işlemi sonrası SMS ve E-posta gönder (İkinci SMS)
-                if record.islem_tipi == 'kabul' and record.ariza_tipi == 'musteri' and not record.ikinci_sms_gonderildi:
+                if record.islem_tipi == 'musteri_urunu' and record.ariza_tipi == 'musteri' and not record.ikinci_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
                     # Müşteriye e-posta gönder
