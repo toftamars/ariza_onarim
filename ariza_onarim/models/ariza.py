@@ -251,7 +251,7 @@ class ArizaKayit(models.Model):
             else:
                 record.onarim_ucreti_tl = ""
 
-    @api.depends('sorumlu_id')
+    @api.depends('sorumlu_id', 'teknik_servis')
     def _compute_user_permissions(self):
         """Kullanıcının yetkilerini kontrol et"""
         for record in self:
@@ -263,11 +263,17 @@ class ArizaKayit(models.Model):
                                 current_user.has_group('base.group_system') or
                                 current_user.has_group('ariza_onarim.group_ariza_manager'))
             
-            # Onarımı başlatabilen kullanıcılar (sadece yönetici)
-            repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Yönetici kullanıcıları
-            record.can_start_repair = (current_user.login in repair_users or 
-                                     current_user.has_group('base.group_system') or
-                                     current_user.has_group('ariza_onarim.group_ariza_technician'))
+            # Teknik Servis = MAĞAZA seçildiğinde kullanıcılara da yetki ver
+            if record.teknik_servis == 'MAĞAZA':
+                # MAĞAZA seçildiğinde kullanıcılar Onarımı Başlat ve Onayla butonlarını kullanabilir
+                record.can_start_repair = True
+                record.can_approve = True
+            else:
+                # Onarımı başlatabilen kullanıcılar (sadece yönetici)
+                repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Yönetici kullanıcıları
+                record.can_start_repair = (current_user.login in repair_users or 
+                                         current_user.has_group('base.group_system') or
+                                         current_user.has_group('ariza_onarim.group_ariza_technician'))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -956,7 +962,7 @@ class ArizaKayit(models.Model):
             raise UserError(_("Transfer oluşturulamadı: Uygun operasyon tipi bulunamadı!"))
 
         # Analitik hesap adından E-İrsaliye türünü belirle
-        edespatch_sequence_id = False
+        edespatch_number_sequence_id = False
         if self.analitik_hesap_id and self.analitik_hesap_id.name:
             # Analitik hesap adını temizle
             analitik_adi = self.analitik_hesap_id.name
@@ -965,19 +971,26 @@ class ArizaKayit(models.Model):
             
             # E-İrsaliye türünü bul (örnek: "ADANA - E-İrsaliye", "UNIQ - E-İrsaliye")
             # Analitik hesap adına göre E-İrsaliye sequence'ını ara
-            edespatch_sequence = self.env['edespatch.sequence'].search([
+            # Domain: code='stock.edespatch' veya 'stock.ereceipt' ve name analitik hesap adını içeriyor
+            edespatch_sequence = self.env['ir.sequence'].search([
+                ('active', '=', True),
+                ('company_id', '=', self.env.company.id),
+                ('code', 'in', ['stock.edespatch', 'stock.ereceipt']),
                 ('name', 'ilike', f"{analitik_adi} - E-İrsaliye")
             ], limit=1)
             
             if not edespatch_sequence:
                 # Alternatif olarak sadece analitik hesap adı ile ara
-                edespatch_sequence = self.env['edespatch.sequence'].search([
+                edespatch_sequence = self.env['ir.sequence'].search([
+                    ('active', '=', True),
+                    ('company_id', '=', self.env.company.id),
+                    ('code', 'in', ['stock.edespatch', 'stock.ereceipt']),
                     ('name', 'ilike', analitik_adi),
                     ('name', 'ilike', 'E-İrsaliye')
                 ], limit=1)
             
             if edespatch_sequence:
-                edespatch_sequence_id = edespatch_sequence.id
+                edespatch_number_sequence_id = edespatch_sequence.id
         
         # Transfer oluştur - try-except ile güvenlik hatası yakalama
         picking_vals = {
@@ -990,8 +1003,8 @@ class ArizaKayit(models.Model):
         }
         
         # E-İrsaliye türü varsa ekle
-        if edespatch_sequence_id:
-            picking_vals['edespatch_sequence_id'] = edespatch_sequence_id
+        if edespatch_number_sequence_id:
+            picking_vals['edespatch_number_sequence'] = edespatch_number_sequence_id
         # İkinci transferde güvenlik kısıtı nedeniyle note alanına yazma
         if transfer_tipi != 'ikinci':
             picking_vals['note'] = (
