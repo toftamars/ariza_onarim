@@ -694,6 +694,14 @@ class ArizaKayit(models.Model):
         elif self.ariza_tipi == 'magaza' and self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
             if self.tedarikci_id.property_stock_supplier:
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+        # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
+        elif self.ariza_tipi == 'magaza' and self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
+            dtl_konum = self.env['stock.location'].search([
+                ('name', '=', 'DTL/Stok'),
+                ('company_id', '=', self.env.company.id)
+            ], limit=1)
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
