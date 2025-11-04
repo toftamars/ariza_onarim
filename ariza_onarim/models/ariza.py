@@ -1100,28 +1100,31 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         
-        # Sürücü ataması yap - "Sürücü, Aras / Sürücü" öncelikli
-        # Önce "Sürücü, Aras" içeren sürücüyü ara (varsayılan sürücü)
-        driver_partners = self.env['res.partner'].search([
-            ('is_driver', '=', True),
-            ('name', 'ilike', 'Sürücü, Aras'),
+        # Sürücü ataması - Standart Odoo davranışı: "Sürücü" ana kontağının alt kontağı "Aras / Sürücü"
+        # Önce "Sürücü" ana kontağını bul
+        surucu_parent = self.env['res.partner'].search([
+            ('name', '=', 'Sürücü'),
+            ('parent_id', '=', False),
             ('active', '=', True)
         ], limit=1)
         
-        # Eğer "Sürücü, Aras" bulunamazsa, sadece "Aras" içeren sürücüyü ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
-                ('is_driver', '=', True),
+        driver_partner = False
+        if surucu_parent:
+            # "Sürücü" ana kontağının alt kontağı olan "Aras / Sürücü" veya "Sürücü, Aras" kontağını bul
+            driver_partner = self.env['res.partner'].search([
+                ('parent_id', '=', surucu_parent.id),
                 ('name', 'ilike', 'Aras'),
-                ('active', '=', True)
-            ], limit=1)
-        
-        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
                 ('is_driver', '=', True),
                 ('active', '=', True)
             ], limit=1)
+            
+            # Eğer "Aras" içeren alt kontak bulunamazsa, herhangi bir alt kontak bul
+            if not driver_partner:
+                driver_partner = self.env['res.partner'].search([
+                    ('parent_id', '=', surucu_parent.id),
+                    ('is_driver', '=', True),
+                    ('active', '=', True)
+                ], limit=1)
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
@@ -1138,19 +1141,24 @@ class ArizaKayit(models.Model):
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         
-        # Sürücü bulunursa driver_ids alanına ekle (transfer oluşturulduktan sonra)
-        if driver_partners:
+        # Sürücü ataması - Standart Odoo davranışı (create sonrası)
+        # driver_ids One2many ilişki olduğu için vehicle_id ile birlikte eklenmeli
+        if driver_partner and picking:
             try:
-                # Önce mevcut driver_ids'yi al, sonra yeni sürücüyü ekle (Many2many için)
-                picking.sudo().write({'driver_ids': [(4, driver_partners.id)]})
+                # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
+                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan
+                vehicle_id_val = picking.vehicle_id.id if hasattr(picking, 'vehicle_id') and picking.vehicle_id else False
+                
+                # driver_ids One2many ise bu format kullanılmalı
+                picking.sudo().write({
+                    'driver_ids': [(0, 0, {
+                        'driver_id': driver_partner.id,
+                        'vehicle_id': vehicle_id_val,  # vehicle_id zorunlu değilse False olabilir
+                    })]
+                })
             except Exception as e:
-                # Eğer driver_ids yazılamazsa, farklı bir yöntem dene
-                try:
-                    # Alternatif: driver_ids direkt Many2many ise (replace)
-                    picking.sudo().write({'driver_ids': [(6, 0, [driver_partners.id])]})
-                except Exception as e2:
-                    # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
-                    pass
+                # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
+                pass
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1668,45 +1676,53 @@ Arıza Kaydı Tamamlandı.<br/>
                 else:
                     picking_vals['partner_id'] = zuhal_partner.id
         
-        # Sürücü ataması yap - "Sürücü, Aras / Sürücü" öncelikli
-        # Önce "Sürücü, Aras" içeren sürücüyü ara (varsayılan sürücü)
-        driver_partners = self.env['res.partner'].search([
-            ('is_driver', '=', True),
-            ('name', 'ilike', 'Sürücü, Aras'),
+        # Sürücü ataması - Standart Odoo davranışı: "Sürücü" ana kontağının alt kontağı "Aras / Sürücü"
+        # Önce "Sürücü" ana kontağını bul
+        surucu_parent = self.env['res.partner'].search([
+            ('name', '=', 'Sürücü'),
+            ('parent_id', '=', False),
             ('active', '=', True)
         ], limit=1)
         
-        # Eğer "Sürücü, Aras" bulunamazsa, sadece "Aras" içeren sürücüyü ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
-                ('is_driver', '=', True),
+        driver_partner = False
+        if surucu_parent:
+            # "Sürücü" ana kontağının alt kontağı olan "Aras / Sürücü" veya "Sürücü, Aras" kontağını bul
+            driver_partner = self.env['res.partner'].search([
+                ('parent_id', '=', surucu_parent.id),
                 ('name', 'ilike', 'Aras'),
-                ('active', '=', True)
-            ], limit=1)
-        
-        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
                 ('is_driver', '=', True),
                 ('active', '=', True)
             ], limit=1)
+            
+            # Eğer "Aras" içeren alt kontak bulunamazsa, herhangi bir alt kontak bul
+            if not driver_partner:
+                driver_partner = self.env['res.partner'].search([
+                    ('parent_id', '=', surucu_parent.id),
+                    ('is_driver', '=', True),
+                    ('active', '=', True)
+                ], limit=1)
         
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
         
-        # Sürücü bulunursa driver_ids alanına ekle (transfer oluşturulduktan sonra)
-        if driver_partners:
+        # Sürücü ataması - Standart Odoo davranışı (create sonrası)
+        # driver_ids One2many ilişki olduğu için vehicle_id ile birlikte eklenmeli
+        if driver_partner and tamir_alim_transfer:
             try:
-                # Önce mevcut driver_ids'yi al, sonra yeni sürücüyü ekle (Many2many için)
-                tamir_alim_transfer.sudo().write({'driver_ids': [(4, driver_partners.id)]})
+                # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
+                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan
+                vehicle_id_val = tamir_alim_transfer.vehicle_id.id if hasattr(tamir_alim_transfer, 'vehicle_id') and tamir_alim_transfer.vehicle_id else False
+                
+                # driver_ids One2many ise bu format kullanılmalı
+                tamir_alim_transfer.sudo().write({
+                    'driver_ids': [(0, 0, {
+                        'driver_id': driver_partner.id,
+                        'vehicle_id': vehicle_id_val,  # vehicle_id zorunlu değilse False olabilir
+                    })]
+                })
             except Exception as e:
-                # Eğer driver_ids yazılamazsa, farklı bir yöntem dene
-                try:
-                    # Alternatif: driver_ids direkt Many2many ise (replace)
-                    tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, [driver_partners.id])]})
-                except Exception as e2:
-                    # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
-                    pass
+                # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
+                pass
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
