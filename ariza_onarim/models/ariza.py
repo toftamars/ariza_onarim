@@ -609,6 +609,7 @@ class ArizaKayit(models.Model):
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
             
             # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
+            # Hem teknik servis zaten seçilmişse hem de sonradan seçilecekse çalışsın
             if self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
                 dtl_konum = self.env['stock.location'].search([
                     ('name', '=', 'DTL/Stok'),
@@ -616,6 +617,10 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == 'TEDARİKÇİ' and self.tedarikci_id:
+                # Tedarikçi seçildiğinde tedarikçi konumu
+                if self.tedarikci_id.property_stock_supplier:
+                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
@@ -692,7 +697,7 @@ class ArizaKayit(models.Model):
 
         # Müşteri ürünü işlemleri için hedef konum ayarları
         if self.ariza_tipi == 'musteri':
-            if self.teknik_servis == 'magaza' and konum_kodu:
+            if self.teknik_servis == 'MAĞAZA' and konum_kodu:
                 # Mağaza seçildiğinde [KOD]/arızalı konumu
                 arizali_konum = self.env['stock.location'].search([
                     ('name', '=', f"{konum_kodu.split('/')[0]}/arızalı"),
@@ -700,15 +705,15 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if arizali_konum:
                     self.hedef_konum_id = arizali_konum
-            elif self.teknik_servis in ['dtl_beyoglu', 'dtl_okmeydani']:
-                # DTL seçildiğinde dtl/stok konumu
+            elif self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
+                # DTL seçildiğinde DTL/Stok konumu
                 dtl_konum = self.env['stock.location'].search([
-                    ('name', '=', 'dtl/stok'),
+                    ('name', '=', 'DTL/Stok'),
                     ('company_id', '=', self.env.company.id)
                 ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == 'zuhal':
+            elif self.teknik_servis == 'ZUHAL ARIZA DEPO':
                 # Zuhal seçildiğinde arıza/stok konumu
                 ariza_konum = self.env['stock.location'].search([
                     ('name', '=', 'arıza/stok'),
