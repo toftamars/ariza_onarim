@@ -325,6 +325,16 @@ class ArizaKayit(models.Model):
                 vals['state'] = 'draft'
             if not vals.get('islem_tipi'):
                 vals['islem_tipi'] = 'ariza_kabul'
+            
+            # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
+            if vals.get('ariza_tipi') == 'magaza' and vals.get('teknik_servis') in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
+                if not vals.get('hedef_konum_id'):
+                    dtl_konum = self.env['stock.location'].search([
+                        ('name', '=', 'DTL/Stok'),
+                        ('company_id', '=', self.env.company.id)
+                    ], limit=1)
+                    if dtl_konum:
+                        vals['hedef_konum_id'] = dtl_konum.id
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = 'musteri'
             if not vals.get('sorumlu_id'):
@@ -592,10 +602,20 @@ class ArizaKayit(models.Model):
             self.urun = False
             self.model = False
             self.magaza_urun_id = False
-            self.teknik_servis = False  # Mağaza ürünü seçildiğinde teknik servis temizle
+            # Teknik servis temizlenmemeli, sadece kontrol edilmeli
+            # self.teknik_servis = False  # Mağaza ürünü seçildiğinde teknik servis temizle
             self.teslim_magazasi_id = self.env.user.employee_id.magaza_id
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in ['DTL OKMEYDANI', 'DTL BEYOĞLU']:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
+            
+            # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
+            if self.teknik_servis in ['DTL BEYOĞLU', 'DTL OKMEYDANI']:
+                dtl_konum = self.env['stock.location'].search([
+                    ('name', '=', 'DTL/Stok'),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
@@ -970,24 +990,30 @@ class ArizaKayit(models.Model):
                 analitik_adi = analitik_adi[12:]  # "Perakende - " önekini temizle
             
             # E-İrsaliye türünü bul (örnek: "ADANA - E-İrsaliye", "UNIQ - E-İrsaliye")
-            # Analitik hesap adına göre E-İrsaliye sequence'ını ara
-            # Domain: code='stock.edespatch' veya 'stock.ereceipt' ve name analitik hesap adını içeriyor
+            # Önce tam eşleşme dene: "UNIQ - E-İrsaliye"
             edespatch_sequence = self.env['ir.sequence'].search([
                 ('active', '=', True),
                 ('company_id', '=', self.env.company.id),
                 ('code', 'in', ['stock.edespatch', 'stock.ereceipt']),
-                ('name', 'ilike', f"{analitik_adi} - E-İrsaliye")
+                ('name', '=', f"{analitik_adi} - E-İrsaliye")
             ], limit=1)
             
+            # Tam eşleşme bulunamazsa, ilike ile ara ama daha spesifik
             if not edespatch_sequence:
-                # Alternatif olarak sadece analitik hesap adı ile ara
-                edespatch_sequence = self.env['ir.sequence'].search([
+                # Önce analitik hesap adı ile başlayan ve "E-İrsaliye" içeren kayıtları ara
+                all_sequences = self.env['ir.sequence'].search([
                     ('active', '=', True),
                     ('company_id', '=', self.env.company.id),
                     ('code', 'in', ['stock.edespatch', 'stock.ereceipt']),
-                    ('name', 'ilike', analitik_adi),
                     ('name', 'ilike', 'E-İrsaliye')
-                ], limit=1)
+                ])
+                
+                # Analitik hesap adı ile en yakın eşleşmeyi bul
+                for seq in all_sequences:
+                    # Eğer sequence adı analitik hesap adını içeriyorsa
+                    if analitik_adi.upper() in seq.name.upper():
+                        edespatch_sequence = seq
+                        break
             
             if edespatch_sequence:
                 edespatch_number_sequence_id = edespatch_sequence.id
