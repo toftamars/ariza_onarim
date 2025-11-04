@@ -130,7 +130,7 @@ class ArizaKayit(models.Model):
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
-    ], string='Durum', default='personel_onay', tracking=True)
+    ], string='Durum', default='draft', tracking=True)
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
     invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
         domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product'), ('exclude_from_invoice_tab', '=', False), ('quantity', '>', 0)]",
@@ -316,7 +316,7 @@ class ArizaKayit(models.Model):
                         new_number = 1
                     vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
             if not vals.get('state'):
-                vals['state'] = 'personel_onay'
+                vals['state'] = 'draft'
             if not vals.get('islem_tipi'):
                 vals['islem_tipi'] = 'ariza_kabul'
             if not vals.get('ariza_tipi'):
