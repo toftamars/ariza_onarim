@@ -1100,7 +1100,32 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         
-
+        # Sürücü ataması yap - "Sürücü, Aras / Sürücü" öncelikli
+        # Önce "Sürücü, Aras" içeren sürücüyü ara (varsayılan sürücü)
+        driver_partners = self.env['res.partner'].search([
+            ('is_driver', '=', True),
+            ('name', 'ilike', 'Sürücü, Aras'),
+            ('active', '=', True)
+        ], limit=1)
+        
+        # Eğer "Sürücü, Aras" bulunamazsa, sadece "Aras" içeren sürücüyü ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('name', 'ilike', 'Aras'),
+                ('active', '=', True)
+            ], limit=1)
+        
+        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('active', '=', True)
+            ], limit=1)
+        
+        # Sürücü bulunursa driver_ids alanına ekle (create sırasında)
+        if driver_partners:
+            picking_vals['driver_ids'] = [(6, 0, driver_partners.ids)]
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
@@ -1116,33 +1141,6 @@ class ArizaKayit(models.Model):
                 picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
-        
-        # Sürücü ataması yap - "Sürücü, Aras" varsayılan olarak
-        # Önce "Aras" isimli sürücüyü ara (varsayılan sürücü)
-        driver_partners = self.env['res.partner'].search([
-            ('is_driver', '=', True),
-            ('name', 'ilike', 'Aras'),
-            ('active', '=', True)
-        ], limit=1)
-        
-        # Eğer "Aras" bulunamazsa, "Sürücü, Aras" formatında ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
-                ('is_driver', '=', True),
-                ('name', 'ilike', 'Sürücü, Aras'),
-                ('active', '=', True)
-            ], limit=1)
-        
-        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
-        if not driver_partners:
-            driver_partners = self.env['res.partner'].search([
-                ('is_driver', '=', True),
-                ('active', '=', True)
-            ], limit=1)
-        
-        # Sürücü bulunursa driver_ids alanına ekle
-        if driver_partners:
-            picking.sudo().write({'driver_ids': [(6, 0, driver_partners.ids)]})
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1660,42 +1658,35 @@ Arıza Kaydı Tamamlandı.<br/>
                 else:
                     picking_vals['partner_id'] = zuhal_partner.id
         
-        # Tamir Alımlar transferini oluştur
-        tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
-        
-        # Teslimat türünü Matbu olarak ayarla ve sürücü ata
-        tamir_alim_transfer.sudo().write({
-            'edespatch_delivery_type': 'printed',
-        })
-        
-        # Sürücüyü sistemde ara ve ata
-        drivers = self.env['res.partner'].search([
-            ('type', '=', 'driver')
-        ])
-        
-        if drivers:
-            # İlk sürücüyü ata
-            tamir_alim_transfer.sudo().write({
-                'driver_ids': [(6, 0, [drivers[0].id])]
-            })
-        
-        # Sürücü ataması yap
+        # Sürücü ataması yap - "Sürücü, Aras / Sürücü" öncelikli
+        # Önce "Sürücü, Aras" içeren sürücüyü ara (varsayılan sürücü)
         driver_partners = self.env['res.partner'].search([
             ('is_driver', '=', True),
+            ('name', 'ilike', 'Sürücü, Aras'),
             ('active', '=', True)
         ], limit=1)
         
-        if driver_partners:
-            tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, driver_partners.ids)]})
-        else:
-            # Eğer sürücü bulunamazsa, 34PLK34 plakalı sürücüyü ara
-            vehicle_34plk34 = self.env['res.partner'].search([
+        # Eğer "Sürücü, Aras" bulunamazsa, sadece "Aras" içeren sürücüyü ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
                 ('is_driver', '=', True),
-                ('vehicle_plate', 'ilike', '34PLK34'),
+                ('name', 'ilike', 'Aras'),
                 ('active', '=', True)
             ], limit=1)
-            if vehicle_34plk34:
-                tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, [vehicle_34plk34.id])]})
+        
+        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('active', '=', True)
+            ], limit=1)
+        
+        # Sürücü bulunursa driver_ids alanına ekle (create sırasında)
+        if driver_partners:
+            picking_vals['driver_ids'] = [(6, 0, driver_partners.ids)]
+        
+        # Tamir Alımlar transferini oluştur
+        tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
