@@ -1112,6 +1112,33 @@ class ArizaKayit(models.Model):
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         
+        # Sürücü ataması yap - "Sürücü, Aras" varsayılan olarak
+        # Önce "Aras" isimli sürücüyü ara (varsayılan sürücü)
+        driver_partners = self.env['res.partner'].search([
+            ('is_driver', '=', True),
+            ('name', 'ilike', 'Aras'),
+            ('active', '=', True)
+        ], limit=1)
+        
+        # Eğer "Aras" bulunamazsa, "Sürücü, Aras" formatında ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('name', 'ilike', 'Sürücü, Aras'),
+                ('active', '=', True)
+            ], limit=1)
+        
+        # Eğer hala bulunamazsa, herhangi bir aktif sürücüyü ara
+        if not driver_partners:
+            driver_partners = self.env['res.partner'].search([
+                ('is_driver', '=', True),
+                ('active', '=', True)
+            ], limit=1)
+        
+        # Sürücü bulunursa driver_ids alanına ekle
+        if driver_partners:
+            picking.sudo().write({'driver_ids': [(6, 0, driver_partners.ids)]})
+        
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
             move_vals = {
