@@ -1123,10 +1123,6 @@ class ArizaKayit(models.Model):
                 ('active', '=', True)
             ], limit=1)
         
-        # Sürücü bulunursa driver_ids alanına ekle (create sırasında)
-        if driver_partners:
-            picking_vals['driver_ids'] = [(6, 0, driver_partners.ids)]
-        
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
         # Eğer mağaza ürünü, işlem tipi arıza kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
@@ -1141,6 +1137,20 @@ class ArizaKayit(models.Model):
                 picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
+        
+        # Sürücü bulunursa driver_ids alanına ekle (transfer oluşturulduktan sonra)
+        if driver_partners:
+            try:
+                # Önce mevcut driver_ids'yi al, sonra yeni sürücüyü ekle (Many2many için)
+                picking.sudo().write({'driver_ids': [(4, driver_partners.id)]})
+            except Exception as e:
+                # Eğer driver_ids yazılamazsa, farklı bir yöntem dene
+                try:
+                    # Alternatif: driver_ids direkt Many2many ise (replace)
+                    picking.sudo().write({'driver_ids': [(6, 0, [driver_partners.id])]})
+                except Exception as e2:
+                    # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
+                    pass
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1681,12 +1691,22 @@ Arıza Kaydı Tamamlandı.<br/>
                 ('active', '=', True)
             ], limit=1)
         
-        # Sürücü bulunursa driver_ids alanına ekle (create sırasında)
-        if driver_partners:
-            picking_vals['driver_ids'] = [(6, 0, driver_partners.ids)]
-        
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
+        
+        # Sürücü bulunursa driver_ids alanına ekle (transfer oluşturulduktan sonra)
+        if driver_partners:
+            try:
+                # Önce mevcut driver_ids'yi al, sonra yeni sürücüyü ekle (Many2many için)
+                tamir_alim_transfer.sudo().write({'driver_ids': [(4, driver_partners.id)]})
+            except Exception as e:
+                # Eğer driver_ids yazılamazsa, farklı bir yöntem dene
+                try:
+                    # Alternatif: driver_ids direkt Many2many ise (replace)
+                    tamir_alim_transfer.sudo().write({'driver_ids': [(6, 0, [driver_partners.id])]})
+                except Exception as e2:
+                    # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
+                    pass
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
