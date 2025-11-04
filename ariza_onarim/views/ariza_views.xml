@@ -210,7 +210,6 @@
                             <field name="islem_tipi"/>
                             <field name="ariza_tipi"/>
                             <field name="teknik_servis"/>
-                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="tarih"/>
                             <field name="sorumlu_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
