@@ -702,7 +702,8 @@ class ArizaKayit(models.Model):
         self.tedarikci_telefon = ''
         self.tedarikci_email = ''
         
-        if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik', 'musteri']:
+        # Müşteri ürünü için kaynak konum sadece TEDARİKÇİ seçildiğinde belirlenir
+        if self.analitik_hesap_id and (self.ariza_tipi in ['magaza', 'teknik'] or (self.ariza_tipi == 'musteri' and self.teknik_servis == 'TEDARİKÇİ')):
             # Dosya yolu
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
             hesap_adi = self.analitik_hesap_id.name.strip().lower()
@@ -1193,8 +1194,10 @@ class ArizaKayit(models.Model):
             if record.state == 'draft':
                 record.state = 'personel_onay'
                 
-                # Personel onayı sonrası otomatik transfer oluştur (mağaza ve müşteri ürünleri için)
-                if record.ariza_tipi in ['magaza', 'musteri'] and not record.transfer_id:
+                # Personel onayı sonrası otomatik transfer oluştur
+                # Mağaza ürünleri için: Her durumda transfer oluşturulabilir
+                # Müşteri ürünleri için: Sadece TEDARİKÇİ seçildiğinde transfer oluşturulur
+                if record.ariza_tipi == 'magaza' and not record.transfer_id:
                     # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
                     if record.teknik_servis == 'TEDARİKÇİ':
                         if not record.tedarikci_id:
@@ -1222,7 +1225,7 @@ class ArizaKayit(models.Model):
                                 'context': {'hide_note': True},
                                 'target': 'current',
                             }
-                    # Diğer teknik servisler için normal transfer oluştur
+                    # Diğer teknik servisler için normal transfer oluştur (mağaza ürünü)
                     elif record.teknik_servis != 'MAĞAZA':
                         picking = record._create_stock_transfer(transfer_tipi='ilk')
                         if picking:
@@ -1237,6 +1240,38 @@ class ArizaKayit(models.Model):
                                 'context': {'hide_note': True},
                                 'target': 'current',
                             }
+                
+                # Müşteri ürünü + TEDARİKÇİ için transfer oluştur
+                if record.ariza_tipi == 'musteri' and record.teknik_servis == 'TEDARİKÇİ' and not record.transfer_id:
+                    if not record.tedarikci_id:
+                        raise UserError('Tedarikçi seçimi zorunludur!')
+                    if not record.kaynak_konum_id or not record.hedef_konum_id:
+                        raise UserError('Kaynak Konum ve Hedef Konum alanları zorunludur!')
+                    if not record.contact_id:
+                        raise UserError('Kontak (Teslimat Adresi) alanı zorunludur!')
+                    
+                    # Tedarikçi stok konumu
+                    hedef_konum = record.tedarikci_id.property_stock_supplier
+                    if not hedef_konum:
+                        hedef_konum = record.env['stock.location'].search([
+                            ('usage', '=', 'supplier'),
+                            ('company_id', '=', record.company_id.id)
+                        ], limit=1)
+                        if not hedef_konum:
+                            raise UserError('Tedarikçi stok konumu bulunamadı!')
+                    
+                    picking = record._create_stock_transfer(hedef_konum=hedef_konum, transfer_tipi='ilk')
+                    if picking:
+                        record.transfer_id = picking.id
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'name': 'Transfer Belgesi',
+                            'res_model': 'stock.picking',
+                            'res_id': picking.id,
+                            'view_mode': 'form',
+                            'context': {'hide_note': True},
+                            'target': 'current',
+                        }
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
                 if record.islem_tipi == 'ariza_kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
