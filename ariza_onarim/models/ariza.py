@@ -702,8 +702,7 @@ class ArizaKayit(models.Model):
         self.tedarikci_telefon = ''
         self.tedarikci_email = ''
         
-        # Müşteri ürünü için kaynak konum sadece TEDARİKÇİ seçildiğinde belirlenir
-        if self.analitik_hesap_id and (self.ariza_tipi in ['magaza', 'teknik'] or (self.ariza_tipi == 'musteri' and self.teknik_servis == 'TEDARİKÇİ')):
+        if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             # Dosya yolu
             dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
             hesap_adi = self.analitik_hesap_id.name.strip().lower()
@@ -883,18 +882,8 @@ class ArizaKayit(models.Model):
             raise UserError(_("Transfer oluşturulamadı: Analitik hesap seçili değil!"))
         if not kaynak or not hedef:
             raise UserError(_("Transfer oluşturulamadı: Kaynak veya hedef konum eksik!"))
-        
-        # Müşteri ürünü için invoice_line_id'den ürün al, mağaza ürünü için magaza_urun_id kullan
-        if self.ariza_tipi == 'musteri':
-            if not self.invoice_line_id or not self.invoice_line_id.product_id:
-                raise UserError(_("Transfer oluşturulamadı: Müşteri ürünü için fatura kalemi seçili değil!"))
-            urun_id = self.invoice_line_id.product_id.id
-        elif self.ariza_tipi == 'magaza':
-            if not self.magaza_urun_id:
-                raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
-            urun_id = self.magaza_urun_id.id
-        else:
-            raise UserError(_("Transfer oluşturulamadı: Geçersiz arıza tipi!"))
+        if not self.magaza_urun_id:
+            raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
 
         # Analitik hesap adını al ve "Perakende -" önekini temizle
         magaza_adi = ""
@@ -1050,16 +1039,11 @@ class ArizaKayit(models.Model):
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
-            # Ürün bilgilerini al
-            product = self.env['product.product'].browse(urun_id)
-            if not product:
-                raise UserError(_("Transfer oluşturulamadı: Ürün bulunamadı!"))
-            
             move_vals = {
-                'name': self.urun or product.name,
-                'product_id': urun_id,
+                'name': self.urun or self.magaza_urun_id.name,
+                'product_id': self.magaza_urun_id.id,
                 'product_uom_qty': 1,
-                'product_uom': product.uom_id.id,
+                'product_uom': self.magaza_urun_id.uom_id.id,
                 'picking_id': picking.id,
                 'location_id': kaynak.id,
                 'location_dest_id': hedef.id,
@@ -1194,9 +1178,7 @@ class ArizaKayit(models.Model):
             if record.state == 'draft':
                 record.state = 'personel_onay'
                 
-                # Personel onayı sonrası otomatik transfer oluştur
-                # Mağaza ürünleri için: Her durumda transfer oluşturulabilir
-                # Müşteri ürünleri için: Sadece TEDARİKÇİ seçildiğinde transfer oluşturulur
+                # Personel onayı sonrası otomatik transfer oluştur (mağaza ürünleri için)
                 if record.ariza_tipi == 'magaza' and not record.transfer_id:
                     # Mağaza ürünü ve teknik servis tedarikçi ise transferi tedarikçiye oluştur
                     if record.teknik_servis == 'TEDARİKÇİ':
@@ -1225,7 +1207,7 @@ class ArizaKayit(models.Model):
                                 'context': {'hide_note': True},
                                 'target': 'current',
                             }
-                    # Diğer teknik servisler için normal transfer oluştur (mağaza ürünü)
+                    # Diğer teknik servisler için normal transfer oluştur
                     elif record.teknik_servis != 'MAĞAZA':
                         picking = record._create_stock_transfer(transfer_tipi='ilk')
                         if picking:
@@ -1240,38 +1222,6 @@ class ArizaKayit(models.Model):
                                 'context': {'hide_note': True},
                                 'target': 'current',
                             }
-                
-                # Müşteri ürünü + TEDARİKÇİ için transfer oluştur
-                if record.ariza_tipi == 'musteri' and record.teknik_servis == 'TEDARİKÇİ' and not record.transfer_id:
-                    if not record.tedarikci_id:
-                        raise UserError('Tedarikçi seçimi zorunludur!')
-                    if not record.kaynak_konum_id or not record.hedef_konum_id:
-                        raise UserError('Kaynak Konum ve Hedef Konum alanları zorunludur!')
-                    if not record.contact_id:
-                        raise UserError('Kontak (Teslimat Adresi) alanı zorunludur!')
-                    
-                    # Tedarikçi stok konumu
-                    hedef_konum = record.tedarikci_id.property_stock_supplier
-                    if not hedef_konum:
-                        hedef_konum = record.env['stock.location'].search([
-                            ('usage', '=', 'supplier'),
-                            ('company_id', '=', record.company_id.id)
-                        ], limit=1)
-                        if not hedef_konum:
-                            raise UserError('Tedarikçi stok konumu bulunamadı!')
-                    
-                    picking = record._create_stock_transfer(hedef_konum=hedef_konum, transfer_tipi='ilk')
-                    if picking:
-                        record.transfer_id = picking.id
-                        return {
-                            'type': 'ir.actions.act_window',
-                            'name': 'Transfer Belgesi',
-                            'res_model': 'stock.picking',
-                            'res_id': picking.id,
-                            'view_mode': 'form',
-                            'context': {'hide_note': True},
-                            'target': 'current',
-                        }
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
                 if record.islem_tipi == 'ariza_kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
