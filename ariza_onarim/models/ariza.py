@@ -955,6 +955,30 @@ class ArizaKayit(models.Model):
         if not picking_type:
             raise UserError(_("Transfer oluşturulamadı: Uygun operasyon tipi bulunamadı!"))
 
+        # Analitik hesap adından E-İrsaliye türünü belirle
+        edespatch_sequence_id = False
+        if self.analitik_hesap_id and self.analitik_hesap_id.name:
+            # Analitik hesap adını temizle
+            analitik_adi = self.analitik_hesap_id.name
+            if analitik_adi.startswith("Perakende - "):
+                analitik_adi = analitik_adi[12:]  # "Perakende - " önekini temizle
+            
+            # E-İrsaliye türünü bul (örnek: "ADANA - E-İrsaliye", "UNIQ - E-İrsaliye")
+            # Analitik hesap adına göre E-İrsaliye sequence'ını ara
+            edespatch_sequence = self.env['edespatch.sequence'].search([
+                ('name', 'ilike', f"{analitik_adi} - E-İrsaliye")
+            ], limit=1)
+            
+            if not edespatch_sequence:
+                # Alternatif olarak sadece analitik hesap adı ile ara
+                edespatch_sequence = self.env['edespatch.sequence'].search([
+                    ('name', 'ilike', analitik_adi),
+                    ('name', 'ilike', 'E-İrsaliye')
+                ], limit=1)
+            
+            if edespatch_sequence:
+                edespatch_sequence_id = edespatch_sequence.id
+        
         # Transfer oluştur - try-except ile güvenlik hatası yakalama
         picking_vals = {
             'picking_type_id': picking_type.id,
@@ -964,6 +988,10 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': 'matbu',  # Her zaman matbu
         }
+        
+        # E-İrsaliye türü varsa ekle
+        if edespatch_sequence_id:
+            picking_vals['edespatch_sequence_id'] = edespatch_sequence_id
         # İkinci transferde güvenlik kısıtı nedeniyle note alanına yazma
         if transfer_tipi != 'ikinci':
             picking_vals['note'] = (
@@ -1073,7 +1101,7 @@ class ArizaKayit(models.Model):
 
         # Chatter'a mesaj ekle (2. transfer için picking linki vermeyelim)
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        transfer_no_html = picking.name
+        transfer_no_html = f'<a href="{transfer_url}" target="_blank">{picking.name}</a>'
         durum = dict(self._fields['state'].selection).get(self.state, self.state)
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
