@@ -232,7 +232,7 @@
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
-                        <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')], 'readonly': ['&amp;', ('ariza_tipi', '=', 'magaza'), '|', ('teknik_servis', '=', 'DTL BEYOĞLU'), ('teknik_servis', '=', 'DTL OKMEYDANI')]}" options='{"no_open": true, "no_create": true}'/>
+                        <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
                         <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}'/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
