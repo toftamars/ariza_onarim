@@ -258,7 +258,26 @@ class ArizaKayit(models.Model):
     musteri_telefon = fields.Char(string='Telefon', readonly=True, compute='_compute_musteri_telefon', store=False)
     
     # Mağaza ürünü teslim al butonu için
-    teslim_al_visible = fields.Boolean(string='Teslim Al Butonu Görünür', compute='_compute_teslim_al_visible', store=False)
+    teslim_al_visible = fields.Boolean(
+        string='Teslim Al Butonu Görünür',
+        compute='_compute_teslim_al_visible',
+        store=False
+    )
+    
+    def _compute_teslim_al_visible(self):
+        """Teslim Al butonunu sadece kullanıcı grubunda görünür yap"""
+        for rec in self:
+            # Sadece kullanıcı grubunda olanlar ve yönetici grubunda olmayanlar görebilir
+            user_has_user_group = self.env.user.has_group(
+                'ariza_onarim.group_ariza_user'
+            )
+            user_has_manager_group = self.env.user.has_group(
+                'ariza_onarim.group_ariza_manager'
+            )
+            # Sadece kullanıcı grubunda olanlar görsün (yönetici hariç)
+            rec.teslim_al_visible = (
+                user_has_user_group and not user_has_manager_group
+            )
     
     # Mağaza ürünü için ürün adı
     magaza_urun_adi = fields.Char(string='Mağaza Ürün Adı', compute='_compute_magaza_urun_adi', store=True)
