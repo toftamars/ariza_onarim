@@ -421,9 +421,9 @@
                                             <strong>Sorumlu:</strong> <field name="sorumlu_id"/>
                                         </div>
                                     </div>
-                                    <div class="row" t-if="record.partner_id.raw_value">
+                                    <div class="row" t-if="record.musteri_veya_magaza.raw_value">
                                         <div class="col-12">
-                                            <strong>Müşteri:</strong> <field name="partner_id"/>
+                                            <strong>Müşteri / Mağaza:</strong> <field name="musteri_veya_magaza"/>
                                         </div>
                                     </div>
                                     <div class="row" t-if="record.ariza_tanimi.raw_value">
