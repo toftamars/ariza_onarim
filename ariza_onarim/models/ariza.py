@@ -1124,7 +1124,7 @@ class ArizaKayit(models.Model):
 
         # Chatter'a mesaj ekle (2. transfer için picking linki vermeyelim)
         transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        transfer_no_html = f'<a href="{transfer_url}" target="_blank">{picking.name}</a>'
+        transfer_no_html = f'<a href="{transfer_url}">{picking.name}</a>'
         durum = dict(self._fields['state'].selection).get(self.state, self.state)
         sms_bilgi = 'Aktif' if self.sms_gonderildi else 'Deaktif'
         self.message_post(
@@ -1634,7 +1634,7 @@ class ArizaKayit(models.Model):
         # Mesaj gönder
         transfer_bilgisi = f"""
         <p><strong>Yeni transfer oluşturuldu!</strong></p>
-        <p><strong>Transfer No:</strong> <a href="/web#id={tamir_alim_transfer.id}&model=stock.picking&view_type=form" target="_blank">{tamir_alim_transfer.name}</a></p>
+        <p><strong>Transfer No:</strong> <a href="/web#id={tamir_alim_transfer.id}&model=stock.picking&view_type=form">{tamir_alim_transfer.name}</a></p>
         <p><strong>Kaynak:</strong> {kaynak_konum.name}</p>
         <p><strong>Hedef:</strong> {hedef_konum.name}</p>
         <p><strong>Tarih:</strong> {fields.Datetime.now().strftime('%Y-%m-%d')}</p>
