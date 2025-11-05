@@ -1,10 +1,14 @@
-from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError, UserError
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+# Standard library imports
 import logging
 import os
+from datetime import datetime, timedelta
 
+# Third-party imports
+from dateutil.relativedelta import relativedelta
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
+
+# Local imports
 from .ariza_constants import (
     ArizaStates,
     StateManager,
@@ -338,8 +342,7 @@ class ArizaKayit(models.Model):
                 except Exception as seq_error:
                     # Sequence bulunamazsa manuel numara oluştur
                     _logger.warning(f"Sequence bulunamadı, manuel numara oluşturuluyor: {str(seq_error)}")
-                    import datetime
-                    current_year = datetime.datetime.now().year
+                    current_year = datetime.now().year
                     last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
                     if last_record and last_record.name != 'New':
                         try:
@@ -464,7 +467,6 @@ class ArizaKayit(models.Model):
                     garanti_ay = record.invoice_line_id.product_id.garanti_suresi or MagicNumbers.GARANTI_AY_FALLBACK
                 
                 # Garanti bitiş tarihini hesapla
-                from dateutil.relativedelta import relativedelta
                 garanti_bitis = record.fatura_tarihi + relativedelta(months=garanti_ay)
                 record.garanti_bitis_tarihi = garanti_bitis
                 
@@ -472,7 +474,6 @@ class ArizaKayit(models.Model):
                 record.garanti_suresi = f"{garanti_ay} ay"
                 
                 # Kalan garanti süresini hesapla
-                from datetime import datetime
                 bugun = datetime.now().date()
                 if garanti_bitis > bugun:
                     kalan_gun = (garanti_bitis - bugun).days
@@ -493,8 +494,6 @@ class ArizaKayit(models.Model):
     def _compute_beklenen_tamamlanma_tarihi(self):
         """Onarım başlangıç tarihinden belirlenen iş günü sonrasını hesapla"""
         for record in self:
-            from datetime import datetime, timedelta
-            from dateutil.relativedelta import relativedelta
             
             # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan, yoksa arıza tarihini kullan
             baslangic_tarihi = record.onarim_baslangic_tarihi or record.tarih or fields.Date.today()
