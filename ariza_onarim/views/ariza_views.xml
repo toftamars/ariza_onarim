@@ -383,7 +383,8 @@
                 <field name="state_manager"/>
                 <field name="state"/>
                 <field name="ariza_tanimi"/>
-                <field name="partner_id"/>
+                <field name="musteri_veya_magaza"/>
+                <field name="partner_id" invisible="1"/>
                 <field name="onarim_durumu"/>
                 <field name="kalan_is_gunu"/>
                 <field name="transfer_sayisi"/>
