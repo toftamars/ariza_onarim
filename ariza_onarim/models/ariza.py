@@ -1062,7 +1062,7 @@ class ArizaKayit(models.Model):
         if driver_partner and picking:
             try:
                 # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
-                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan veya default olarak driver_partner'ı kullan
+                # vehicle_id varsa kullan, yoksa driver_partner'ı vehicle_id olarak kullan (fallback)
                 vehicle_id_val = False
                 if hasattr(picking, 'vehicle_id') and picking.vehicle_id:
                     vehicle_id_val = picking.vehicle_id.id
@@ -1072,16 +1072,28 @@ class ArizaKayit(models.Model):
                     # vehicle_id zorunluysa, driver_partner'ı vehicle_id olarak kullan (fallback)
                     vehicle_id_val = driver_partner.id
                 
+                # Önce driver_ids field'ının varlığını kontrol et
+                if not hasattr(picking, 'driver_ids'):
+                    _logger.error(f"driver_ids field'ı bulunamadı: {self.name} - Transfer: {picking.name}")
+                    return picking
+                
                 # driver_ids One2many ise bu format kullanılmalı
+                _logger.info(f"Sürücü ataması yapılıyor: {self.name} - Sürücü ID: {driver_partner.id} - Vehicle ID: {vehicle_id_val}")
                 picking.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
                         'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
                     })]
                 })
+                _logger.info(f"Sürücü ataması başarılı: {self.name} - Transfer: {picking.name}")
             except Exception as e:
-                # Hata durumunda logla (sürücü ataması zorunlu değil)
-                _logger.warning(f"Sürücü ataması başarısız: {self.name} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)}")
+                # Hata durumunda detaylı logla
+                _logger.error(f"Sürücü ataması başarısız: {self.name} - Transfer: {picking.name if picking else 'Yok'} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)} - Hata Tipi: {type(e).__name__}")
+                # Hata mesajını chatter'a da ekle
+                try:
+                    picking.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
+                except:
+                    pass
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1547,7 +1559,7 @@ class ArizaKayit(models.Model):
         if driver_partner and tamir_alim_transfer:
             try:
                 # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
-                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan veya default olarak driver_partner'ı kullan
+                # vehicle_id varsa kullan, yoksa driver_partner'ı vehicle_id olarak kullan (fallback)
                 vehicle_id_val = False
                 if hasattr(tamir_alim_transfer, 'vehicle_id') and tamir_alim_transfer.vehicle_id:
                     vehicle_id_val = tamir_alim_transfer.vehicle_id.id
@@ -1557,16 +1569,28 @@ class ArizaKayit(models.Model):
                     # vehicle_id zorunluysa, driver_partner'ı vehicle_id olarak kullan (fallback)
                     vehicle_id_val = driver_partner.id
                 
+                # Önce driver_ids field'ının varlığını kontrol et
+                if not hasattr(tamir_alim_transfer, 'driver_ids'):
+                    _logger.error(f"driver_ids field'ı bulunamadı: {self.name} - Transfer: {tamir_alim_transfer.name}")
+                    return tamir_alim_transfer
+                
                 # driver_ids One2many ise bu format kullanılmalı
+                _logger.info(f"Sürücü ataması yapılıyor (Teslim Al): {self.name} - Sürücü ID: {driver_partner.id} - Vehicle ID: {vehicle_id_val}")
                 tamir_alim_transfer.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
                         'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
                     })]
                 })
+                _logger.info(f"Sürücü ataması başarılı (Teslim Al): {self.name} - Transfer: {tamir_alim_transfer.name}")
             except Exception as e:
-                # Hata durumunda logla (sürücü ataması zorunlu değil)
-                _logger.warning(f"Sürücü ataması başarısız: {self.name} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)}")
+                # Hata durumunda detaylı logla
+                _logger.error(f"Sürücü ataması başarısız (Teslim Al): {self.name} - Transfer: {tamir_alim_transfer.name if tamir_alim_transfer else 'Yok'} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)} - Hata Tipi: {type(e).__name__}")
+                # Hata mesajını chatter'a da ekle
+                try:
+                    tamir_alim_transfer.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
+                except:
+                    pass
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
