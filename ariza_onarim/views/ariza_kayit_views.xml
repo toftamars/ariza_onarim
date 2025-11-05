@@ -10,8 +10,7 @@
                     <header>
                         <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
                         <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
-                        <!-- Teslim Al butonu - GİZLENDİ (hem yönetici hem kullanıcı için) -->
-                        <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" invisible="1" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
+                        <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': [('teslim_al_visible', '=', False)]}" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi"/>
                     </header>
                     <sheet>
