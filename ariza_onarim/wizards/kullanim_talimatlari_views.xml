@@ -297,9 +297,13 @@
                                 <p style="font-size: 15px; margin-bottom: 15px; padding-left: 20px;">
                                     ✅ "Onayla" butonuna basıldığında (Personel Onayı durumuna geçildiğinde)
                                 </p>
-                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS İçeriği:</strong></p>
-                                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #03a9f4;">
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS Şablonu:</strong></p>
+                                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 13px; border-left: 4px solid #03a9f4; margin-bottom: 15px;">
                                     "Sayın [Müşteri Adı]., [Ürün] ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: [Arıza No] B021"
+                                </div>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>📱 Örnek SMS:</strong></p>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ffc107; line-height: 1.6;">
+                                    <strong>Sayın Ahmet Yılmaz., Stanley The AeroLight™ Transit Mug .35L ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: ARZ/2025/00016 B021</strong>
                                 </div>
                             </div>
 
@@ -313,9 +317,13 @@
                                 <p style="font-size: 15px; margin-bottom: 15px; padding-left: 20px; color: #d32f2f;">
                                     ⚠️ "Yönetici Onarımı Tamamla ve SMS Gönder" butonunda 2. SMS gönderilmez (kaldırıldı)
                                 </p>
-                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS İçeriği:</strong></p>
-                                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #4caf50;">
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS Şablonu:</strong></p>
+                                <div style="background-color: #e8f5e9; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 13px; border-left: 4px solid #4caf50; margin-bottom: 15px;">
                                     "Sayın [Müşteri Adı]., [Ürün] ürününüz teslim edilmeye hazırdır. Ürününüzü [Mağaza Adı] mağazamızdan teslim alabilirsiniz. Kayıt No: [Arıza No] B021"
+                                </div>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>📱 Örnek SMS:</strong></p>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ffc107; line-height: 1.6;">
+                                    <strong>Sayın Ahmet Yılmaz., Stanley The AeroLight™ Transit Mug .35L ürününüz teslim edilmeye hazırdır. Ürününüzü Hilltown mağazamızdan teslim alabilirsiniz. Kayıt No: ARZ/2025/00016 B021</strong>
                                 </div>
                             </div>
 
@@ -325,13 +333,21 @@
                                 <p style="font-size: 15px; margin-bottom: 15px; padding-left: 20px;">
                                     ✅ "Teslim Et" butonuna basıldığında ve teslim bilgileri girildiğinde
                                 </p>
-                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS İçeriği:</strong></p>
-                                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ff9800;">
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS Şablonu:</strong></p>
+                                <div style="background-color: #fff3e0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 13px; border-left: 4px solid #ff9800; margin-bottom: 15px;">
                                     "Sayın [Müşteri Adı]. [Ürün] ürününüz [Mağaza Adı] mağazamızdan [Tarih] tarihinde [Teslim Alan Kişi] kişisine teslim edilmiştir. Kayıt No: [Arıza No] B021"
                                 </div>
-                                <p style="font-size: 15px; margin-top: 15px; margin-bottom: 10px;"><strong>Ek Bilgi:</strong></p>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>📱 Örnek SMS (Normal):</strong></p>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ffc107; line-height: 1.6; margin-bottom: 15px;">
+                                    <strong>Sayın Ahmet Yılmaz. Stanley The AeroLight™ Transit Mug .35L ürününüz Hilltown mağazamızdan 15.11.2025 tarihinde Ahmet Yılmaz kişisine teslim edilmiştir. Kayıt No: ARZ/2025/00016 B021</strong>
+                                </div>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>📱 Örnek SMS (Garanti Kapsamında veya Ürün Değişimi):</strong></p>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ffc107; line-height: 1.6;">
+                                    <strong>Sayın Ahmet Yılmaz. Stanley The AeroLight™ Transit Mug .35L ürününüz Hilltown mağazamızdan 15.11.2025 tarihinde Ahmet Yılmaz kişisine teslim edilmiştir. Kayıt No: ARZ/2025/00016 B021 Ürününüzün değişimi sağlanmıştır.</strong>
+                                </div>
+                                <p style="font-size: 15px; margin-top: 15px; margin-bottom: 10px;"><strong>ℹ️ Ek Bilgi:</strong></p>
                                 <p style="font-size: 15px; padding-left: 20px;">
-                                    Eğer garanti kapsamında veya ürün değişimi varsa: "Ürününüzün değişimi sağlanmıştır." eklenir.
+                                    Eğer garanti kapsamında veya ürün değişimi varsa: <strong>"Ürününüzün değişimi sağlanmıştır."</strong> cümlesi SMS'in sonuna eklenir.
                                 </p>
                             </div>
                         </div>
