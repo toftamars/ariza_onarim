@@ -256,6 +256,12 @@ class ArizaKayit(models.Model):
     # Transfer sayısı takibi
     transfer_sayisi = fields.Integer(string='Transfer Sayısı', default=0, tracking=True)
     musteri_telefon = fields.Char(string='Telefon', readonly=True, compute='_compute_musteri_telefon', store=False)
+    musteri_gosterim = fields.Char(
+        string='Müşteri',
+        compute='_compute_musteri_gosterim',
+        store=False,
+        readonly=True
+    )
     
     # Mağaza ürünü teslim al butonu için
     teslim_al_visible = fields.Boolean(
@@ -1818,6 +1824,25 @@ class ArizaKayit(models.Model):
     def _compute_musteri_telefon(self):
         for rec in self:
             rec.musteri_telefon = rec.partner_id.phone or rec.partner_id.mobile or ''
+    
+    @api.depends('ariza_tipi', 'partner_id', 'analitik_hesap_id')
+    def _compute_musteri_gosterim(self):
+        """List görünümünde müşteri bilgisini gösterir"""
+        for rec in self:
+            if rec.ariza_tipi == ArizaTipi.MUSTERI and rec.partner_id:
+                rec.musteri_gosterim = rec.partner_id.name
+            elif rec.ariza_tipi == ArizaTipi.MAGAZA:
+                # Mağaza ürünü için analitik hesap adından mağaza adını al
+                if rec.analitik_hesap_id and rec.analitik_hesap_id.name:
+                    magaza_adi = rec.analitik_hesap_id.name
+                    # "Perakende - " önekini temizle
+                    if magaza_adi.startswith("Perakende - "):
+                        magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]
+                    rec.musteri_gosterim = f"{magaza_adi} Mağaza Ürünü"
+                else:
+                    rec.musteri_gosterim = "Mağaza Ürünü"
+            else:
+                rec.musteri_gosterim = ''
     
     
     @api.depends('magaza_urun_id')
