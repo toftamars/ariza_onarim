@@ -1036,31 +1036,11 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         
-        # Sürücü ataması - Standart Odoo davranışı: "Sürücü" ana kontağının alt kontağı "Aras / Sürücü"
-        # Önce "Sürücü" ana kontağını bul
-        surucu_parent = self.env['res.partner'].search([
-            ('name', '=', 'Sürücü'),
-            ('parent_id', '=', False),
-            ('active', '=', True)
-        ], limit=1)
-        
-        driver_partner = False
-        if surucu_parent:
-            # "Sürücü" ana kontağının alt kontağı olan "Aras / Sürücü" veya "Sürücü, Aras" kontağını bul
-            driver_partner = self.env['res.partner'].search([
-                ('parent_id', '=', surucu_parent.id),
-                ('name', 'ilike', 'Aras'),
-                ('is_driver', '=', True),
-                ('active', '=', True)
-            ], limit=1)
-            
-            # Eğer "Aras" içeren alt kontak bulunamazsa, herhangi bir alt kontak bul
-            if not driver_partner:
-                driver_partner = self.env['res.partner'].search([
-                    ('parent_id', '=', surucu_parent.id),
-                    ('is_driver', '=', True),
-                    ('active', '=', True)
-                ], limit=1)
+        # Sürücü ataması - ID 2205 direkt kullanılıyor (sorun çözümü)
+        driver_partner = self.env['res.partner'].browse(2205)
+        if not driver_partner.exists():
+            driver_partner = False
+            _logger.warning(f"Default sürücü (ID 2205) bulunamadı: {self.name}")
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
@@ -1546,31 +1526,11 @@ class ArizaKayit(models.Model):
                 else:
                     picking_vals['partner_id'] = zuhal_partner.id
         
-        # Sürücü ataması - Standart Odoo davranışı: "Sürücü" ana kontağının alt kontağı "Aras / Sürücü"
-        # Önce "Sürücü" ana kontağını bul
-        surucu_parent = self.env['res.partner'].search([
-            ('name', '=', 'Sürücü'),
-            ('parent_id', '=', False),
-            ('active', '=', True)
-        ], limit=1)
-        
-        driver_partner = False
-        if surucu_parent:
-            # "Sürücü" ana kontağının alt kontağı olan "Aras / Sürücü" veya "Sürücü, Aras" kontağını bul
-            driver_partner = self.env['res.partner'].search([
-                ('parent_id', '=', surucu_parent.id),
-                ('name', 'ilike', 'Aras'),
-                ('is_driver', '=', True),
-                ('active', '=', True)
-            ], limit=1)
-            
-            # Eğer "Aras" içeren alt kontak bulunamazsa, herhangi bir alt kontak bul
-            if not driver_partner:
-                driver_partner = self.env['res.partner'].search([
-                    ('parent_id', '=', surucu_parent.id),
-                    ('is_driver', '=', True),
-                    ('active', '=', True)
-                ], limit=1)
+        # Sürücü ataması - ID 2205 direkt kullanılıyor (sorun çözümü)
+        driver_partner = self.env['res.partner'].browse(2205)
+        if not driver_partner.exists():
+            driver_partner = False
+            _logger.warning(f"Default sürücü (ID 2205) bulunamadı: {self.name}")
         
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
