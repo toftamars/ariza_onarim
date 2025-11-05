@@ -131,7 +131,7 @@
                         </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
                             <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
-                                <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                Gönderen: <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
                                 <t t-esc="o.analitik_hesap_id.partner_id.street or ''"/>
                                 <t t-if="o.analitik_hesap_id.partner_id.street2"><br/><t t-esc="o.analitik_hesap_id.partner_id.street2"/></t>
                                 <t t-if="o.analitik_hesap_id.partner_id.city"><br/><t t-esc="o.analitik_hesap_id.partner_id.city"/></t>
@@ -141,7 +141,7 @@
                         </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
                             <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
-                                <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
+                                Gönderen: <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                                 <!-- Zuhal Dış Ticaret A.Ş. altındaki kontaklarda analitik hesap adresini ara -->
                                 <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                 <t t-if="zuhal_partner">
@@ -158,7 +158,7 @@
                         </t>
                         <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
                             <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
-                                <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
+                                Gönderen: <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                             </div>
                         </t>
                         <t t-else="">
