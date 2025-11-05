@@ -262,6 +262,12 @@ class ArizaKayit(models.Model):
         store=False,
         readonly=True
     )
+    hazir_basildi = fields.Boolean(
+        string='Hazır Butonuna Basıldı',
+        default=False,
+        tracking=True,
+        help='Müşteri ürünü için Hazır butonuna basıldı mı kontrolü'
+    )
     
     # Mağaza ürünü teslim al butonu için
     teslim_al_visible = fields.Boolean(
@@ -1685,6 +1691,8 @@ class ArizaKayit(models.Model):
 
     def action_teslim_al_musteri(self):
         """Müşteri ürünü için Teslim Al butonu - 2. SMS gönderir"""
+        # Hazır butonuna basıldı flag'ini set et
+        self.hazir_basildi = True
         for record in self:
             if record.ariza_tipi != ArizaTipi.MUSTERI:
                 raise UserError(_('Bu işlem sadece müşteri ürünü için kullanılabilir.'))
