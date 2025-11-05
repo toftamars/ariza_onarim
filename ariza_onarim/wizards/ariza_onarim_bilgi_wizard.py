@@ -92,28 +92,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         else:
             ariza.state = 'tamamlandi'
         
-        # SMS gönderimi - Müşteriye onarım tamamlandı bilgisi (İkinci SMS)
-        if ariza.partner_id and ariza.partner_id.phone and not ariza.ikinci_sms_gonderildi:
-            if ariza.ariza_tipi == 'musteri':
-                # Müşteri ürünü için onarım tamamlandı SMS'i
-                if self.adresime_gonderilsin and self.musteri_adresi_id:
-                    # Adrese gönderim
-                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüz adresinize gönderilecektir. B021"
-                else:
-                    # Mağazadan teslim
-                    magaza_adi = self.teslim_magazasi_id.name if self.teslim_magazasi_id else ''
-                    temiz_magaza_adi = self._temizle_magaza_adi(magaza_adi)
-                    sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. Ürününüzü {temiz_magaza_adi} mağazamızdan 3 (üç) iş günü sonra teslim alabilirsiniz. B021"
-            else:
-                # Mağaza ürünü için onarım tamamlandı SMS'i
-                sms_mesaji = f"Sayın {ariza.partner_id.name}. {ariza.name}, {ariza.urun} ürününüzün onarımı tamamlanmıştır. B021"
-            
-            # Ürün Değişimi bilgisini ekle
-            if self.garanti_kapsaminda_mi == 'urun_degisimi':
-                sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
-            
-            ariza._send_sms_to_customer(sms_mesaji)
-            ariza.ikinci_sms_gonderildi = True
+        # SMS gönderimi - Müşteri ürünü için 2. SMS kaldırıldı (Yönetici Onarımı Tamamla ve SMS Gönder butonu için)
+        # Diğer SMS akışları (ilk SMS, üçüncü SMS) korunuyor
         
 
         
