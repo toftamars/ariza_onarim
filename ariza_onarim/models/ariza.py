@@ -1396,6 +1396,12 @@ class ArizaKayit(models.Model):
     def action_kullanici_tamamla(self):
         """Kullanıcı tamamlama işlemi - Sadece tamamlandi durumundan çalışır"""
         for record in self:
+            # Müşteri ürünü için Hazır butonuna basılmış mı kontrol et
+            if record.ariza_tipi == ArizaTipi.MUSTERI and not record.hazir_basildi:
+                raise UserError(
+                    _("Teslim Et işlemi için önce 'Hazır' butonuna basmanız gerekmektedir!")
+                )
+            
             if record.state != ArizaStates.TAMAMLANDI:
                 raise UserError('Sadece tamamlanmış kayıtlar teslim edilebilir!')
             
