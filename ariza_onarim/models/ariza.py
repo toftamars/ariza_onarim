@@ -478,10 +478,9 @@ class ArizaKayit(models.Model):
             # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan, yoksa arıza tarihini kullan
             baslangic_tarihi = record.onarim_baslangic_tarihi or record.tarih or fields.Date.today()
             
-            # 20 iş günü sonrasını hesapla (hafta sonları hariç)
+            # Belirlenen iş günü sonrasını hesapla (hafta sonları hariç)
             is_gunu_sayisi = 0
             hedef_tarih = baslangic_tarihi
-            is_gunu_sayisi = 0
             
             while is_gunu_sayisi < MagicNumbers.ONARIM_IS_GUNU:
                 hedef_tarih += timedelta(days=1)
