@@ -110,7 +110,8 @@
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="ariza_tipi"/>
-                <field name="partner_id" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="musteri_veya_magaza" string="Müşteri"/>
+                <field name="partner_id" invisible="1"/>
                 <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="magaza_urun_id" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
