@@ -123,6 +123,7 @@ class ArizaKayit(models.Model):
         ('onaylandi', 'Onaylandı'),
         ('yonetici_tamamlandi', 'Yönetici Tamamlandı'),
         ('tamamlandi', 'Tamamlandı'),
+        ('teslim_alindi', 'Teslim Alındı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
@@ -1624,8 +1625,8 @@ class ArizaKayit(models.Model):
         else:
             raise UserError(f"Transfer satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         
-        # Durumu tamamlandı olarak güncelle
-        self.state = 'tamamlandi'
+        # Durumu teslim alındı olarak güncelle
+        self.state = 'teslim_alindi'
         
         # Teslim bilgilerini güncelle
         self.teslim_alan = self.env.user.name
