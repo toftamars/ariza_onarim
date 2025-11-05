@@ -102,17 +102,17 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Mesaj gönder
         if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Adrese gönderim seçildi. Müşteriye SMS gönderildi. Durum otomatik olarak 'Teslim Edildi' olarak güncellendi.",
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Adrese gönderim seçildi. Durum otomatik olarak 'Teslim Edildi' olarak güncellendi.",
                 subject="Onarım Tamamlandı - Adrese Gönderim"
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
-                body=f"Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.",
+                body=f"Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.",
                 subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor"
             )
         else:
             ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Müşteriye SMS gönderildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
+                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
                 subject="Onarım Tamamlandı"
             )
         
