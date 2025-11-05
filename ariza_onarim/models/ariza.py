@@ -123,7 +123,6 @@ class ArizaKayit(models.Model):
         ('onaylandi', 'Onaylandı'),
         ('yonetici_tamamlandi', 'Yönetici Tamamlandı'),
         ('tamamlandi', 'Tamamlandı'),
-        ('teslim_alindi', 'Teslim Alındı'),
         ('teslim_edildi', 'Teslim Edildi'),
         ('kilitli', 'Kilitli'),
         ('iptal', 'İptal'),
@@ -222,9 +221,6 @@ class ArizaKayit(models.Model):
     
     # Mağaza ürünü için ürün adı
     magaza_urun_adi = fields.Char(string='Mağaza Ürün Adı', compute='_compute_magaza_urun_adi', store=True)
-    
-    # Liste görünümü için müşteri/mağaza gösterimi
-    musteri_veya_magaza = fields.Char(string='Müşteri / Mağaza', compute='_compute_musteri_veya_magaza', store=False)
 
     @api.depends('state')
     def _compute_state_manager(self):
@@ -1628,8 +1624,8 @@ class ArizaKayit(models.Model):
         else:
             raise UserError(f"Transfer satırı oluşturulamadı: Ürün veya birim bilgisi eksik! Ürün: {self.magaza_urun_id.name if self.magaza_urun_id else 'Seçili değil'}")
         
-        # Durumu teslim alındı olarak güncelle
-        self.state = 'teslim_alindi'
+        # Durumu tamamlandı olarak güncelle
+        self.state = 'tamamlandi'
         
         # Teslim bilgilerini güncelle
         self.teslim_alan = self.env.user.name
@@ -1825,21 +1821,6 @@ class ArizaKayit(models.Model):
                     record.magaza_urun_adi = urun_adi
             else:
                 record.magaza_urun_adi = ''
-    
-    @api.depends('ariza_tipi', 'partner_id', 'analitik_hesap_id')
-    def _compute_musteri_veya_magaza(self):
-        """Müşteri ürünü ise müşteri adı, mağaza ürünü ise mağaza adı + 'Mağaza Ürünü' göster"""
-        for record in self:
-            if record.ariza_tipi == 'musteri' and record.partner_id:
-                record.musteri_veya_magaza = record.partner_id.name
-            elif record.ariza_tipi == 'magaza' and record.analitik_hesap_id:
-                # Mağaza adını temizle ve "Mağaza Ürünü" ekle
-                magaza_adi = record.analitik_hesap_id.name or ''
-                if magaza_adi.startswith("Perakende - "):
-                    magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
-                record.musteri_veya_magaza = f"{magaza_adi} Mağaza Ürünü"
-            else:
-                record.musteri_veya_magaza = ''
 
 
 
