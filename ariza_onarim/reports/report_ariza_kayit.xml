@@ -350,7 +350,6 @@
                                     <t t-esc="o.teknik_servis"/>
                                 </t>
                             </t>
-                        </t>
                     </div>
                 </div>
             </div>
