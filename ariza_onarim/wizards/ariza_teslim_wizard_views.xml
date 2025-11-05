@@ -13,7 +13,7 @@
                 </group>
                 <group attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
                     <div class="alert alert-warning" role="alert" attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
-                        <strong>⚠️ UYARI:</strong> Bu kayıt için onarım ücreti bulunmaktadır. Teslim işlemi öncesinde ödemenin tamamlandığından emin olun!
+                        <strong>⚠️ UYARI:</strong> Bu kayıt için onarım ücreti bulunmaktadır. Teslim işlemi öncesinde Bakım &amp; Onarım siparişinin oluşturulduğundan ve ödemenin tamamlandığından emin olun!
                     </div>
                     <group>
                         <field name="onarim_ucreti" attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}"/>
