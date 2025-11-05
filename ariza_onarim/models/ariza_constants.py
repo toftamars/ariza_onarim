@@ -155,6 +155,33 @@ class PartnerNames:
     DTL_ELEKTRONIK = 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti'
 
 
+class MagicNumbers:
+    """Magic number'lar - Kod içinde kullanılan sabit sayısal değerler"""
+    # Garanti süresi (ay)
+    DEFAULT_GARANTI_AY = 24  # 2 yıl
+    GARANTI_AY_FALLBACK = 24  # Fallback değer
+    
+    # Tarih hesaplamaları
+    GUN_AY_CARPI = 30  # Gün/ay dönüşümü için
+    
+    # Onarım süresi (iş günü)
+    ONARIM_IS_GUNU = 20  # Onarım için beklenen iş günü
+    
+    # Hafta günü kontrolü
+    HAFTA_SONU_BASLANGIC = 5  # 5 = Cuma, 0-4 = Pazartesi-Cuma (iş günü)
+    
+    # Hatırlatma ve uyarı limitleri
+    HATIRLATMA_IS_GUNU = 3  # 3 iş günü veya daha az kaldıysa hatırlat
+    UYARI_IS_GUNU = 5  # 5 gün veya daha az kaldıysa uyar
+    KRITIK_IS_GUNU = 7  # 7 gün veya daha az kaldıysa kritik
+    
+    # String işlemleri
+    PERAKENDE_PREFIX_LENGTH = 12  # "Perakende - " uzunluğu
+    
+    # Dosya parse
+    DOSYA_PARSE_PARCA_SAYISI = 2  # Tab-separated dosya parse için beklenen parça sayısı
+
+
 class DefaultValues:
     """Default değerler ve sabitler"""
     # Default driver ID (system parameter'a taşınacak)

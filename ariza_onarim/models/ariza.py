@@ -17,6 +17,7 @@ from .ariza_constants import (
     LocationNames,
     PartnerNames,
     DefaultValues,
+    MagicNumbers,
 )
 
 _logger = logging.getLogger(__name__)
@@ -382,7 +383,7 @@ class ArizaKayit(models.Model):
         
         for kayit in hatirlatma_gereken_kayitlar:
             # Kalan süre kontrolü - Email gönderimi kaldırıldı
-            if kayit.kalan_is_gunu <= 3:  # 3 iş günü veya daha az kaldıysa
+            if kayit.kalan_is_gunu <= MagicNumbers.HATIRLATMA_IS_GUNU:  # Belirlenen iş günü veya daha az kaldıysa
                 kayit.hatirlatma_gonderildi = True
                 kayit.son_hatirlatma_tarihi = fields.Date.today()
                 _logger.info(f"Onarım hatırlatma işaretlendi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
@@ -435,11 +436,11 @@ class ArizaKayit(models.Model):
             if record.invoice_line_id and record.fatura_tarihi:
                 # Fatura tarihinden itibaren garanti süresini hesapla
                 # Varsayılan garanti süresi 2 yıl (24 ay)
-                garanti_ay = 24
+                garanti_ay = MagicNumbers.DEFAULT_GARANTI_AY
                 
                 # Ürünün garanti süresi varsa onu kullan
                 if record.invoice_line_id.product_id and hasattr(record.invoice_line_id.product_id, 'garanti_suresi'):
-                    garanti_ay = record.invoice_line_id.product_id.garanti_suresi or 24
+                    garanti_ay = record.invoice_line_id.product_id.garanti_suresi or MagicNumbers.GARANTI_AY_FALLBACK
                 
                 # Garanti bitiş tarihini hesapla
                 from dateutil.relativedelta import relativedelta
@@ -454,8 +455,8 @@ class ArizaKayit(models.Model):
                 bugun = datetime.now().date()
                 if garanti_bitis > bugun:
                     kalan_gun = (garanti_bitis - bugun).days
-                    kalan_ay = kalan_gun // 30
-                    kalan_gun_kalan = kalan_gun % 30
+                    kalan_ay = kalan_gun // MagicNumbers.GUN_AY_CARPI
+                    kalan_gun_kalan = kalan_gun % MagicNumbers.GUN_AY_CARPI
                     if kalan_ay > 0:
                         record.kalan_garanti = f"{kalan_ay} ay {kalan_gun_kalan} gün"
                     else:
@@ -469,7 +470,7 @@ class ArizaKayit(models.Model):
 
     @api.depends('onarim_baslangic_tarihi', 'tarih')
     def _compute_beklenen_tamamlanma_tarihi(self):
-        """Onarım başlangıç tarihinden 20 iş günü sonrasını hesapla"""
+        """Onarım başlangıç tarihinden belirlenen iş günü sonrasını hesapla"""
         for record in self:
             from datetime import datetime, timedelta
             from dateutil.relativedelta import relativedelta
@@ -480,11 +481,12 @@ class ArizaKayit(models.Model):
             # 20 iş günü sonrasını hesapla (hafta sonları hariç)
             is_gunu_sayisi = 0
             hedef_tarih = baslangic_tarihi
+            is_gunu_sayisi = 0
             
-            while is_gunu_sayisi < 20:
+            while is_gunu_sayisi < MagicNumbers.ONARIM_IS_GUNU:
                 hedef_tarih += timedelta(days=1)
                 # Hafta sonu değilse iş günü say
-                if hedef_tarih.weekday() < 5:  # 0-4 = Pazartesi-Cuma
+                if hedef_tarih.weekday() < MagicNumbers.HAFTA_SONU_BASLANGIC:  # 0-4 = Pazartesi-Cuma
                     is_gunu_sayisi += 1
             
             record.beklenen_tamamlanma_tarihi = hedef_tarih
@@ -511,13 +513,13 @@ class ArizaKayit(models.Model):
                     
                     while current_date < hedef_tarih:
                         current_date += timedelta(days=1)
-                        if current_date.weekday() < 5:  # Hafta sonu değilse
+                        if current_date.weekday() < MagicNumbers.HAFTA_SONU_BASLANGIC:  # Hafta sonu değilse
                             kalan_gun += 1
                     
                     record.kalan_is_gunu = kalan_gun
                     
                     # Onarım durumunu güncelle
-                    if kalan_gun <= 5 and record.onarim_durumu == 'beklemede':
+                    if kalan_gun <= MagicNumbers.UYARI_IS_GUNU and record.onarim_durumu == 'beklemede':
                         record.onarim_durumu = 'devam_ediyor'
             else:
                                     record.kalan_is_gunu = 0
@@ -528,7 +530,7 @@ class ArizaKayit(models.Model):
         for record in self:
             if record.kalan_is_gunu == 0:
                 record.kalan_sure_gosterimi = "Süre Aşıldı"
-            elif record.kalan_is_gunu <= 7:
+            elif record.kalan_is_gunu <= MagicNumbers.KRITIK_IS_GUNU:
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
             else:
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
@@ -697,7 +699,7 @@ class ArizaKayit(models.Model):
                     for satir in f:
                         if hesap_adi in satir.lower():
                             parcalar = satir.strip().split('\t')
-                            if len(parcalar) == 2:
+                            if len(parcalar) == MagicNumbers.DOSYA_PARSE_PARCA_SAYISI:
                                 konum_kodu = parcalar[1]
                                 break
             except Exception as e:
@@ -902,7 +904,7 @@ class ArizaKayit(models.Model):
             magaza_adi = self.analitik_hesap_id.name
             # "Perakende -" önekini temizle
             if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+                magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]  # "Perakende - " önekini temizle
 
         # Depo bilgisini al
         warehouse = False
@@ -1494,7 +1496,7 @@ class ArizaKayit(models.Model):
             magaza_adi = self.analitik_hesap_id.name
             # "Perakende -" önekini temizle
             if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
+                magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]  # "Perakende - " önekini temizle
 
         # Depo bilgisini al - İlk transferdeki gibi
         warehouse = False
