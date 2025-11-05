@@ -187,8 +187,10 @@
                     <!-- Kullanıcılar için koşullu butonlar -->
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}" groups="ariza_onarim.group_ariza_user"/>
-                    <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
+                    <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
+                    <!-- Müşteri ürünü için Teslim Al butonu - 2. SMS gönderir -->
+                    <button name="action_teslim_al_musteri" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" confirm="Teslim al butonuna basıldığında müşteriye 2. SMS gönderilecektir. Devam etmek istiyor musunuz?"/>
                     <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
                     <!-- Mağaza ürünü için Teslim Al butonu -->
                     <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'magaza'), ('state', '!=', 'yonetici_tamamlandi')]}" confirm="Mağaza ürününü teslim almak istediğinizden emin misiniz? Bu işlem Tamir Alımlar transferi oluşturacaktır."/>

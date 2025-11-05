@@ -1617,7 +1617,37 @@ class ArizaKayit(models.Model):
             'view_mode': 'form',
             'context': {'hide_note': True},
             'target': 'current',
-        } 
+        }
+
+    def action_teslim_al_musteri(self):
+        """Müşteri ürünü için Teslim Al butonu - 2. SMS gönderir"""
+        for record in self:
+            if record.ariza_tipi != 'musteri':
+                raise UserError(_('Bu işlem sadece müşteri ürünü için kullanılabilir.'))
+            
+            if record.state != 'tamamlandi':
+                raise UserError(_('Bu işlem sadece tamamlandı durumundaki kayıtlar için kullanılabilir.'))
+            
+            # 2. SMS gönderimi - Müşteriye teslim edilmeye hazır bilgisi
+            if record.partner_id and record.partner_id.phone and not record.ikinci_sms_gonderildi:
+                # Mağaza adını temizle
+                magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
+                temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
+                
+                message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
+                
+                record._send_sms_to_customer(message)
+                record.ikinci_sms_gonderildi = True
+                
+                # Chatter'a mesaj ekle
+                record.message_post(
+                    body=f"Teslim Al butonuna basıldı. Müşteriye 2. SMS gönderildi: {message}",
+                    subject="Teslim Al - 2. SMS Gönderildi"
+                )
+            elif record.ikinci_sms_gonderildi:
+                raise UserError(_('2. SMS zaten gönderilmiş. Tekrar gönderilemez.'))
+            else:
+                raise UserError(_('SMS gönderilemedi: Müşteri veya telefon bilgisi eksik.'))
 
     @api.onchange('teslim_magazasi_id')
     def _onchange_teslim_magazasi(self):
