@@ -16,4 +16,4 @@ access_stock_move_public,stock.move.public,stock.model_stock_move,base.group_pub
 access_stock_picking_type_public,stock.picking.type.public,stock.model_stock_picking_type,base.group_public,1,1,1,1
 access_stock_location_public,stock.location.public,stock.model_stock_location,base.group_public,1,1,1,1
 access_stock_warehouse_public,stock.warehouse.public,stock.model_stock_warehouse,base.group_public,1,1,1,1
-access_kullanim_talimatlari_all,ariza.kullanim.talimatlari.all,ariza_onarim.model_ariza_kullanim_talimatlari,base.group_user,1,0,0,0
+access_kullanim_talimatlari_all,ariza.kullanim.talimatlari.all,model_ariza_kullanim_talimatlari,base.group_user,1,0,0,0
