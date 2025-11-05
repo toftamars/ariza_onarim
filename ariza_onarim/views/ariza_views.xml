@@ -286,7 +286,8 @@
             <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'onaylandi' or state == 'teslim_edildi' or state == 'teslim_alindi'" decoration-warning="state == 'tamamlandi' or (kalan_is_gunu &lt;= 7 and kalan_is_gunu &gt; 0)" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'teslim_alindi')">
                 <field name="name"/>
                 <field name="tarih"/>
-                <field name="partner_id"/>
+                <field name="musteri_veya_magaza" string="Müşteri"/>
+                <field name="partner_id" invisible="1"/>
                 <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="analitik_hesap_id" string="Mağaza"/>
