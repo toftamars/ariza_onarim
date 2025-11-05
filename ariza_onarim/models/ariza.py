@@ -34,7 +34,9 @@ class AccountAnalyticAccount(models.Model):
     @api.model
     def _setup_zuhal_addresses(self):
         """Zuhal Dış Ticaret A.Ş. carisine ait adresleri analitik hesaplarla eşleştir"""
-        zuhal_partner = self.env['res.partner'].search([('name', '=', PartnerNames.ZUHAL_DIS_TICARET)], limit=1)
+        zuhal_partner = self.env['res.partner'].search(
+            [('name', '=', PartnerNames.ZUHAL_DIS_TICARET)], limit=1
+        )
         if not zuhal_partner:
             return
             
@@ -91,7 +93,13 @@ class ArizaKayit(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
 
-    name = fields.Char(string='Arıza No', required=True, copy=False, readonly=True, default=lambda self: _('New'))
+    name = fields.Char(
+        string='Arıza No',
+        required=True,
+        copy=False,
+        readonly=True,
+        default=lambda self: _('New')
+    )
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
     islem_tipi = fields.Selection(
         IslemTipi.SELECTION,
@@ -141,9 +149,17 @@ class ArizaKayit(models.Model):
         tracking=True
     )
     siparis_yok = fields.Boolean(string='Sipariş Yok', default=False)
-    invoice_line_id = fields.Many2one('account.move.line', string='Fatura Kalemi', 
-        domain="[('move_id.partner_id', '=', partner_id), ('product_id.type', '=', 'product'), ('exclude_from_invoice_tab', '=', False), ('quantity', '>', 0)]",
-        tracking=True)
+    invoice_line_id = fields.Many2one(
+        'account.move.line',
+        string='Fatura Kalemi',
+        domain=(
+            "[('move_id.partner_id', '=', partner_id), "
+            "('product_id.type', '=', 'product'), "
+            "('exclude_from_invoice_tab', '=', False), "
+            "('quantity', '>', 0)]"
+        ),
+        tracking=True
+    )
     fatura_tarihi = fields.Date(string='Fatura Tarihi', compute='_compute_fatura_tarihi', store=True)
     urun = fields.Char(string='Ürün', required=False)
     model = fields.Char(string='Model', required=False)
@@ -169,7 +185,12 @@ class ArizaKayit(models.Model):
         string='Marka Ürünleri',
         tracking=True
     )
-    ariza_kabul_id = fields.Many2one('ariza.kayit', string='Arıza Kabul No', domain=f"[('islem_tipi', '=', '{IslemTipi.ARIZA_KABUL}')]", tracking=True)
+    ariza_kabul_id = fields.Many2one(
+        'ariza.kayit',
+        string='Arıza Kabul No',
+        domain=f"[('islem_tipi', '=', '{IslemTipi.ARIZA_KABUL}')]",
+        tracking=True
+    )
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
     magaza_urun_id = fields.Many2one(
@@ -850,12 +871,16 @@ class ArizaKayit(models.Model):
     def _onchange_ariza_kabul_id(self):
         if self.ariza_kabul_id:
             fields_to_copy = [
-                'partner_id', 'analitik_hesap_id', 'kaynak_konum_id', 'hedef_konum_id', 'tedarikci_id',
-                'marka_id', 'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email', 'urun', 'model',
-                'fatura_tarihi', 'notlar', 'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
-                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti', 'transfer_metodu',
-                'magaza_urun_id', 'marka_urunleri_ids', 'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi', 'garanti_kapsaminda_mi', 'ariza_tipi',
-                'invoice_line_id', 'siparis_yok'
+                'partner_id', 'analitik_hesap_id', 'kaynak_konum_id',
+                'hedef_konum_id', 'tedarikci_id', 'marka_id',
+                'tedarikci_adresi', 'tedarikci_telefon', 'tedarikci_email',
+                'urun', 'model', 'fatura_tarihi', 'notlar',
+                'onarim_ucreti', 'yapilan_islemler', 'ariza_tanimi',
+                'garanti_suresi', 'garanti_bitis_tarihi', 'kalan_garanti',
+                'transfer_metodu', 'magaza_urun_id', 'marka_urunleri_ids',
+                'teknik_servis', 'onarim_bilgisi', 'ucret_bilgisi',
+                'garanti_kapsaminda_mi', 'ariza_tipi', 'invoice_line_id',
+                'siparis_yok'
             ]
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
@@ -869,7 +894,11 @@ class ArizaKayit(models.Model):
             int: Default driver partner ID
         """
         try:
-            driver_id_str = self.env['ir.config_parameter'].sudo().get_param('ariza_onarim.default_driver_id')
+            driver_id_str = (
+                self.env['ir.config_parameter']
+                .sudo()
+                .get_param('ariza_onarim.default_driver_id')
+            )
             if driver_id_str:
                 driver_id = int(driver_id_str)
                 # ID'nin geçerli olduğunu kontrol et
@@ -877,9 +906,15 @@ class ArizaKayit(models.Model):
                 if driver_partner.exists():
                     return driver_id
                 else:
-                    _logger.warning(f"System parameter'daki sürücü ID ({driver_id}) geçersiz. Default değer kullanılıyor.")
+                    _logger.warning(
+                        f"System parameter'daki sürücü ID ({driver_id}) "
+                        f"geçersiz. Default değer kullanılıyor."
+                    )
         except (ValueError, TypeError) as e:
-            _logger.warning(f"System parameter'dan sürücü ID okunamadı: {str(e)}. Default değer kullanılıyor.")
+            _logger.warning(
+                f"System parameter'dan sürücü ID okunamadı: {str(e)}. "
+                f"Default değer kullanılıyor."
+            )
         except Exception as e:
             _logger.error(f"System parameter okuma hatası: {str(e)}. Default değer kullanılıyor.")
         
