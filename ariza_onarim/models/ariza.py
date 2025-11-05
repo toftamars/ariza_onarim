@@ -23,6 +23,13 @@ from .ariza_constants import (
     DefaultValues,
     MagicNumbers,
 )
+from .ariza_helpers import (
+    location_helper,
+    partner_helper,
+    sequence_helper,
+    sms_helper,
+    transfer_helper,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -337,23 +344,9 @@ class ArizaKayit(models.Model):
             #         vals['model'] = urun.default_code or ''
             # Varsayılan değerleri ayarla
             if not vals.get('name'):
-                try:
-                    vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                except Exception as seq_error:
-                    # Sequence bulunamazsa manuel numara oluştur
-                    _logger.warning(f"Sequence bulunamadı, manuel numara oluşturuluyor: {str(seq_error)}")
-                    current_year = datetime.now().year
-                    last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
-                    if last_record and last_record.name != 'New':
-                        try:
-                            last_number = int(last_record.name.split('/')[-1])
-                            new_number = last_number + 1
-                        except (ValueError, IndexError) as parse_error:
-                            _logger.warning(f"Son kayıt numarası parse edilemedi, 1'den başlanıyor: {str(parse_error)} - Kayıt: {last_record.name if last_record else 'N/A'}")
-                            new_number = 1
-                    else:
-                        new_number = 1
-                    vals['name'] = f"ARZ/{current_year}/{new_number:05d}"
+                vals['name'] = sequence_helper.SequenceHelper.generate_ariza_number(
+                    self.env
+                )
             if not vals.get('state'):
                 vals['state'] = ArizaStates.DRAFT
             if not vals.get('islem_tipi'):
@@ -362,10 +355,9 @@ class ArizaKayit(models.Model):
             # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
             if vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') in TeknikServis.DTL_SERVISLER:
                 if not vals.get('hedef_konum_id'):
-                    dtl_konum = self.env['stock.location'].search([
-                        ('name', '=', LocationNames.DTL_STOK),
-                        ('company_id', '=', self.env.company.id)
-                    ], limit=1)
+                    dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                        self.env, self.env.company.id
+                    )
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
             if not vals.get('ariza_tipi'):
@@ -662,26 +654,23 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == ArizaTipi.MUSTERI:
             if self.teknik_servis == TeknikServis.MAGAZA and konum_kodu:
                 # Mağaza seçildiğinde [KOD]/arızalı konumu
-                arizali_konum = self.env['stock.location'].search([
-                    ('name', '=', f"{konum_kodu.split('/')[0]}/arızalı"),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                arizali_konum = location_helper.LocationHelper.get_arizali_location(
+                    self.env, konum_kodu
+                )
                 if arizali_konum:
                     self.hedef_konum_id = arizali_konum
             elif self.teknik_servis in TeknikServis.DTL_SERVISLER:
                 # DTL seçildiğinde DTL/Stok konumu
-                dtl_konum = self.env['stock.location'].search([
-                    ('name', '=', LocationNames.DTL_STOK),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                    self.env
+                )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
                 # Zuhal seçildiğinde arıza/stok konumu
-                ariza_konum = self.env['stock.location'].search([
-                    ('name', '=', 'arıza/stok'),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
+                    self.env
+                )
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
         # Mağaza ürünü ve teknik servis tedarikçi ise hedef konum tedarikçi konumu
@@ -690,10 +679,9 @@ class ArizaKayit(models.Model):
                 self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
         # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
         elif self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis in TeknikServis.DTL_SERVISLER:
-            dtl_konum = self.env['stock.location'].search([
-                ('name', '=', LocationNames.DTL_STOK),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
+            dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                self.env
+            )
             if dtl_konum:
                 self.hedef_konum_id = dtl_konum
 
@@ -706,25 +694,18 @@ class ArizaKayit(models.Model):
         
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
             # Dosya yolu
-            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-            hesap_adi = self.analitik_hesap_id.name.strip().lower()
-            konum_kodu = None
-            try:
-                with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                    for satir in f:
-                        if hesap_adi in satir.lower():
-                            parcalar = satir.strip().split('\t')
-                            if len(parcalar) == MagicNumbers.DOSYA_PARSE_PARCA_SAYISI:
-                                konum_kodu = parcalar[1]
-                                break
-            except Exception as e:
-                _logger.warning(f"Analitik bilgileri dosyası okunamadı veya parse edilemedi: {str(e)} - Analitik Hesap: {self.analitik_hesap_id.name if self.analitik_hesap_id else 'N/A'}")
+            dosya_yolu = os.path.join(
+                os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+            )
+            # Konum kodu parse - Helper kullanımı
+            konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                self.env, self.analitik_hesap_id.name, dosya_yolu
+            )
 
             if konum_kodu:
-                konum = self.env['stock.location'].search([
-                    ('name', '=', konum_kodu),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                konum = location_helper.LocationHelper.get_location_by_name(
+                    self.env, konum_kodu
+                )
                 if konum:
                     self.kaynak_konum_id = konum
 
@@ -734,10 +715,9 @@ class ArizaKayit(models.Model):
                     self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
             # Teknik servis ise hedef konum DTL/Stok
             elif self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                dtl_konum = self.env['stock.location'].search([
-                    ('name', '=', LocationNames.DTL_STOK),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                    self.env
+                )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
 
@@ -1048,54 +1028,19 @@ class ArizaKayit(models.Model):
         # Teknik servise göre partner_id ayarla
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
             picking_vals['partner_id'] = self.tedarikci_id.id
-        elif self.teknik_servis == TeknikServis.DTL_BEYOGLU:
-            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti partner'ını bul
-            dtl_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.DTL_ELEKTRONIK)], limit=1)
-            if dtl_partner:
-                picking_vals['partner_id'] = dtl_partner.id
-        elif self.teknik_servis == TeknikServis.DTL_OKMEYDANI:
-            # Dtl Elektronik Servis Hiz. Tic. Ltd Şti alt kontağı DTL OKMEYDANI'nı bul
-            dtl_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.DTL_ELEKTRONIK)], limit=1)
-            if dtl_partner:
-                dtl_okmeydani = self.env['res.partner'].search([
-                    ('parent_id', '=', dtl_partner.id),
-                    ('name', 'ilike', TeknikServis.DTL_OKMEYDANI)
-                ], limit=1)
-                if dtl_okmeydani:
-                    picking_vals['partner_id'] = dtl_okmeydani.id
-                else:
-                    picking_vals['partner_id'] = dtl_partner.id
-        elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-            # Zuhal Dış Ticaret A.Ş. alt kontağı Arıza Depo'yu bul
-            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.ZUHAL_DIS_TICARET)], limit=1)
-            if zuhal_partner:
-                zuhal_ariza = self.env['res.partner'].search([
-                    ('parent_id', '=', zuhal_partner.id),
-                    ('name', 'ilike', 'Arıza Depo')
-                ], limit=1)
-                if zuhal_ariza:
-                    picking_vals['partner_id'] = zuhal_ariza.id
-                else:
-                    picking_vals['partner_id'] = zuhal_partner.id
-        elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-            # Zuhal Dış Ticaret A.Ş. alt kontağı Nefesli Arıza'yı bul
-            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.ZUHAL_DIS_TICARET)], limit=1)
-            if zuhal_partner:
-                zuhal_nefesli = self.env['res.partner'].search([
-                    ('parent_id', '=', zuhal_partner.id),
-                    ('name', 'ilike', 'Nefesli Arıza')
-                ], limit=1)
-                if zuhal_nefesli:
-                    picking_vals['partner_id'] = zuhal_nefesli.id
-                else:
-                    picking_vals['partner_id'] = zuhal_partner.id
+        else:
+            # Partner bulma - Helper kullanımı (DTL, Zuhal için)
+            partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
+                self.env, self.teknik_servis
+            )
+            if partner:
+                picking_vals['partner_id'] = partner.id
         
         # Nakliye bilgilerini ekle
         # Kargo şirketini bul (ücretsiz kargo)
-        delivery_carrier = self.env['delivery.carrier'].sudo().search([
-            ('delivery_type', '=', 'fixed'),
-            ('fixed_price', '=', 0.0)
-        ], limit=1)
+        delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(
+            self.env
+        )
         if delivery_carrier:
             picking_vals['carrier_id'] = delivery_carrier.id
             
@@ -1210,41 +1155,23 @@ class ArizaKayit(models.Model):
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != ArizaTipi.MUSTERI:
             return
-            
-        if self.partner_id and self.partner_id.phone:
-            try:
-                # SMS'i doğru yöntemle gönder
-                sms = self.env['sms.sms'].create({
-                    'number': self.partner_id.phone,
-                    'body': message,
-                    'partner_id': self.partner_id.id,
-                })
-                sms.send()
-                
-                # Başarılı SMS logu
-                self.message_post(body=f"SMS başarıyla gönderildi: {message}")
-                _logger.info(f"SMS gönderildi: {self.name} - {self.partner_id.phone}")
-                
-            except Exception as e:
-                # SMS hatası logu
-                error_msg = f"SMS gönderilemedi: {str(e)}"
-                self.message_post(body=error_msg)
-                _logger.error(f"SMS hatası: {self.name} - {str(e)}")
-        else:
-            # Partner veya telefon yoksa sadece log dosyasına yaz
-            missing_info = f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}"
-            _logger.warning(f"SMS koşulları eksik: {self.name} - {missing_info}")
+        
+        # SMS gönderme - Helper kullanımı
+        sms_sent = sms_helper.SMSHelper.send_sms(
+            self.env, self.partner_id, message, self.name
+        )
+        if sms_sent:
+            self.message_post(body=f"SMS başarıyla gönderildi: {message}")
             
 
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:
             return False
 
-        # Kargo şirketini bul
-        delivery_carrier = self.env['delivery.carrier'].sudo().search([
-            ('delivery_type', '=', 'fixed'),
-            ('fixed_price', '=', 0.0)
-        ], limit=1)
+        # Kargo şirketini bul - Helper kullanımı
+        delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(
+            self.env
+        )
 
         if not delivery_carrier:
             raise UserError(_("Ücretsiz kargo seçeneği bulunamadı."))
