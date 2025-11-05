@@ -1062,14 +1062,21 @@ class ArizaKayit(models.Model):
         if driver_partner and picking:
             try:
                 # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
-                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan
-                vehicle_id_val = picking.vehicle_id.id if hasattr(picking, 'vehicle_id') and picking.vehicle_id else False
+                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan veya default olarak driver_partner'ı kullan
+                vehicle_id_val = False
+                if hasattr(picking, 'vehicle_id') and picking.vehicle_id:
+                    vehicle_id_val = picking.vehicle_id.id
+                elif hasattr(driver_partner, 'vehicle_id') and driver_partner.vehicle_id:
+                    vehicle_id_val = driver_partner.vehicle_id.id
+                else:
+                    # vehicle_id zorunluysa, driver_partner'ı vehicle_id olarak kullan (fallback)
+                    vehicle_id_val = driver_partner.id
                 
                 # driver_ids One2many ise bu format kullanılmalı
                 picking.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
-                        'vehicle_id': vehicle_id_val,  # vehicle_id zorunlu değilse False olabilir
+                        'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
                     })]
                 })
             except Exception as e:
@@ -1540,14 +1547,21 @@ class ArizaKayit(models.Model):
         if driver_partner and tamir_alim_transfer:
             try:
                 # driver_ids'e kayıt ekle (One2many için (0, 0, {}) formatı)
-                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan
-                vehicle_id_val = tamir_alim_transfer.vehicle_id.id if hasattr(tamir_alim_transfer, 'vehicle_id') and tamir_alim_transfer.vehicle_id else False
+                # vehicle_id varsa kullan, yoksa driver_partner'ın vehicle_id'sini kullan veya default olarak driver_partner'ı kullan
+                vehicle_id_val = False
+                if hasattr(tamir_alim_transfer, 'vehicle_id') and tamir_alim_transfer.vehicle_id:
+                    vehicle_id_val = tamir_alim_transfer.vehicle_id.id
+                elif hasattr(driver_partner, 'vehicle_id') and driver_partner.vehicle_id:
+                    vehicle_id_val = driver_partner.vehicle_id.id
+                else:
+                    # vehicle_id zorunluysa, driver_partner'ı vehicle_id olarak kullan (fallback)
+                    vehicle_id_val = driver_partner.id
                 
                 # driver_ids One2many ise bu format kullanılmalı
                 tamir_alim_transfer.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
-                        'vehicle_id': vehicle_id_val,  # vehicle_id zorunlu değilse False olabilir
+                        'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
                     })]
                 })
             except Exception as e:
