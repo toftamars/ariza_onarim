@@ -18,6 +18,15 @@
 
     <menuitem id="menu_ariza_kayit" name="Arıza Kayıtları" parent="menu_ariza_root" action="action_ariza_kayit" sequence="10"/>
     
+    <!-- Kullanım Talimatları Action -->
+    <record id="action_kullanim_talimatlari" model="ir.actions.act_window">
+        <field name="name">Kullanım Talimatları</field>
+        <field name="res_model">ariza.kullanim.talimatlari</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'create': False}</field>
+    </record>
+    
     <!-- Kullanım Talimatları Menüsü -->
     <menuitem id="menu_kullanim_talimatlari" name="Kullanım Talimatları" parent="menu_ariza_root" action="action_kullanim_talimatlari" sequence="20"/>
 </odoo> 
