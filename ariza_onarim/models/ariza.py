@@ -1819,14 +1819,6 @@ class ArizaKayit(models.Model):
         for rec in self:
             rec.musteri_telefon = rec.partner_id.phone or rec.partner_id.mobile or ''
     
-    @api.depends('ariza_tipi', 'state')
-    def _compute_teslim_al_visible(self):
-        """Mağaza ürünü işlemlerinde teslim al butonunu göster"""
-        for record in self:
-            record.teslim_al_visible = (
-                record.ariza_tipi == ArizaTipi.MAGAZA and 
-                record.state == ArizaStates.YONETICI_TAMAMLANDI
-            )
     
     @api.depends('magaza_urun_id')
     def _compute_magaza_urun_adi(self):
