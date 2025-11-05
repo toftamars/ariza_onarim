@@ -1,5 +1,8 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -21,9 +24,9 @@ class StockPicking(models.Model):
                     if parent is not None:
                         parent.remove(node)
                 res['arch'] = etree.tostring(arch, encoding='unicode')
-            except Exception:
-                # lxml yoksa veya hata olursa sessizce geç
-                pass
+            except Exception as e:
+                # lxml yoksa veya hata olursa logla
+                _logger.warning(f"View işleme hatası (stock.picking): {str(e)}")
         return res
 
     def _ubl_add_shipment_stage(self, shipment, ns, version='2.1'):

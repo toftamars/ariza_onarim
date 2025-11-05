@@ -72,31 +72,7 @@ class ArizaTeslimWizard(models.TransientModel):
             if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
                 message += " Ürününüzün değişimi sağlanmıştır."
             ariza._send_sms_to_customer(message)
-            # Müşteriye e-posta gönder
-            if ariza.partner_id and ariza.partner_id.email:
-                ariza._send_email_to_customer("Ürününüz Teslim Edildi", message)
             ariza.ucuncu_sms_gonderildi = True
-        
-        # Teslim edildi e-posta gönder
-        mail_to = 'alper.tofta@zuhalmuzik.com'
-        subject = f"Ürün Teslim Edildi: {ariza.name}"
-        body = f"""
-Ürün Teslim Edildi.<br/>
-<b>Arıza No:</b> {ariza.name}<br/>
-<b>Müşteri:</b> {ariza.partner_id.name if ariza.partner_id else '-'}<br/>
-<b>Ürün:</b> {ariza.urun}<br/>
-<b>Model:</b> {ariza.model}<br/>
-<b>Arıza Tanımı:</b> {ariza.ariza_tanimi or '-'}<br/>
-<b>Tarih:</b> {ariza.tarih or '-'}<br/>
-<b>Teknik Servis:</b> {ariza.teknik_servis or '-'}<br/>
-<b>Teknik Servis Adresi:</b> {ariza.teknik_servis_adres or '-'}<br/>
-<b>Teslim Alan:</b> {self.teslim_alan}<br/>
-"""
-        ariza.env['mail.mail'].create({
-            'subject': subject,
-            'body_html': body,
-            'email_to': mail_to,
-        }).send()
         
         # Chatter'a mesaj ekle
         ariza.message_post(

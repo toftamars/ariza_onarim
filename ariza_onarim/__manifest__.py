@@ -27,7 +27,6 @@
     'data': [
         'security/security.xml',
         'data/sequence.xml',
-        'data/mail_template.xml',
         'data/cron.xml',
         'security/ir.model.access.csv',
         'views/menu_views.xml',

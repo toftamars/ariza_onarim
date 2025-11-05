@@ -19,55 +19,59 @@
 
 
 
-        <!-- Stock picking için record rule - Tüm kayıtlara erişim (tüm kullanıcılar için) -->
+        <!-- Stock picking için record rule - Company bazlı erişim -->
         <record id="stock_picking_ariza_rule" model="ir.rule">
             <field name="name">Arıza Onarım - Stock Picking Erişimi</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
-        <!-- Stock move için record rule - Tüm kayıtlara erişim (tüm kullanıcılar için) -->
+        <!-- Stock move için record rule - Company bazlı erişim -->
         <record id="stock_move_ariza_rule" model="ir.rule">
             <field name="name">Arıza Onarım - Stock Move Erişimi</field>
             <field name="model_id" ref="stock.model_stock_move"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
-        <!-- Stock location için record rule - Tüm kayıtlara erişim -->
+        <!-- Stock location için record rule - Company bazlı erişim -->
         <record id="stock_location_ariza_rule" model="ir.rule">
             <field name="name">Arıza Onarım - Stock Location Erişimi</field>
             <field name="model_id" ref="stock.model_stock_location"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
-        <!-- Stock picking type için record rule - Tüm kayıtlara erişim -->
+        <!-- Stock picking type için record rule - Company bazlı erişim -->
         <record id="stock_picking_type_ariza_rule" model="ir.rule">
             <field name="name">Arıza Onarım - Stock Picking Type Erişimi</field>
             <field name="model_id" ref="stock.model_stock_picking_type"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
-        <!-- Arıza kayıtları için record rule - Tüm kayıtlara erişim -->
+        <!-- Arıza kayıtları için record rule - Company bazlı erişim -->
         <record id="ariza_kayit_rule" model="ir.rule">
             <field name="name">Arıza Onarım - Arıza Kayıtları Erişimi</field>
             <field name="model_id" ref="model_ariza_kayit"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>

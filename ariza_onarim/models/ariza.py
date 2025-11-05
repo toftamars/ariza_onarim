@@ -1,13 +1,9 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError, UserError
 from datetime import datetime, timedelta
-import logging
-
-_logger = logging.getLogger(__name__)
 from dateutil.relativedelta import relativedelta
-import os
 import logging
+import os
 
 _logger = logging.getLogger(__name__)
 
@@ -257,11 +253,12 @@ class ArizaKayit(models.Model):
         for record in self:
             current_user = self.env.user
             
-            # Onaylayabilen kullanıcılar (personel + yönetici)
-            approve_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'personel1', 'personel2']  # Personel kullanıcıları
-            record.can_approve = (current_user.login in approve_users or 
-                                current_user.has_group('base.group_system') or
-                                current_user.has_group('ariza_onarim.group_ariza_manager'))
+            # Onaylayabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+            record.can_approve = (
+                current_user.has_group('base.group_system') or
+                current_user.has_group('ariza_onarim.group_ariza_manager') or
+                current_user.has_group('ariza_onarim.group_ariza_user')
+            )
             
             # Teknik Servis = MAĞAZA seçildiğinde kullanıcılara da yetki ver
             if record.teknik_servis == 'MAĞAZA':
@@ -269,11 +266,12 @@ class ArizaKayit(models.Model):
                 record.can_start_repair = True
                 record.can_approve = True
             else:
-                # Onarımı başlatabilen kullanıcılar (sadece yönetici)
-                repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']  # Yönetici kullanıcıları
-                record.can_start_repair = (current_user.login in repair_users or 
-                                         current_user.has_group('base.group_system') or
-                                         current_user.has_group('ariza_onarim.group_ariza_technician'))
+                # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+                record.can_start_repair = (
+                    current_user.has_group('base.group_system') or
+                    current_user.has_group('ariza_onarim.group_ariza_manager') or
+                    current_user.has_group('ariza_onarim.group_ariza_technician')
+                )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -357,6 +355,13 @@ class ArizaKayit(models.Model):
         
         return records
 
+    def _get_notification_email(self):
+        """Sistem parametresinden bildirim email adresini al, yoksa default değeri kullan"""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'ariza_onarim.notification_email',
+            'alper.tofta@zuhalmuzik.com'
+        )
+
     def _send_new_ariza_notification(self):
         """Yeni arıza kaydı oluşturulduğunda e-posta bildirimi gönder"""
         try:
@@ -395,7 +400,7 @@ class ArizaKayit(models.Model):
             self.env['mail.mail'].create({
                 'subject': subject,
                 'email_from': self.env.user.email_formatted,
-                'email_to': 'alper.tofta@zuhalmuzik.com',
+                'email_to': self._get_notification_email(),
                 'body_html': body,
                 'auto_delete': True,
             }).send()
@@ -436,19 +441,20 @@ class ArizaKayit(models.Model):
         ])
         
         for kayit in hatirlatma_gereken_kayitlar:
-            # Kalan süre kontrolü
+            # Kalan süre kontrolü - Email gönderimi kaldırıldı
             if kayit.kalan_is_gunu <= 3:  # 3 iş günü veya daha az kaldıysa
-                kayit._send_onarim_hatirlatma()
-                _logger.info(f"Onarım hatırlatma gönderildi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
+                kayit.hatirlatma_gonderildi = True
+                kayit.son_hatirlatma_tarihi = fields.Date.today()
+                _logger.info(f"Onarım hatırlatma işaretlendi: {kayit.name} - Kalan süre: {kayit.kalan_is_gunu} gün")
 
     def action_onayla_kullanici_bazli(self):
         """Kullanıcı bazlı onay sistemi - Onarım sürecini aktif hale getirir"""
         current_user = self.env.user
         
-        # Onaylayabilen kullanıcılar (personel + teknik ekip)
-        approve_users = ['admin', 'alper.tofta@zuhalmuzik.com', 'personel1', 'personel2']
-        
-        if current_user.login not in approve_users and not current_user.has_group('base.group_system'):
+        # Onaylayabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+        if not (current_user.has_group('base.group_system') or 
+                current_user.has_group('ariza_onarim.group_ariza_manager') or
+                current_user.has_group('ariza_onarim.group_ariza_user')):
             raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
         
         # Arıza kaydını onayla
@@ -460,10 +466,10 @@ class ArizaKayit(models.Model):
         """Onarım sürecini başlat - Sadece teknik ekip"""
         current_user = self.env.user
         
-        # Onarımı başlatabilen kullanıcılar (sadece teknik ekip)
-        repair_users = ['admin', 'alper.tofta@zuhalmuzik.com']
-        
-        if current_user.login not in repair_users and not current_user.has_group('base.group_system'):
+        # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+        if not (current_user.has_group('base.group_system') or 
+                current_user.has_group('ariza_onarim.group_ariza_manager') or
+                current_user.has_group('ariza_onarim.group_ariza_technician')):
             raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
         
         if self.state != 'onaylandi':
@@ -660,7 +666,7 @@ class ArizaKayit(models.Model):
                             konum_kodu = parcalar[1]
                             break
         except Exception as e:
-            pass
+            _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
 
         if konum_kodu:
             konum = self.env['stock.location'].search([
@@ -1157,8 +1163,8 @@ class ArizaKayit(models.Model):
                     })]
                 })
             except Exception as e:
-                # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
-                pass
+                # Hata durumunda logla (sürücü ataması zorunlu değil)
+                _logger.warning(f"Sürücü ataması başarısız: {self.name} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)}")
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1182,8 +1188,9 @@ class ArizaKayit(models.Model):
             # Eğer stock.move oluşturma hatası alırsa, picking'i sil ve hata ver
             try:
                 picking.sudo().unlink()
-            except:
-                pass
+                _logger.info(f"Başarısız transfer silindi: {picking.name if picking else 'N/A'}")
+            except Exception as unlink_error:
+                _logger.error(f"Başarısız transfer silinemedi: {picking.name if picking else 'N/A'} - {str(unlink_error)}")
             raise UserError(_(f"Transfer oluşturulamadı: {str(e)}"))
 
         # Chatter'a mesaj ekle (2. transfer için picking linki vermeyelim)
@@ -1231,29 +1238,6 @@ class ArizaKayit(models.Model):
             missing_info = f"SMS gönderilemedi: Partner={self.partner_id.name if self.partner_id else 'Yok'}, Telefon={self.partner_id.phone if self.partner_id else 'Yok'}"
             _logger.warning(f"SMS koşulları eksik: {self.name} - {missing_info}")
             
-        # SMS ile birlikte mail de gönder
-        if self.partner_id and self.partner_id.email:
-            subject = "Arıza Kaydınız Hakkında Bilgilendirme"
-            self._send_email_to_customer(subject, message)
-
-    def _send_email_to_customer(self, subject, body):
-        if not self.partner_id or not self.partner_id.email:
-            return
-        template = self.env.ref('ariza_onarim.email_template_ariza_bilgilendirme', raise_if_not_found=False)
-        if template:
-            template.with_context(
-                email_to=self.partner_id.email,
-                email_subject=subject,
-                email_body=body
-            ).send_mail(self.id, force_send=True)
-        else:
-            # Template bulunamazsa manuel mail gönder
-            self.env['mail.mail'].create({
-                'subject': subject,
-                'body_html': body,
-                'email_to': self.partner_id.email,
-                'auto_delete': True,
-            }).send()
 
     def _create_delivery_order(self):
         if not self.partner_id or not self.analitik_hesap_id:
@@ -1350,30 +1334,8 @@ class ArizaKayit(models.Model):
                 if record.islem_tipi == 'ariza_kabul' and record.ariza_tipi == 'musteri' and not record.ilk_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
-                    # Müşteriye e-posta gönder
-                    if record.partner_id and record.partner_id.email:
-                        record._send_email_to_customer("Ürününüz Onarım Sürecine Alındı", message)
                     record.ilk_sms_gonderildi = True
                 
-                # Personel onayında e-posta gönder
-                mail_to = 'alper.tofta@zuhalmuzik.com'
-                subject = f"Arıza Kaydı Personel Onayı: {record.name}"
-                body = f"""
-Arıza Kaydı Personel Onaylandı.<br/>
-<b>Arıza No:</b> {record.name}<br/>
-<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
-<b>Ürün:</b> {record.urun}<br/>
-<b>Model:</b> {record.model}<br/>
-<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
-<b>Tarih:</b> {record.tarih or '-'}<br/>
-<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
-<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
-"""
-                record.env['mail.mail'].create({
-                    'subject': subject,
-                    'body_html': body,
-                    'email_to': mail_to,
-                }).send()
                 
                 # Arıza kayıtları görünümüne dön
                 return {
@@ -1416,30 +1378,8 @@ Arıza Kaydı Personel Onaylandı.<br/>
                 if record.islem_tipi == 'ariza_kabul' and record.ariza_tipi == 'musteri' and not record.ikinci_sms_gonderildi:
                     message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
                     record._send_sms_to_customer(message)
-                    # Müşteriye e-posta gönder
-                    if record.partner_id and record.partner_id.email:
-                        record._send_email_to_customer("Ürününüz Teslim Edilmeye Hazır", message)
                     record.ikinci_sms_gonderildi = True
                 
-                # Tamamla işleminde e-posta gönder
-                mail_to = 'alper.tofta@zuhalmuzik.com'
-                subject = f"Arıza Kaydı Tamamlandı: {record.name}"
-                body = f"""
-Arıza Kaydı Tamamlandı.<br/>
-<b>Arıza No:</b> {record.name}<br/>
-<b>Müşteri:</b> {record.partner_id.name if record.partner_id else '-'}<br/>
-<b>Ürün:</b> {record.urun}<br/>
-<b>Model:</b> {record.model}<br/>
-<b>Arıza Tanımı:</b> {record.ariza_tanimi or '-'}<br/>
-<b>Tarih:</b> {record.tarih or '-'}<br/>
-<b>Teknik Servis:</b> {record.teknik_servis or '-'}<br/>
-<b>Teknik Servis Adresi:</b> {record.teknik_servis_adres or '-'}<br/>
-"""
-                record.env['mail.mail'].create({
-                    'subject': subject,
-                    'body_html': body,
-                    'email_to': mail_to,
-                }).send()
 
     def action_teknik_onarim_baslat(self):
         """Teknik ekip onarım başlatma işlemi"""
@@ -1721,8 +1661,8 @@ Arıza Kaydı Tamamlandı.<br/>
                     })]
                 })
             except Exception as e:
-                # Hata durumunda sessizce geç (sürücü ataması zorunlu değil)
-                pass
+                # Hata durumunda logla (sürücü ataması zorunlu değil)
+                _logger.warning(f"Sürücü ataması başarısız: {self.name} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)}")
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
@@ -1893,93 +1833,6 @@ Arıza Kaydı Tamamlandı.<br/>
             return magaza_adi[12:]  # "Perakende - " uzunluğu 12 karakter
         return magaza_adi
 
-    @api.model
-    def _send_ariza_kayit_email_raporu(self):
-        """Açık arıza kayıtlarını e-posta ile gönder"""
-        # Açık arıza kayıtlarını al (teslim edilmemiş olanlar)
-        acik_arizalar = self.search([
-            ('state', 'not in', ['teslim_edildi', 'iptal', 'kilitli'])
-        ])
-        
-        if not acik_arizalar:
-            return
-        
-        # E-posta içeriğini oluştur
-        from datetime import datetime
-        bugun = datetime.now().strftime("%d.%m.%Y")
-        
-        html_content = f"""
-        <html>
-        <head>
-            <style>
-                table {{ border-collapse: collapse; width: 100%; }}
-                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-                th {{ background-color: #f2f2f2; }}
-                .header {{ background-color: #4CAF50; color: white; padding: 15px; text-align: center; }}
-                .summary {{ background-color: #f9f9f9; padding: 10px; margin: 10px 0; }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>Arıza Kayıtları Raporu - {bugun}</h2>
-            </div>
-            
-            <div class="summary">
-                <strong>Toplam Açık Arıza Sayısı:</strong> {len(acik_arizalar)}<br>
-                <strong>Rapor Tarihi:</strong> {bugun}
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Arıza No</th>
-                        <th>Müşteri</th>
-                        <th>Ürün</th>
-                        <th>Model</th>
-                        <th>Durum</th>
-                        <th>Tarih</th>
-                        <th>Teknik Servis</th>
-                        <th>Sorumlu</th>
-                    </tr>
-                </thead>
-                <tbody>
-        """
-        
-        for ariza in acik_arizalar:
-            html_content += f"""
-                    <tr>
-                        <td>{ariza.name}</td>
-                        <td>{ariza.partner_id.name if ariza.partner_id else '-'}</td>
-                        <td>{ariza.urun}</td>
-                        <td>{ariza.model}</td>
-                        <td>{ariza.state}</td>
-                        <td>{ariza.tarih.strftime('%d.%m.%Y') if ariza.tarih else '-'}</td>
-                        <td>{ariza.teknik_servis or '-'}</td>
-                        <td>{ariza.sorumlu_id.name if ariza.sorumlu_id else '-'}</td>
-                    </tr>
-            """
-        
-        html_content += """
-                </tbody>
-            </table>
-            
-            <div style="margin-top: 20px; padding: 10px; background-color: #e7f3ff; border-left: 4px solid #2196F3;">
-                <strong>Not:</strong> Bu rapor günlük olarak otomatik olarak gönderilmektedir.
-            </div>
-        </body>
-        </html>
-        """
-        
-        # E-postayı gönder
-        mail_to = 'alper.tofta@zuhalmuzik.com'
-        subject = f"Arıza Kayıtları Raporu - {bugun}"
-        
-        self.env['mail.mail'].create({
-            'subject': subject,
-            'body_html': html_content,
-            'email_to': mail_to,
-            'auto_delete': True,
-        }).send()
 
 
 

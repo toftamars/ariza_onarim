@@ -113,9 +113,6 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
             
             ariza._send_sms_to_customer(sms_mesaji)
-            # Müşteriye e-posta gönder
-            if ariza.partner_id and ariza.partner_id.email:
-                ariza._send_email_to_customer("Ürününüz Teslim Edilmeye Hazır", sms_mesaji)
             ariza.ikinci_sms_gonderildi = True
         
 

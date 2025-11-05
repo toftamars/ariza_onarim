@@ -73,7 +73,6 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                             B021
                             """
                         
-                        ariza._send_email_to_customer(subject, body)
                 
                 # 2. transfer oluşturulduğunda transfer'e yönlendir (ilk transferdeki gibi)
                 return {
