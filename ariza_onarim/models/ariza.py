@@ -391,8 +391,6 @@ class ArizaKayit(models.Model):
     @api.model
     def _check_onarim_deadlines(self):
         """Günlük olarak onarım süreçlerini kontrol et ve hatırlatma gönder"""
-        from datetime import datetime, timedelta
-        
         bugun = datetime.now().date()
         
         # Hatırlatma gönderilmesi gereken kayıtları bul
@@ -515,8 +513,6 @@ class ArizaKayit(models.Model):
         """Bugünden itibaren kalan iş günü sayısını hesapla"""
         for record in self:
             if record.beklenen_tamamlanma_tarihi:
-                from datetime import datetime, timedelta
-                
                 bugun = datetime.now().date()
                 hedef_tarih = record.beklenen_tamamlanma_tarihi
                 
