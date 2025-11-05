@@ -264,8 +264,9 @@ class ArizaKayit(models.Model):
         store=False
     )
     
+    @api.depends('ariza_tipi', 'state')
     def _compute_teslim_al_visible(self):
-        """Teslim Al butonunu sadece kullanıcı grubunda görünür yap"""
+        """Teslim Al butonunu sadece kullanıcı grubunda görünür yap (yönetici hariç)"""
         for rec in self:
             # Sadece kullanıcı grubunda olanlar ve yönetici grubunda olmayanlar görebilir
             user_has_user_group = self.env.user.has_group(
@@ -275,8 +276,12 @@ class ArizaKayit(models.Model):
                 'ariza_onarim.group_ariza_manager'
             )
             # Sadece kullanıcı grubunda olanlar görsün (yönetici hariç)
+            # Ayrıca mağaza ürünü ve yönetici tamamlandı durumunda olmalı
             rec.teslim_al_visible = (
-                user_has_user_group and not user_has_manager_group
+                user_has_user_group 
+                and not user_has_manager_group
+                and rec.ariza_tipi == ArizaTipi.MAGAZA
+                and rec.state == ArizaStates.YONETICI_TAMAMLANDI
             )
     
     # Mağaza ürünü için ürün adı
