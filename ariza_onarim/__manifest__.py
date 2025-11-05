@@ -26,6 +26,7 @@
     ],
     'data': [
         'security/security.xml',
+        'data/system_parameters.xml',
         'data/sequence.xml',
         'data/cron.xml',
         'security/ir.model.access.csv',

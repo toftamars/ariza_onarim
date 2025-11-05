@@ -857,6 +857,32 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
+    def _get_default_driver_id(self):
+        """
+        Default sürücü ID'sini system parameter'dan alır.
+        System parameter yoksa veya geçersizse constants'tan default değeri kullanır.
+        
+        Returns:
+            int: Default driver partner ID
+        """
+        try:
+            driver_id_str = self.env['ir.config_parameter'].sudo().get_param('ariza_onarim.default_driver_id')
+            if driver_id_str:
+                driver_id = int(driver_id_str)
+                # ID'nin geçerli olduğunu kontrol et
+                driver_partner = self.env['res.partner'].browse(driver_id)
+                if driver_partner.exists():
+                    return driver_id
+                else:
+                    _logger.warning(f"System parameter'daki sürücü ID ({driver_id}) geçersiz. Default değer kullanılıyor.")
+        except (ValueError, TypeError) as e:
+            _logger.warning(f"System parameter'dan sürücü ID okunamadı: {str(e)}. Default değer kullanılıyor.")
+        except Exception as e:
+            _logger.error(f"System parameter okuma hatası: {str(e)}. Default değer kullanılıyor.")
+        
+        # Fallback: Constants'tan default değer
+        return DefaultValues.DEFAULT_DRIVER_ID
+
     def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False, delivery_type=None, transfer_tipi=None):
         kaynak = kaynak_konum or self.kaynak_konum_id
         hedef = hedef_konum or self.hedef_konum_id
@@ -1044,11 +1070,12 @@ class ArizaKayit(models.Model):
         if self.vehicle_id:
             picking_vals['vehicle_id'] = self.vehicle_id.id
         
-        # Sürücü ataması - ID 2205 direkt kullanılıyor (sorun çözümü)
-        driver_partner = self.env['res.partner'].browse(2205)
+        # Sürücü ataması - System parameter'dan alınan default driver ID kullanılıyor
+        driver_id = self._get_default_driver_id()
+        driver_partner = self.env['res.partner'].browse(driver_id)
         if not driver_partner.exists():
             driver_partner = False
-            _logger.warning(f"Default sürücü (ID 2205) bulunamadı: {self.name}")
+            _logger.warning(f"Default sürücü (ID {driver_id}) bulunamadı: {self.name}")
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
         
@@ -1553,11 +1580,12 @@ class ArizaKayit(models.Model):
                 else:
                     picking_vals['partner_id'] = zuhal_partner.id
         
-        # Sürücü ataması - ID 2205 direkt kullanılıyor (sorun çözümü)
-        driver_partner = self.env['res.partner'].browse(2205)
+        # Sürücü ataması - System parameter'dan alınan default driver ID kullanılıyor
+        driver_id = self._get_default_driver_id()
+        driver_partner = self.env['res.partner'].browse(driver_id)
         if not driver_partner.exists():
             driver_partner = False
-            _logger.warning(f"Default sürücü (ID 2205) bulunamadı: {self.name}")
+            _logger.warning(f"Default sürücü (ID {driver_id}) bulunamadı: {self.name}")
         
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
