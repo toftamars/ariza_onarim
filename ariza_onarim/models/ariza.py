@@ -313,8 +313,9 @@ class ArizaKayit(models.Model):
             if not vals.get('name'):
                 try:
                     vals['name'] = self.env['ir.sequence'].next_by_code('ariza.kayit')
-                except:
+                except Exception as seq_error:
                     # Sequence bulunamazsa manuel numara oluştur
+                    _logger.warning(f"Sequence bulunamadı, manuel numara oluşturuluyor: {str(seq_error)}")
                     import datetime
                     current_year = datetime.datetime.now().year
                     last_record = self.search([('name', '!=', False)], order='id desc', limit=1)
@@ -322,7 +323,8 @@ class ArizaKayit(models.Model):
                         try:
                             last_number = int(last_record.name.split('/')[-1])
                             new_number = last_number + 1
-                        except:
+                        except (ValueError, IndexError) as parse_error:
+                            _logger.warning(f"Son kayıt numarası parse edilemedi, 1'den başlanıyor: {str(parse_error)} - Kayıt: {last_record.name if last_record else 'N/A'}")
                             new_number = 1
                     else:
                         new_number = 1
@@ -699,7 +701,7 @@ class ArizaKayit(models.Model):
                                 konum_kodu = parcalar[1]
                                 break
             except Exception as e:
-                pass  # Hata yönetimi eklenebilir
+                _logger.warning(f"Analitik bilgileri dosyası okunamadı veya parse edilemedi: {str(e)} - Analitik Hesap: {self.analitik_hesap_id.name if self.analitik_hesap_id else 'N/A'}")
 
             if konum_kodu:
                 konum = self.env['stock.location'].search([
@@ -1127,8 +1129,8 @@ class ArizaKayit(models.Model):
                 # Hata mesajını chatter'a da ekle
                 try:
                     picking.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
-                except:
-                    pass
+                except Exception as chatter_error:
+                    _logger.warning(f"Chatter mesajı eklenemedi (sürücü ataması hatası): {str(chatter_error)} - Transfer: {picking.name if picking else 'N/A'}")
         
         # Ürün hareketi ekle - try-except ile hata yakalama
         try:
@@ -1625,8 +1627,8 @@ class ArizaKayit(models.Model):
                 # Hata mesajını chatter'a da ekle
                 try:
                     tamir_alim_transfer.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
-                except:
-                    pass
+                except Exception as chatter_error:
+                    _logger.warning(f"Chatter mesajı eklenemedi (teslim al sürücü ataması hatası): {str(chatter_error)} - Transfer: {tamir_alim_transfer.name if tamir_alim_transfer else 'N/A'}")
         
         # Transfer satırını oluştur - stock.move
         move_vals = {
