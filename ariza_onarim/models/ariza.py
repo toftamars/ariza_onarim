@@ -340,88 +340,18 @@ class ArizaKayit(models.Model):
         
         records = super().create(vals_list)
         
-        # Yeni oluşturulan kayıtlar için e-posta bildirimi gönder ve chatter mesajı ekle
+        # Yeni oluşturulan kayıtlar için chatter mesajı ekle
         for record in records:
             try:
-                record._send_new_ariza_notification()
-                
                 # Chatter'a arıza tanımını içeren mesaj ekle
                 ariza_tanimi = record.ariza_tanimi or "Arıza tanımı belirtilmemiş"
                 chatter_mesaji = f"Arıza Tanımı: {ariza_tanimi}"
                 record.message_post(body=chatter_mesaji)
                 
             except Exception as e:
-                _logger.error(f"E-posta gönderimi başarısız: {record.name} - {str(e)}")
+                _logger.error(f"Chatter mesajı eklenemedi: {record.name} - {str(e)}")
         
         return records
-
-    def _get_notification_email(self):
-        """Sistem parametresinden bildirim email adresini al, yoksa default değeri kullan"""
-        return self.env['ir.config_parameter'].sudo().get_param(
-            'ariza_onarim.notification_email',
-            'alper.tofta@zuhalmuzik.com'
-        )
-
-    def _send_new_ariza_notification(self):
-        """Yeni arıza kaydı oluşturulduğunda e-posta bildirimi gönder"""
-        try:
-            # E-posta şablonunu bul
-            template = self.env.ref('ariza_onarim.email_template_yeni_ariza_bildirimi')
-            if template:
-                # E-postayı gönder
-                template.send_mail(self.id, force_send=True)
-                _logger.info(f"Yeni arıza kaydı bildirimi gönderildi: {self.name}")
-            else:
-                _logger.error(f"E-posta şablonu bulunamadı: ariza_onarim.email_template_yeni_ariza_bildirimi")
-        except Exception as e:
-            _logger.error(f"E-posta bildirimi gönderilemedi: {str(e)}")
-            # Alternatif olarak basit e-posta gönder
-            self._send_simple_notification()
-    
-    def _send_simple_notification(self):
-        """Basit e-posta bildirimi gönder"""
-        try:
-            from odoo.tools.misc import format_date
-            
-            subject = f"Yeni Arıza Kaydı - {self.name}"
-            body = f"""
-            <h2>Yeni Arıza Kaydı Oluşturuldu</h2>
-            <p><strong>Arıza No:</strong> {self.name}</p>
-            <p><strong>Tarih:</strong> {format_date(self.env, self.tarih) if self.tarih else 'Belirtilmemiş'}</p>
-            <p><strong>Müşteri:</strong> {self.partner_id.name if self.partner_id else 'Belirtilmemiş'}</p>
-            <p><strong>Ürün:</strong> {self.urun if self.urun else 'Belirtilmemiş'}</p>
-            <p><strong>Model:</strong> {self.model if self.model else 'Belirtilmemiş'}</p>
-            <p><strong>Teknik Servis:</strong> {self.teknik_servis if self.teknik_servis else 'Belirtilmemiş'}</p>
-            <p><strong>Sorumlu:</strong> {self.sorumlu_id.name if self.sorumlu_id else 'Belirtilmemiş'}</p>
-            <p><strong>Durum:</strong> {dict(self._fields['state'].selection).get(self.state, self.state)}</p>
-            """
-            
-            # E-posta gönder
-            self.env['mail.mail'].create({
-                'subject': subject,
-                'email_from': self.env.user.email_formatted,
-                'email_to': self._get_notification_email(),
-                'body_html': body,
-                'auto_delete': True,
-            }).send()
-            
-            _logger.info(f"Basit e-posta bildirimi gönderildi: {self.name}")
-        except Exception as e:
-            _logger.error(f"Basit e-posta gönderilemedi: {str(e)}")
-
-    def _send_onarim_hatirlatma(self):
-        """Onarım süreci hatırlatma e-postası gönder"""
-        try:
-            # E-posta şablonunu bul
-            template = self.env.ref('ariza_onarim.email_template_onarim_hatirlatma')
-            if template:
-                # E-postayı gönder
-                template.send_mail(self.id, force_send=True)
-                self.hatirlatma_gonderildi = True
-                self.son_hatirlatma_tarihi = fields.Date.today()
-                _logger.info(f"Onarım hatırlatma e-postası gönderildi: {self.name}")
-        except Exception as e:
-            _logger.error(f"Onarım hatırlatma e-postası gönderilemedi: {str(e)}")
 
     @api.model
     def _check_onarim_deadlines(self):
