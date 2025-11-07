@@ -1069,6 +1069,7 @@ class ArizaKayit(models.Model):
             'origin': self.name,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'delivery_type': 'matbu',  # Her zaman matbu
+            'edespatch_delivery_type': 'printed',  # Her zaman matbu (Odoo standardı: 'printed')
         }
         
         # E-İrsaliye türü varsa ekle
@@ -1146,6 +1147,13 @@ class ArizaKayit(models.Model):
                 picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
+        
+        # Delivery type ve edespatch_delivery_type'ı her zaman 'matbu' olarak ayarla (E-İrsaliye sequence varsa bile)
+        if picking:
+            picking.sudo().write({
+                'delivery_type': 'matbu',
+                'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
+            })
         
         # Sürücü ataması - Standart Odoo davranışı (create sonrası)
         # driver_ids One2many ilişki olduğu için vehicle_id ile birlikte eklenmeli
@@ -1578,7 +1586,8 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
-            'edespatch_delivery_type': 'printed',
+            'delivery_type': 'matbu',  # Her zaman matbu
+            'edespatch_delivery_type': 'printed',  # Her zaman matbu (Odoo standardı: 'printed')
         }
         # Güvenlik kısıtı nedeniyle note alanına yazma
         
@@ -1632,6 +1641,13 @@ class ArizaKayit(models.Model):
         
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
+        
+        # Delivery type ve edespatch_delivery_type'ı her zaman 'matbu' olarak ayarla
+        if tamir_alim_transfer:
+            tamir_alim_transfer.sudo().write({
+                'delivery_type': 'matbu',
+                'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
+            })
         
         # Sürücü ataması - Standart Odoo davranışı (create sonrası)
         # driver_ids One2many ilişki olduğu için vehicle_id ile birlikte eklenmeli
