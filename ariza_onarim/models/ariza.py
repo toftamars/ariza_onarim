@@ -578,6 +578,75 @@ class ArizaKayit(models.Model):
             else:
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
 
+    def _update_hedef_konum(self):
+        """
+        Arıza tipi ve teknik servis seçimine göre hedef konumu günceller.
+        Bu metod hem @api.onchange('ariza_tipi') hem de @api.onchange('teknik_servis')
+        metodlarından çağrılır.
+        """
+        if not self.ariza_tipi or not self.teknik_servis:
+            return
+        
+        # Müşteri ürünü için hedef konum ayarları
+        if self.ariza_tipi == ArizaTipi.MUSTERI:
+            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
+                # DTL seçildiğinde DTL/Stok konumu
+                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                    self.env
+                )
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
+                # Zuhal seçildiğinde arıza/stok konumu
+                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
+                    self.env
+                )
+                if ariza_konum:
+                    self.hedef_konum_id = ariza_konum
+            elif self.teknik_servis == TeknikServis.MAGAZA:
+                # Mağaza seçildiğinde [KOD]/arızalı konumu (konum_kodu gerekli)
+                if self.analitik_hesap_id:
+                    dosya_yolu = os.path.join(
+                        os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+                    )
+                    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                        self.env, self.analitik_hesap_id.name, dosya_yolu
+                    )
+                    if konum_kodu:
+                        arizali_konum = location_helper.LocationHelper.get_arizali_location(
+                            self.env, konum_kodu
+                        )
+                        if arizali_konum:
+                            self.hedef_konum_id = arizali_konum
+        
+        # Mağaza ürünü için hedef konum ayarları
+        elif self.ariza_tipi == ArizaTipi.MAGAZA:
+            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
+                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
+                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                    self.env
+                )
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
+                # ZUHAL ARIZA DEPO → Arıza/Stok
+                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
+                    self.env
+                )
+                if ariza_konum:
+                    self.hedef_konum_id = ariza_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
+                # ZUHAL NEFESLİ → NFSL/Arızalı
+                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
+                    self.env
+                )
+                if nfsl_konum:
+                    self.hedef_konum_id = nfsl_konum
+            elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
+                # TEDARİKÇİ → tedarikçi konumu
+                if self.tedarikci_id.property_stock_supplier:
+                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
         if self.ariza_tipi == ArizaTipi.MUSTERI:
@@ -588,6 +657,8 @@ class ArizaKayit(models.Model):
             self.teslim_magazasi_id = False
             self.teslim_adresi = False
             self.transfer_id = False
+            # Hedef konumu güncelle (ortak metod)
+            self._update_hedef_konum()
         elif self.ariza_tipi == ArizaTipi.MAGAZA:
             self.partner_id = False
             self.urun = False
@@ -599,19 +670,8 @@ class ArizaKayit(models.Model):
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in [TeknikServis.DTL_OKMEYDANI, TeknikServis.DTL_BEYOGLU]:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
             
-            # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
-            # Hem teknik servis zaten seçilmişse hem de sonradan seçilecekse çalışsın
-            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                dtl_konum = self.env['stock.location'].search([
-                    ('name', '=', LocationNames.DTL_STOK),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-                # Tedarikçi seçildiğinde tedarikçi konumu
-                if self.tedarikci_id.property_stock_supplier:
-                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+            # Hedef konumu güncelle (ortak metod)
+            self._update_hedef_konum()
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
@@ -685,56 +745,8 @@ class ArizaKayit(models.Model):
             
             self.tedarikci_adresi = ', '.join(adres_parcalari) if adres_parcalari else ''
 
-        # Müşteri ürünü işlemleri için hedef konum ayarları
-        if self.ariza_tipi == ArizaTipi.MUSTERI:
-            if self.teknik_servis == TeknikServis.MAGAZA and konum_kodu:
-                # Mağaza seçildiğinde [KOD]/arızalı konumu
-                arizali_konum = location_helper.LocationHelper.get_arizali_location(
-                    self.env, konum_kodu
-                )
-                if arizali_konum:
-                    self.hedef_konum_id = arizali_konum
-            elif self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL seçildiğinde DTL/Stok konumu
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env
-                )
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                # Zuhal seçildiğinde arıza/stok konumu
-                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env
-                )
-                if ariza_konum:
-                    self.hedef_konum_id = ariza_konum
-        # Mağaza ürünü için hedef konum ayarları
-        if self.ariza_tipi == ArizaTipi.MAGAZA:
-            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env
-                )
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                # ZUHAL ARIZA DEPO → Arıza/Stok
-                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env
-                )
-                if ariza_konum:
-                    self.hedef_konum_id = ariza_konum
-            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                # ZUHAL NEFESLİ → NFSL/Arızalı
-                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
-                    self.env
-                )
-                if nfsl_konum:
-                    self.hedef_konum_id = nfsl_konum
-            elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-                # TEDARİKÇİ → tedarikçi konumu
-                if self.tedarikci_id.property_stock_supplier:
-                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+        # Hedef konumu güncelle (ortak metod)
+        self._update_hedef_konum()
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
@@ -760,17 +772,9 @@ class ArizaKayit(models.Model):
                 if konum:
                     self.kaynak_konum_id = konum
 
-            # Tedarikçiye gönderim ise hedef konum tedarikçi adresi
-            if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-                if self.tedarikci_id.property_stock_supplier:
-                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
-            # Teknik servis ise hedef konum DTL/Stok
-            elif self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env
-                )
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
+            # Hedef konumu güncelle (ortak metod - sadece mağaza ürünü için)
+            if self.ariza_tipi == ArizaTipi.MAGAZA:
+                self._update_hedef_konum()
 
         # Analitik hesaptan adres bilgilerini al
         if self.analitik_hesap_id:
