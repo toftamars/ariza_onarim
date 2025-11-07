@@ -1061,16 +1061,42 @@ class ArizaKayit(models.Model):
                 f"Arıza Kaydı: {self.name}\nÜrün: {self.urun}\nModel: {self.model}\nTransfer Metodu: {self.transfer_metodu}"
             )
         
-        # Teknik servise göre partner_id ayarla
+        # Adres mantığı:
+        # İlk transfer: Gönderen = Mağaza analitik hesap adresi, Gönderi = Teknik servis/tedarikçi adresi
+        # İkinci transfer: Gönderen = Teknik servis/tedarikçi adresi, Gönderi = Mağaza analitik hesap adresi
+        
+        # Analitik hesap adresini al (mağaza adresi)
+        magaza_partner = False
+        if self.analitik_hesap_id and self.analitik_hesap_id.partner_id:
+            magaza_partner = self.analitik_hesap_id.partner_id
+        
+        # Teknik servis/tedarikçi partner'ını al
+        teknik_servis_partner = False
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-            picking_vals['partner_id'] = self.tedarikci_id.id
+            teknik_servis_partner = self.tedarikci_id
         else:
             # Partner bulma - Helper kullanımı (DTL, Zuhal için)
-            partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
+            teknik_servis_partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
                 self.env, self.teknik_servis
             )
-            if partner:
-                picking_vals['partner_id'] = partner.id
+        
+        # Eğer mağaza ürünü, işlem tipi arıza kabul ve teknik servis TEDARİKÇİ ise contact_id kullan (sadece 1. transfer için)
+        if transfer_tipi != 'ikinci' and self.islem_tipi == IslemTipi.ARIZA_KABUL and self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis == TeknikServis.TEDARIKCI and self.contact_id:
+            teknik_servis_partner = self.contact_id
+        
+        # Transfer tipine göre partner_id ve adresleri ayarla
+        if transfer_tipi == 'ilk':
+            # İlk transfer: Gönderen = Mağaza, Gönderi = Teknik servis/tedarikçi
+            if teknik_servis_partner:
+                picking_vals['partner_id'] = teknik_servis_partner.id
+        elif transfer_tipi == 'ikinci':
+            # İkinci transfer: Gönderen = Teknik servis/tedarikçi, Gönderi = Mağaza
+            if magaza_partner:
+                picking_vals['partner_id'] = magaza_partner.id
+        else:
+            # Varsayılan: partner_id'yi teknik servis/tedarikçi olarak ayarla
+            if teknik_servis_partner:
+                picking_vals['partner_id'] = teknik_servis_partner.id
         
         # Nakliye bilgilerini ekle
         # Kargo şirketini bul (ücretsiz kargo)
@@ -1092,10 +1118,6 @@ class ArizaKayit(models.Model):
             _logger.warning(f"Default sürücü (ID {driver_id}) bulunamadı: {self.name}")
         
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
-        
-        # Eğer mağaza ürünü, işlem tipi arıza kabul ve teknik servis TEDARİKÇİ ise partner_id'yi contact_id olarak ayarla (sadece 1. transfer için)
-        if transfer_tipi != 'ikinci' and self.islem_tipi == IslemTipi.ARIZA_KABUL and self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis == TeknikServis.TEDARIKCI and self.contact_id:
-            picking_vals['partner_id'] = self.contact_id.id
 
         try:
             picking = self.env['stock.picking'].sudo().create(picking_vals)
