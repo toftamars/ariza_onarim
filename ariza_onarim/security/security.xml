@@ -14,7 +14,8 @@
             <field name="name">Arıza Onarım / Yönetici</field>
             <field name="category_id" ref="base.module_category_hidden"/>
             <field name="comment">Arıza kayıtlarını yönetebilir ve onaylayabilir.</field>
-            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('base.group_system')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
+            <!-- KRİTİK GÜVENLİK: base.group_system kaldırıldı - süper kullanıcı yetkisi verilmemeli -->
+            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
 

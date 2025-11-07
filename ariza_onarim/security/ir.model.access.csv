@@ -11,9 +11,11 @@ access_stock_move_all,stock.move.all,stock.model_stock_move,base.group_user,1,1,
 access_stock_picking_type_all,stock.picking.type.all,stock.model_stock_picking_type,base.group_user,1,1,1,1
 access_stock_location_all,stock.location.all,stock.model_stock_location,base.group_user,1,1,1,1
 access_stock_warehouse_all,stock.warehouse.all,stock.model_stock_warehouse,base.group_user,1,1,1,1
-access_stock_picking_public,stock.picking.public,stock.model_stock_picking,base.group_public,1,1,1,1
-access_stock_move_public,stock.move.public,stock.model_stock_move,base.group_public,1,1,1,1
-access_stock_picking_type_public,stock.picking.type.public,stock.model_stock_picking_type,base.group_public,1,1,1,1
-access_stock_location_public,stock.location.public,stock.model_stock_location,base.group_public,1,1,1,1
-access_stock_warehouse_public,stock.warehouse.public,stock.model_stock_warehouse,base.group_public,1,1,1,1
+# KRİTİK GÜVENLİK: base.group_public (anonim kullanıcılar) için stok yetkileri kaldırıldı
+# Anonim kullanıcılar stok verilerine erişememeli
+# access_stock_picking_public,stock.picking.public,stock.model_stock_picking,base.group_public,1,1,1,1
+# access_stock_move_public,stock.move.public,stock.model_stock_move,base.group_public,1,1,1,1
+# access_stock_picking_type_public,stock.picking.type.public,stock.model_stock_picking_type,base.group_public,1,1,1,1
+# access_stock_location_public,stock.location.public,stock.model_stock_location,base.group_public,1,1,1,1
+# access_stock_warehouse_public,stock.warehouse.public,stock.model_stock_warehouse,base.group_public,1,1,1,1
 access_kullanim_talimatlari_all,ariza.kullanim.talimatlari.all,model_ariza_kullanim_talimatlari,base.group_user,1,0,0,0

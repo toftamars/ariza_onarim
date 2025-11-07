@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Analitik Hesap Form View - Konum Kodu Field Ekleme -->
+        <record id="view_account_analytic_account_form_inherit" model="ir.ui.view">
+            <field name="name">account.analytic.account.form.inherit</field>
+            <field name="model">account.analytic.account</field>
+            <field name="inherit_id" ref="analytic.account_analytic_account_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="konum_kodu" placeholder="Örn: ADANA/Stok, UNIQ/Stok"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
+

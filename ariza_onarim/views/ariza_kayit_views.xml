@@ -25,18 +25,15 @@
                                 <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa; font-size: 12px;">
                                     <strong>Analitik Hesap Adresi:</strong><br/>
                                     <field name="analitik_hesap_id" readonly="1" invisible="1"/>
-                                    <t t-if="analitik_hesap_id and analitik_hesap_id.adres">
-                                        <span t-field="analitik_hesap_id.adres"/>
-                                    </t>
-                                    <t t-elif="analitik_hesap_id and analitik_hesap_id.name">
-                                        <span t-field="analitik_hesap_id.name"/>
-                                    </t>
-                                    <t t-if="analitik_hesap_id and analitik_hesap_id.telefon">
-                                        <br/>Tel: <span t-field="analitik_hesap_id.telefon"/>
-                                    </t>
-                                    <t t-if="analitik_hesap_id and analitik_hesap_id.email">
-                                        <br/>Email: <span t-field="analitik_hesap_id.email"/>
-                                    </t>
+                                    <div attrs="{'invisible': [('analitik_hesap_adres', '=', False)]}">
+                                        <field name="analitik_hesap_adres" readonly="1" nolabel="1" widget="text"/>
+                                    </div>
+                                    <div attrs="{'invisible': [('analitik_hesap_telefon', '=', False)]}">
+                                        <br/>Tel: <field name="analitik_hesap_telefon" readonly="1" nolabel="1"/>
+                                    </div>
+                                    <div attrs="{'invisible': [('analitik_hesap_email', '=', False)]}">
+                                        <br/>Email: <field name="analitik_hesap_email" readonly="1" nolabel="1"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>

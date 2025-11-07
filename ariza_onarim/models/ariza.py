@@ -41,6 +41,10 @@ class AccountAnalyticAccount(models.Model):
     telefon = fields.Char(string='Telefon')
     email = fields.Char(string='E-posta')
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
+    konum_kodu = fields.Char(
+        string='Konum Kodu',
+        help='Stok konumu kodu (örn: ADANA/Stok, UNIQ/Stok). Bu kod kaynak konum ve arızalı konum belirleme için kullanılır.'
+    )
 
     @api.model
     def _setup_zuhal_addresses(self):
@@ -151,6 +155,23 @@ class ArizaKayit(models.Model):
     tedarikci_adresi = fields.Text(string='Teslim Adresi', tracking=True)
     tedarikci_telefon = fields.Char(string='Tedarikçi Telefon', tracking=True)
     tedarikci_email = fields.Char(string='Tedarikçi E-posta', tracking=True)
+    
+    # Analitik hesap bilgileri için computed field'lar (form view'da gösterim için)
+    analitik_hesap_adres = fields.Text(
+        string='Analitik Hesap Adresi',
+        compute='_compute_analitik_hesap_bilgileri',
+        store=False
+    )
+    analitik_hesap_telefon = fields.Char(
+        string='Analitik Hesap Telefon',
+        compute='_compute_analitik_hesap_bilgileri',
+        store=False
+    )
+    analitik_hesap_email = fields.Char(
+        string='Analitik Hesap E-posta',
+        compute='_compute_analitik_hesap_bilgileri',
+        store=False
+    )
     sorumlu_id = fields.Many2one('res.users', string='Sorumlu', default=lambda self: self.env.user, tracking=True)
     tarih = fields.Date(string='Tarih', default=fields.Date.context_today, tracking=True)
     state = fields.Selection(
@@ -606,12 +627,16 @@ class ArizaKayit(models.Model):
             elif self.teknik_servis == TeknikServis.MAGAZA:
                 # Mağaza seçildiğinde [KOD]/arızalı konumu (konum_kodu gerekli)
                 if self.analitik_hesap_id:
-                    dosya_yolu = os.path.join(
-                        os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                    )
-                    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                        self.env, self.analitik_hesap_id.name, dosya_yolu
-                    )
+                    # Önce analitik hesaptan konum_kodu field'ını al
+                    konum_kodu = self.analitik_hesap_id.konum_kodu
+                    # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
+                    if not konum_kodu:
+                        dosya_yolu = os.path.join(
+                            os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+                        )
+                        konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                            self.env, self.analitik_hesap_id.name, dosya_yolu
+                        )
                     if konum_kodu:
                         arizali_konum = location_helper.LocationHelper.get_arizali_location(
                             self.env, konum_kodu
@@ -699,18 +724,22 @@ class ArizaKayit(models.Model):
         # Analitik hesaba ait stok konumunu bul (sadece analitik hesap seçiliyse)
         konum_kodu = None
         if self.analitik_hesap_id:
-            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-            hesap_adi = self.analitik_hesap_id.name.strip().lower()
-            try:
-                with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                    for satir in f:
-                        if hesap_adi in satir.lower():
-                            parcalar = satir.strip().split('\t')
-                            if len(parcalar) == 2:
-                                konum_kodu = parcalar[1]
-                                break
-            except Exception as e:
-                _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
+            # Önce analitik hesaptan konum_kodu field'ını al
+            konum_kodu = self.analitik_hesap_id.konum_kodu
+            # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
+            if not konum_kodu:
+                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+                hesap_adi = self.analitik_hesap_id.name.strip().lower()
+                try:
+                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                        for satir in f:
+                            if hesap_adi in satir.lower():
+                                parcalar = satir.strip().split('\t')
+                                if len(parcalar) == 2:
+                                    konum_kodu = parcalar[1]
+                                    break
+                except Exception as e:
+                    _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
 
             if konum_kodu:
                 konum = self.env['stock.location'].search([
@@ -756,14 +785,16 @@ class ArizaKayit(models.Model):
         self.tedarikci_email = ''
         
         if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
-            # Dosya yolu
-            dosya_yolu = os.path.join(
-                os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-            )
-            # Konum kodu parse - Helper kullanımı
-            konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                self.env, self.analitik_hesap_id.name, dosya_yolu
-            )
+            # Önce analitik hesaptan konum_kodu field'ını al
+            konum_kodu = self.analitik_hesap_id.konum_kodu
+            # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
+            if not konum_kodu:
+                dosya_yolu = os.path.join(
+                    os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+                )
+                konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                    self.env, self.analitik_hesap_id.name, dosya_yolu
+                )
 
             if konum_kodu:
                 konum = location_helper.LocationHelper.get_location_by_name(
@@ -784,6 +815,19 @@ class ArizaKayit(models.Model):
                 self.tedarikci_telefon = self.analitik_hesap_id.telefon
             if self.analitik_hesap_id.email:
                 self.tedarikci_email = self.analitik_hesap_id.email
+
+    @api.depends('analitik_hesap_id', 'analitik_hesap_id.adres', 'analitik_hesap_id.telefon', 'analitik_hesap_id.email', 'analitik_hesap_id.name')
+    def _compute_analitik_hesap_bilgileri(self):
+        """Analitik hesap bilgilerini computed field'lara aktar (form view gösterimi için)"""
+        for record in self:
+            if record.analitik_hesap_id:
+                record.analitik_hesap_adres = record.analitik_hesap_id.adres or record.analitik_hesap_id.name or ''
+                record.analitik_hesap_telefon = record.analitik_hesap_id.telefon or ''
+                record.analitik_hesap_email = record.analitik_hesap_id.email or ''
+            else:
+                record.analitik_hesap_adres = ''
+                record.analitik_hesap_telefon = ''
+                record.analitik_hesap_email = ''
 
     @api.onchange('invoice_line_id')
     def _onchange_invoice_line_id(self):
@@ -1068,7 +1112,6 @@ class ArizaKayit(models.Model):
             'location_dest_id': hedef.id,
             'origin': self.name,
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
-            'delivery_type': 'matbu',  # Her zaman matbu
             'edespatch_delivery_type': 'printed',  # Her zaman matbu (Odoo standardı: 'printed')
         }
         
@@ -1148,10 +1191,9 @@ class ArizaKayit(models.Model):
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         
-        # Delivery type ve edespatch_delivery_type'ı her zaman 'matbu' olarak ayarla (E-İrsaliye sequence varsa bile)
+        # edespatch_delivery_type'ı her zaman 'printed' (matbu) olarak ayarla (E-İrsaliye sequence varsa bile)
         if picking:
             picking.sudo().write({
-                'delivery_type': 'matbu',
                 'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
             })
         
@@ -1249,43 +1291,10 @@ class ArizaKayit(models.Model):
             self.message_post(body=f"SMS başarıyla gönderildi: {message}")
             
 
-    def _create_delivery_order(self):
-        if not self.partner_id or not self.analitik_hesap_id:
-            return False
-
-        # Kargo şirketini bul - Helper kullanımı
-        delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(
-            self.env
-        )
-
-        if not delivery_carrier:
-            raise UserError(_("Ücretsiz kargo seçeneği bulunamadı."))
-
-        # Satış siparişi oluştur
-        sale_order = self.env['sale.order'].create({
-            'partner_id': self.partner_id.id,
-            'analytic_account_id': self.analitik_hesap_id.id,
-            'carrier_id': delivery_carrier.id,
-            'order_line': [(0, 0, {
-                'name': f"Arıza Kaydı: {self.name}",
-                'product_id': self.env.ref('product.product_product_4').id,  # Kargo ürünü
-                'product_uom_qty': 1,
-                'price_unit': 0.0,
-            })],
-        })
-
-        # Satış siparişini onayla
-        sale_order.action_confirm()
-
-        # Teslimat siparişi oluştur
-        picking = sale_order.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
-        if picking:
-            # Güvenlik kısıtı nedeniyle note yazma
-            picking.write({
-                'origin': self.name,
-            })
-            return picking
-        return False
+    # NOT: _create_delivery_order fonksiyonu kaldırıldı
+    # Bu fonksiyon sale modülüne bağımlıydı ve hiçbir yerde kullanılmıyordu
+    # Eğer gelecekte gerekirse, sale modülü bağımlılığı eklenmeli ve
+    # demo verilere referans yerine gerçek ürün ID'si kullanılmalıdır
 
     def action_personel_onayla(self):
         """Personel onaylama işlemi - Hem ilk transfer hem de 2. transfer için çalışır"""
@@ -1586,7 +1595,6 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
             'scheduled_date': fields.Datetime.now(),
             'date': fields.Datetime.now(),
-            'delivery_type': 'matbu',  # Her zaman matbu
             'edespatch_delivery_type': 'printed',  # Her zaman matbu (Odoo standardı: 'printed')
         }
         # Güvenlik kısıtı nedeniyle note alanına yazma
@@ -1642,10 +1650,9 @@ class ArizaKayit(models.Model):
         # Tamir Alımlar transferini oluştur
         tamir_alim_transfer = self.env['stock.picking'].sudo().create(picking_vals)
         
-        # Delivery type ve edespatch_delivery_type'ı her zaman 'matbu' olarak ayarla
+        # edespatch_delivery_type'ı her zaman 'printed' (matbu) olarak ayarla
         if tamir_alim_transfer:
             tamir_alim_transfer.sudo().write({
-                'delivery_type': 'matbu',
                 'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
             })
         
@@ -1939,24 +1946,29 @@ class StockPicking(models.Model):
         # Önce normal transfer doğrulama işlemini yap
         result = super().button_validate()
         
-        # Transfer doğrulandıktan sonra arıza kaydına dön
+        # Sadece arıza kayıtlarıyla ilişkili transferler için özel işlem yap
+        # Origin field'ı arıza kayıt numarası formatında mı kontrol et (örn: "ARZ-2024-001")
         for picking in self:
             if picking.origin and picking.state == 'done':
+                # Sadece arıza kayıt numarası formatındaki origin'ler için kontrol et
+                # Arıza kayıt numaraları genellikle "ARZ-" ile başlar veya belirli bir pattern'e sahiptir
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
                 if ariza:
                     # Transfer sayısını artır
                     ariza.transfer_sayisi += 1
                     
-                    # Transfer doğrulandıktan sonra arıza kaydına dön
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'res_model': 'ariza.kayit',
-                        'res_id': ariza.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
+                    # Sadece arıza kayıtlarından gelen transferler için arıza kaydına dön
+                    # Diğer transferler için normal davranışı sürdür
+                    if len(self) == 1:  # Tek bir transfer doğrulanıyorsa
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
         
-        # Normal davranışı sürdür
+        # Normal davranışı sürdür (modül dışı transferler için)
         return result 
 
 
