@@ -47,7 +47,7 @@ class LocationHelper:
     @staticmethod
     def get_ariza_stok_location(env, company_id=None):
         """
-        Arıza/stok konumunu bulur.
+        Arıza/Stok konumunu bulur.
         
         Args:
             env: Odoo environment
@@ -61,12 +61,37 @@ class LocationHelper:
         
         try:
             ariza_konum = env['stock.location'].search([
-                ('name', '=', 'arıza/stok'),
+                ('name', '=', LocationNames.ARIZA_STOK),
                 ('company_id', '=', company_id)
             ], limit=1)
             return ariza_konum if ariza_konum else False
         except Exception as e:
-            _logger.warning(f"Arıza/stok konumu bulunamadı: {str(e)}")
+            _logger.warning(f"Arıza/Stok konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
+    def get_nfsl_arizali_location(env, company_id=None):
+        """
+        NFSL/Arızalı konumunu bulur.
+        
+        Args:
+            env: Odoo environment
+            company_id: Company ID (opsiyonel, varsayılan: env.company.id)
+            
+        Returns:
+            stock.location record veya False
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            nfsl_konum = env['stock.location'].search([
+                ('name', '=', LocationNames.NFSL_ARIZALI),
+                ('company_id', '=', company_id)
+            ], limit=1)
+            return nfsl_konum if nfsl_konum else False
+        except Exception as e:
+            _logger.warning(f"NFSL/Arızalı konumu bulunamadı: {str(e)}")
             return False
 
     @staticmethod

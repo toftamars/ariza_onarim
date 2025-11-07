@@ -147,6 +147,8 @@ class TeslimAlan:
 class LocationNames:
     """Konum isimleri (stock.location için)"""
     DTL_STOK = 'DTL/Stok'
+    ARIZA_STOK = 'Arıza/Stok'
+    NFSL_ARIZALI = 'NFSL/Arızalı'
 
 
 class PartnerNames:

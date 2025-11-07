@@ -635,31 +635,30 @@ class ArizaKayit(models.Model):
         # İşlem tipi kontrolü - sadece MAĞAZA VE TEDARİKÇİ seçildiğinde ek seçenekler
         if self.teknik_servis not in [TeknikServis.MAGAZA, TeknikServis.TEDARIKCI] and self.islem_tipi not in [IslemTipi.ARIZA_KABUL]:
             self.islem_tipi = IslemTipi.ARIZA_KABUL
-        if not self.analitik_hesap_id:
-            return
 
-        # Analitik hesaba ait stok konumunu bul
-        dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-        hesap_adi = self.analitik_hesap_id.name.strip().lower()
+        # Analitik hesaba ait stok konumunu bul (sadece analitik hesap seçiliyse)
         konum_kodu = None
-        try:
-            with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                for satir in f:
-                    if hesap_adi in satir.lower():
-                        parcalar = satir.strip().split('\t')
-                        if len(parcalar) == 2:
-                            konum_kodu = parcalar[1]
-                            break
-        except Exception as e:
-            _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
+        if self.analitik_hesap_id:
+            dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
+            hesap_adi = self.analitik_hesap_id.name.strip().lower()
+            try:
+                with open(dosya_yolu, 'r', encoding='utf-8') as f:
+                    for satir in f:
+                        if hesap_adi in satir.lower():
+                            parcalar = satir.strip().split('\t')
+                            if len(parcalar) == 2:
+                                konum_kodu = parcalar[1]
+                                break
+            except Exception as e:
+                _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
 
-        if konum_kodu:
-            konum = self.env['stock.location'].search([
-                ('name', '=', konum_kodu),
-                ('company_id', '=', self.env.company.id)
-            ], limit=1)
-            if konum:
-                self.kaynak_konum_id = konum
+            if konum_kodu:
+                konum = self.env['stock.location'].search([
+                    ('name', '=', konum_kodu),
+                    ('company_id', '=', self.env.company.id)
+                ], limit=1)
+                if konum:
+                    self.kaynak_konum_id = konum
 
         # DTL Beyoğlu adresini otomatik ekle
         if self.teknik_servis == 'dtl_beyoglu':
@@ -709,17 +708,33 @@ class ArizaKayit(models.Model):
                 )
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
-        # Mağaza ürünü ve teknik servis tedarikçi ise hedef konum tedarikçi konumu
-        elif self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-            if self.tedarikci_id.property_stock_supplier:
-                self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
-        # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
-        elif self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis in TeknikServis.DTL_SERVISLER:
-            dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                self.env
-            )
-            if dtl_konum:
-                self.hedef_konum_id = dtl_konum
+        # Mağaza ürünü için hedef konum ayarları
+        if self.ariza_tipi == ArizaTipi.MAGAZA:
+            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
+                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
+                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                    self.env
+                )
+                if dtl_konum:
+                    self.hedef_konum_id = dtl_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
+                # ZUHAL ARIZA DEPO → Arıza/Stok
+                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
+                    self.env
+                )
+                if ariza_konum:
+                    self.hedef_konum_id = ariza_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
+                # ZUHAL NEFESLİ → NFSL/Arızalı
+                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
+                    self.env
+                )
+                if nfsl_konum:
+                    self.hedef_konum_id = nfsl_konum
+            elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
+                # TEDARİKÇİ → tedarikçi konumu
+                if self.tedarikci_id.property_stock_supplier:
+                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
