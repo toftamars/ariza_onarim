@@ -31,7 +31,6 @@
         'data/cron.xml',
         'security/ir.model.access.csv',
         'views/menu_views.xml',
-        'views/account_analytic_account_views.xml',
         'views/ariza_kayit_views.xml',
         'views/ariza_views.xml',
         'reports/report_ariza_kayit.xml',
