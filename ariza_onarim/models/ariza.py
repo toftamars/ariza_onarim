@@ -729,31 +729,23 @@ class ArizaKayit(models.Model):
         if self.teknik_servis not in [TeknikServis.MAGAZA, TeknikServis.TEDARIKCI] and self.islem_tipi not in [IslemTipi.ARIZA_KABUL]:
             self.islem_tipi = IslemTipi.ARIZA_KABUL
 
-        # Analitik hesaba ait stok konumunu bul (sadece analitik hesap seçiliyse)
-        konum_kodu = None
-        if self.analitik_hesap_id:
+        # Mağaza ürünü için kaynak konum belirleme (analitik hesap seçiliyse)
+        if self.ariza_tipi == ArizaTipi.MAGAZA and self.analitik_hesap_id:
             # Önce analitik hesaptan konum_kodu field'ını al
             konum_kodu = self.analitik_hesap_id.konum_kodu
             # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
             if not konum_kodu:
-                dosya_yolu = os.path.join(os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt')
-                hesap_adi = self.analitik_hesap_id.name.strip().lower()
-                try:
-                    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-                        for satir in f:
-                            if hesap_adi in satir.lower():
-                                parcalar = satir.strip().split('\t')
-                                if len(parcalar) == 2:
-                                    konum_kodu = parcalar[1]
-                                    break
-                except Exception as e:
-                    _logger.warning(f"Konum kodu parse edilemedi: {self.name} - {str(e)}")
+                dosya_yolu = os.path.join(
+                    os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+                )
+                konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                    self.env, self.analitik_hesap_id.name, dosya_yolu
+                )
 
             if konum_kodu:
-                konum = self.env['stock.location'].search([
-                    ('name', '=', konum_kodu),
-                    ('company_id', '=', self.env.company.id)
-                ], limit=1)
+                konum = location_helper.LocationHelper.get_location_by_name(
+                    self.env, konum_kodu
+                )
                 if konum:
                     self.kaynak_konum_id = konum
             else:
@@ -788,8 +780,9 @@ class ArizaKayit(models.Model):
             
             self.tedarikci_adresi = ', '.join(adres_parcalari) if adres_parcalari else ''
 
-        # Hedef konumu güncelle (ortak metod)
-        self._update_hedef_konum()
+        # Hedef konumu güncelle (SADECE mağaza ürünü için)
+        if self.ariza_tipi == ArizaTipi.MAGAZA:
+            self._update_hedef_konum()
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
@@ -798,7 +791,8 @@ class ArizaKayit(models.Model):
         self.tedarikci_telefon = ''
         self.tedarikci_email = ''
         
-        if self.analitik_hesap_id and self.ariza_tipi in ['magaza', 'teknik']:
+        # Mağaza ürünü için kaynak konum belirleme
+        if self.analitik_hesap_id and self.ariza_tipi == ArizaTipi.MAGAZA:
             # Önce analitik hesaptan konum_kodu field'ını al
             konum_kodu = self.analitik_hesap_id.konum_kodu
             # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
@@ -823,8 +817,8 @@ class ArizaKayit(models.Model):
                     f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
                 )
 
-            # Hedef konumu güncelle (ortak metod - sadece mağaza ürünü için)
-            if self.ariza_tipi == ArizaTipi.MAGAZA:
+            # Hedef konumu güncelle (teknik servis seçiliyse)
+            if self.teknik_servis:
                 self._update_hedef_konum()
 
         # Analitik hesaptan adres bilgilerini al
