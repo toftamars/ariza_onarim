@@ -120,6 +120,7 @@
                 <field name="ariza_tanimi"/>
                 <field name="seri_no"/>
                 <field name="state"/>
+                <field name="kalan_is_gunu" invisible="1"/>
             </tree>
         </field>
     </record>
