@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Stock Picking Model - Transfer görünümü özelleştirmeleri
+"""
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging

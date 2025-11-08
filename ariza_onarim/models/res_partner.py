@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Res Partner Model - Sürücü bilgileri için genişletme
+"""
+
 from odoo import models, fields, api
 
 class ResPartner(models.Model):

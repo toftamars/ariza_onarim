@@ -201,3 +201,47 @@ class DefaultValues:
     # Default garanti kapsamı
     DEFAULT_GARANTI_KAPSAM = GarantiKapsam.HAYIR
 
+
+class SMSTemplates:
+    """
+    SMS Şablonları - SMS metinlerini buradan kolayca değiştirebilirsiniz.
+    
+    Placeholder'lar:
+    - {musteri_adi}: Müşteri adı
+    - {urun}: Ürün adı
+    - {kayit_no}: Arıza kayıt numarası
+    - {magaza_adi}: Mağaza adı (temizlenmiş)
+    - {teslim_tarihi}: Teslim tarihi ve saati (format: dd.mm.yyyy HH:MM)
+    - {teslim_alan_kisi}: Teslim alan kişi adı
+    
+    Örnek kullanım:
+        template = SMSTemplates.ILK_SMS.format(
+            musteri_adi="Ahmet Yılmaz",
+            urun="iPhone 14 Pro",
+            kayit_no="ARIZA-2024-001"
+        )
+    """
+    
+    # İlk SMS - Personel Onayı (Onayla butonuna basıldığında)
+    ILK_SMS = (
+        "Sayın {musteri_adi}., {urun} ürününüz teslim alındı, "
+        "Ürününüz onarım sürecine alınmıştır. Kayıt No: {kayit_no} B021"
+    )
+    
+    # İkinci SMS - Teslim Edilmeye Hazır (Hazır butonuna basıldığında)
+    IKINCI_SMS = (
+        "Sayın {musteri_adi}., {urun} ürününüz teslim edilmeye hazırdır. "
+        "Ürününüzü {magaza_adi} mağazamızdan teslim alabilirsiniz. "
+        "Kayıt No: {kayit_no} B021"
+    )
+    
+    # Üçüncü SMS - Teslim Edildi (Teslim Et wizard'ında)
+    UCUNCU_SMS = (
+        "Sayın {musteri_adi}. {urun} ürününüz {magaza_adi} mağazamızdan "
+        "{teslim_tarihi} tarihinde {teslim_alan_kisi} kişisine teslim edilmiştir. "
+        "Kayıt No: {kayit_no} B021"
+    )
+    
+    # Garanti/Ürün Değişimi Eklentisi (Üçüncü SMS'e eklenir)
+    GARANTI_EKLENTISI = " Ürününüzün değişimi sağlanmıştır."
+

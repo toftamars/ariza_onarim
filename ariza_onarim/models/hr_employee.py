@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+HR Employee Model - Mağaza ilişkisi için genişletme
+"""
+
 from odoo import models, fields
 
 class HrEmployee(models.Model):

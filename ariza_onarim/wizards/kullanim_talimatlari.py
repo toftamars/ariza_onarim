@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Kullanım Talimatları Wizard - Kullanım talimatları görüntüleme wizard'ı
+"""
+
 from odoo import models, fields, api
 
 

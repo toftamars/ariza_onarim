@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Stock Move Line Model - Odoo 15 uyumluluğu için location_lot_ids alanı
+"""
+
 from odoo import models, fields, api
 
 class StockMoveLine(models.Model):

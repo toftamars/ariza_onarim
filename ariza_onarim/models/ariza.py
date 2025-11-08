@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Arıza Kayıt Modeli - Ana model dosyası
+"""
+
 # Standard library imports
 import logging
 import os
@@ -22,6 +27,7 @@ from .ariza_constants import (
     PartnerNames,
     DefaultValues,
     MagicNumbers,
+    SMSTemplates,
 )
 from .ariza_helpers import (
     location_helper,
@@ -1350,7 +1356,11 @@ class ArizaKayit(models.Model):
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
                 if record.islem_tipi == IslemTipi.ARIZA_KABUL and record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
-                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim alındı, Ürününüz onarım sürecine alınmıştır. Kayıt No: {record.name} B021"
+                    message = SMSTemplates.ILK_SMS.format(
+                        musteri_adi=record.partner_id.name or '',
+                        urun=record.urun or '',
+                        kayit_no=record.name or ''
+                    )
                     record._send_sms_to_customer(message)
                     record.ilk_sms_gonderildi = True
                 
@@ -1393,8 +1403,17 @@ class ArizaKayit(models.Model):
                     raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
                 
                 # Tamamla işlemi sonrası SMS ve E-posta gönder (İkinci SMS)
+                # NOT: Bu kod artık kullanılmıyor, 2. SMS "Hazır" butonu ile gönderiliyor
+                # Ancak eski kod uyumluluğu için şablon kullanımına güncellendi
                 if record.islem_tipi == IslemTipi.ARIZA_KABUL and record.ariza_tipi == ArizaTipi.MUSTERI and not record.ikinci_sms_gonderildi:
-                    message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {record.magaza_urun_id.name} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
+                    magaza_adi = record.magaza_urun_id.name if record.magaza_urun_id else ''
+                    temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
+                    message = SMSTemplates.IKINCI_SMS.format(
+                        musteri_adi=record.partner_id.name or '',
+                        urun=record.urun or '',
+                        magaza_adi=temiz_magaza_adi or '',
+                        kayit_no=record.name or ''
+                    )
                     record._send_sms_to_customer(message)
                     record.ikinci_sms_gonderildi = True
                 
@@ -1776,7 +1795,12 @@ class ArizaKayit(models.Model):
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
                 
-                message = f"Sayın {record.partner_id.name}., {record.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü {temiz_magaza_adi} mağazamızdan teslim alabilirsiniz. Kayıt No: {record.name} B021"
+                message = SMSTemplates.IKINCI_SMS.format(
+                    musteri_adi=record.partner_id.name or '',
+                    urun=record.urun or '',
+                    magaza_adi=temiz_magaza_adi or '',
+                    kayit_no=record.name or ''
+                )
                 
                 record._send_sms_to_customer(message)
                 record.ikinci_sms_gonderildi = True

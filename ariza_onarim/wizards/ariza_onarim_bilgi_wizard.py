@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Onarım Bilgi Wizard - Onarım bilgileri girişi için wizard
+"""
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 

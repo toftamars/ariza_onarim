@@ -1,15 +1,27 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.3',
+    'version': '1.0.4',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
         Bu modül, arıza kayıtlarının ve onarım süreçlerinin takibini sağlar.
+        
         Özellikler:
-        - Arıza kaydı oluşturma
-        - Onarım süreci takibi
-        - SMS bildirimleri
-        - Raporlama
+        - Müşteri ve mağaza ürünleri için arıza kaydı oluşturma
+        - Onarım süreci takibi ve durum yönetimi
+        - Otomatik stok transfer işlemleri
+        - SMS bildirimleri (3 aşamalı SMS sistemi)
+        - Detaylı raporlama ve dashboard görünümleri
+        - QR kod desteği
+        - Garanti takibi
+        - Teknik servis yönetimi
+        
+        Güvenlik:
+        - Kullanıcı ve yönetici grupları
+        - Company bazlı kayıt kuralları
+        - Güvenli erişim kontrolü
+        
+        Odoo 15 uyumlu, production-ready modül.
     """,
     'author': 'Alper Tofta',
     'website': 'https://github.com/toftamars',

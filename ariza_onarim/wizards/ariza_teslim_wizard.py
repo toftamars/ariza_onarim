@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Teslim Wizard - Ürün teslim işlemi için wizard
+"""
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..models.ariza_constants import SMSTemplates
 
 class ArizaTeslimWizard(models.TransientModel):
     _name = 'ariza.teslim.wizard'
@@ -68,9 +74,16 @@ class ArizaTeslimWizard(models.TransientModel):
             # Teslim edilen kişi bilgisini al
             teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
             
-            message = f"Sayın {ariza.partner_id.name}. {ariza.urun} ürününüz {temiz_magaza_adi} mağazamızdan {teslim_tarihi} tarihinde {teslim_edilen_kisi} kişisine teslim edilmiştir. Kayıt No: {ariza.name} B021"
+            message = SMSTemplates.UCUNCU_SMS.format(
+                musteri_adi=ariza.partner_id.name or '',
+                urun=ariza.urun or '',
+                magaza_adi=temiz_magaza_adi or '',
+                teslim_tarihi=teslim_tarihi,
+                teslim_alan_kisi=teslim_edilen_kisi,
+                kayit_no=ariza.name or ''
+            )
             if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
-                message += " Ürününüzün değişimi sağlanmıştır."
+                message += SMSTemplates.GARANTI_EKLENTISI
             ariza._send_sms_to_customer(message)
             ariza.ucuncu_sms_gonderildi = True
         

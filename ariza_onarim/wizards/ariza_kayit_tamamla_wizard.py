@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Arıza Kayıt Tamamla Wizard - Arıza kaydı tamamlama wizard'ı (Eski - Kullanılmıyor)
+"""
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..models.ariza_constants import SMSTemplates
 
 class ArizaKayitTamamlaWizard(models.TransientModel):
     _name = 'ariza.kayit.tamamla.wizard'
@@ -34,13 +40,19 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
                     if ariza.partner_id.phone:
                         # SMS gönderimi
+                        # NOT: Bu wizard artık kullanılmıyor, ancak eski kod uyumluluğu için şablon kullanımına güncellendi
                         if ariza.ariza_tipi == 'musteri':
-                            ariza.message_post(body=f"DEBUG: Garanti Kapsamında mı?: {ariza.garanti_kapsaminda_mi}")
-                            sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmeye hazırdır. Ürününüzü mağazamızdan teslim alabilirsiniz. Kayıt No: {ariza.name} B021"
+                            # Mağaza adı yoksa boş string kullan
+                            sms_mesaji = SMSTemplates.IKINCI_SMS.format(
+                                musteri_adi=ariza.partner_id.name or '',
+                                urun=ariza.urun or '',
+                                magaza_adi='',  # Bu wizard'da mağaza adı yok
+                                kayit_no=ariza.name or ''
+                            )
                             if ariza.garanti_kapsaminda_mi == 'evet':
-                                sms_mesaji += " Ürününüzün değişimi sağlanmıştır."
-                            ariza.message_post(body=f"DEBUG: Gönderilen SMS: {sms_mesaji}")
+                                sms_mesaji += SMSTemplates.GARANTI_EKLENTISI
                         else: # ariza.ariza_tipi == 'magaza'
+                            # Mağaza ürünü için SMS gönderilmez, ancak eski kod uyumluluğu için şablon kullanıldı
                             sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. Kayıt No: {ariza.name} B021"
                         
                         ariza._send_sms_to_customer(sms_mesaji)

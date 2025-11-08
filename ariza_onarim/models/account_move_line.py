@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Account Move Line Model - Fatura kalemi görünümü özelleştirmeleri
+"""
+
 from odoo import models, api
 
 class AccountMoveLine(models.Model):
