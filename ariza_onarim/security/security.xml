@@ -4,16 +4,16 @@
         <!-- Arıza Onarım Kullanıcı Grubu -->
         <record id="group_ariza_user" model="res.groups">
             <field name="name">Arıza Onarım / Kullanıcı</field>
-            <field name="category_id" ref="base.module_category_hidden"/>
-            <field name="comment">Arıza kayıtları oluşturabilir ve görüntüleyebilir.</field>
+            <field name="category_id" ref="base.module_category_operations"/>
+            <field name="comment">Arıza kayıtları oluşturabilir, görüntüleyebilir ve düzenleyebilir. Tüm iç kullanıcılar (base.group_user) bu yetkilere sahiptir.</field>
             <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
         <!-- Arıza Onarım Yönetici Grubu -->
         <record id="group_ariza_manager" model="res.groups">
             <field name="name">Arıza Onarım / Yönetici</field>
-            <field name="category_id" ref="base.module_category_hidden"/>
-            <field name="comment">Arıza kayıtlarını yönetebilir ve onaylayabilir.</field>
+            <field name="category_id" ref="base.module_category_operations"/>
+            <field name="comment">Arıza kayıtlarını yönetebilir, onaylayabilir ve silebilir. Bu gruba kullanıcı eklemek için: Settings > Users & Companies > Groups > Arıza Onarım / Yönetici</field>
             <!-- KRİTİK GÜVENLİK: base.group_system kaldırıldı - süper kullanıcı yetkisi verilmemeli -->
             <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
