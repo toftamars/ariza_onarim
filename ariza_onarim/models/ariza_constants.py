@@ -235,10 +235,17 @@ class SMSTemplates:
         "Kayıt No: {kayit_no} B021"
     )
     
-    # Üçüncü SMS - Teslim Edildi (Teslim Et wizard'ında)
+    # Üçüncü SMS - Teslim Edildi (Teslim Et wizard'ında - Mağazadan teslim)
     UCUNCU_SMS = (
         "Sayın {musteri_adi}. {urun} ürününüz {magaza_adi} mağazamızdan "
         "{teslim_tarihi} tarihinde {teslim_alan_kisi} kişisine teslim edilmiştir. "
+        "Kayıt No: {kayit_no} B021"
+    )
+    
+    # Adrese Gönderim SMS - Adresime Gönderilsin seçeneği için
+    ADRESE_GONDERIM_SMS = (
+        "Sayın {musteri_adi}. {urun} ürününüz adresinize gönderilmiştir. "
+        "{teslim_tarihi} tarihinde. "
         "Kayıt No: {kayit_no} B021"
     )
     

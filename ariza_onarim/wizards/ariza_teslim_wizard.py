@@ -5,7 +5,7 @@ Teslim Wizard - Ürün teslim işlemi için wizard
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from ..models.ariza_constants import SMSTemplates
+from ..models.ariza_constants import SMSTemplates, TeslimAlan
 
 class ArizaTeslimWizard(models.TransientModel):
     _name = 'ariza.teslim.wizard'
@@ -63,25 +63,35 @@ class ArizaTeslimWizard(models.TransientModel):
         
         # Teslim edildi SMS'i gönder (Üçüncü SMS)
         if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone and not ariza.ucuncu_sms_gonderildi:
-            # Mağaza adını temizle
-            magaza_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''
-            temiz_magaza_adi = ariza._clean_magaza_adi(magaza_adi)
-            
             # Tarih ve saat bilgisini al
             from datetime import datetime
             teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
             
-            # Teslim edilen kişi bilgisini al
-            teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
+            # Adrese Gönderim seçildiyse özel SMS template kullan
+            if self.teslim_alan == TeslimAlan.ADRESE_GONDERIM:
+                message = SMSTemplates.ADRESE_GONDERIM_SMS.format(
+                    musteri_adi=ariza.partner_id.name or '',
+                    urun=ariza.urun or '',
+                    teslim_tarihi=teslim_tarihi,
+                    kayit_no=ariza.name or ''
+                )
+            else:
+                # Mağazadan teslim - normal SMS template
+                magaza_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''
+                temiz_magaza_adi = ariza._clean_magaza_adi(magaza_adi)
+                
+                # Teslim edilen kişi bilgisini al
+                teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
+                
+                message = SMSTemplates.UCUNCU_SMS.format(
+                    musteri_adi=ariza.partner_id.name or '',
+                    urun=ariza.urun or '',
+                    magaza_adi=temiz_magaza_adi or '',
+                    teslim_tarihi=teslim_tarihi,
+                    teslim_alan_kisi=teslim_edilen_kisi,
+                    kayit_no=ariza.name or ''
+                )
             
-            message = SMSTemplates.UCUNCU_SMS.format(
-                musteri_adi=ariza.partner_id.name or '',
-                urun=ariza.urun or '',
-                magaza_adi=temiz_magaza_adi or '',
-                teslim_tarihi=teslim_tarihi,
-                teslim_alan_kisi=teslim_edilen_kisi,
-                kayit_no=ariza.name or ''
-            )
             if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
                 message += SMSTemplates.GARANTI_EKLENTISI
             ariza._send_sms_to_customer(message)
