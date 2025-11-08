@@ -247,6 +247,7 @@
                             <group>
                                 <field name="siparis_yok"/>
                                 <field name="invoice_line_id" attrs="{'invisible': ['|', ('ariza_tipi', '=', 'magaza'), ('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <button name="action_print_invoice" string="Faturayı Yazdır" type="object" class="btn-secondary" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('invoice_line_id', '=', False)]}" icon="fa-file-pdf-o"/>
                                 <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             </group>
                         </page>

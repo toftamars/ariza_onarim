@@ -357,9 +357,8 @@ class ArizaKayit(models.Model):
         for record in self:
             current_user = self.env.user
             
-            # Onaylayabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+            # Onaylayabilen kullanıcılar - Grup bazlı kontrol
             record.can_approve = (
-                current_user.has_group('base.group_system') or
                 current_user.has_group('ariza_onarim.group_ariza_manager') or
                 current_user.has_group('ariza_onarim.group_ariza_user')
             )
@@ -370,9 +369,8 @@ class ArizaKayit(models.Model):
                 record.can_start_repair = True
                 record.can_approve = True
             else:
-                # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
+                # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol
                 record.can_start_repair = (
-                    current_user.has_group('base.group_system') or
                     current_user.has_group('ariza_onarim.group_ariza_manager') or
                     current_user.has_group('ariza_onarim.group_ariza_technician')
                 )
@@ -469,9 +467,8 @@ class ArizaKayit(models.Model):
         """Kullanıcı bazlı onay sistemi - Onarım sürecini aktif hale getirir"""
         current_user = self.env.user
         
-        # Onaylayabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
-        if not (current_user.has_group('base.group_system') or 
-                current_user.has_group('ariza_onarim.group_ariza_manager') or
+        # Onaylayabilen kullanıcılar - Grup bazlı kontrol
+        if not (current_user.has_group('ariza_onarim.group_ariza_manager') or
                 current_user.has_group('ariza_onarim.group_ariza_user')):
             raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
         
@@ -484,9 +481,8 @@ class ArizaKayit(models.Model):
         """Onarım sürecini başlat - Sadece teknik ekip"""
         current_user = self.env.user
         
-        # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol (eski hardcoded login kontrolü kaldırıldı)
-        if not (current_user.has_group('base.group_system') or 
-                current_user.has_group('ariza_onarim.group_ariza_manager') or
+        # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol
+        if not (current_user.has_group('ariza_onarim.group_ariza_manager') or
                 current_user.has_group('ariza_onarim.group_ariza_technician')):
             raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
         
@@ -1508,6 +1504,31 @@ class ArizaKayit(models.Model):
         ctx = dict(self.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
+
+    def action_print_invoice(self):
+        """
+        Fatura kalemine ait faturayı açar (form view).
+        Kullanıcı fatura formundan yazdırabilir.
+        
+        Returns:
+            dict: Fatura form view action'ı
+        """
+        if not self.invoice_line_id:
+            raise UserError(_('Fatura kalemi seçilmemiş!'))
+        
+        invoice = self.invoice_line_id.move_id
+        if not invoice:
+            raise UserError(_('Fatura kalemine ait fatura bulunamadı!'))
+        
+        # Fatura formunu aç - kullanıcı oradan yazdırabilir
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Fatura - {invoice.name}',
+            'res_model': 'account.move',
+            'res_id': invoice.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     @api.onchange('magaza_urun_id')
     def _onchange_magaza_urun_id(self):

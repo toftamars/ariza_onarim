@@ -43,6 +43,7 @@
                                 <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
                                 <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
                                 <field name="invoice_line_id" widget="many2one" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
+                                <button name="action_print_invoice" string="Faturayı Yazdır" type="object" class="btn-secondary" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('invoice_line_id', '=', False)]}" icon="fa-file-pdf-o"/>
                                 <field name="urun"/>
                                 <field name="model"/>
                                 <field name="analitik_hesap_id"/>
