@@ -703,8 +703,35 @@ class ArizaKayit(models.Model):
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in [TeknikServis.DTL_OKMEYDANI, TeknikServis.DTL_BEYOGLU]:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
             
-            # Hedef konumu güncelle (ortak metod)
-            self._update_hedef_konum()
+            # Mağaza ürünü için kaynak konum belirleme (analitik hesap seçiliyse)
+            if self.analitik_hesap_id:
+                # Önce analitik hesaptan konum_kodu field'ını al
+                konum_kodu = self.analitik_hesap_id.konum_kodu
+                # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
+                if not konum_kodu:
+                    dosya_yolu = os.path.join(
+                        os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
+                    )
+                    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
+                        self.env, self.analitik_hesap_id.name, dosya_yolu
+                    )
+
+                if konum_kodu:
+                    konum = location_helper.LocationHelper.get_location_by_name(
+                        self.env, konum_kodu
+                    )
+                    if konum:
+                        self.kaynak_konum_id = konum
+                else:
+                    # Konum kodu bulunamadı - kullanıcıya uyarı göster
+                    _logger.warning(
+                        f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} "
+                        f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
+                    )
+            
+            # Hedef konumu güncelle (teknik servis seçiliyse)
+            if self.teknik_servis:
+                self._update_hedef_konum()
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
