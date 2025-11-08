@@ -5,6 +5,7 @@ Onarım Bilgi Wizard - Onarım bilgileri girişi için wizard
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..models.ariza_constants import SMSTemplates, TeslimAlan
 
 class ArizaOnarimBilgiWizard(models.TransientModel):
     _name = 'ariza.onarim.bilgi.wizard'
@@ -92,8 +93,26 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         elif self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.state = 'teslim_edildi'
             # Adrese gönderim için teslim bilgilerini güncelle
-            ariza.teslim_alan = 'Adrese Gönderim'
+            ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+            
+            # Adrese gönderim için SMS gönder (Üçüncü SMS)
+            if ariza.partner_id and ariza.partner_id.phone and not ariza.ucuncu_sms_gonderildi:
+                from datetime import datetime
+                teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
+                
+                message = SMSTemplates.ADRESE_GONDERIM_SMS.format(
+                    musteri_adi=ariza.partner_id.name or '',
+                    urun=ariza.urun or '',
+                    teslim_tarihi=teslim_tarihi,
+                    kayit_no=ariza.name or ''
+                )
+                
+                if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
+                    message += SMSTemplates.GARANTI_EKLENTISI
+                
+                ariza._send_sms_to_customer(message)
+                ariza.ucuncu_sms_gonderildi = True
         else:
             ariza.state = 'tamamlandi'
         
