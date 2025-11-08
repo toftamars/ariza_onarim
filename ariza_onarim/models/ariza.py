@@ -49,8 +49,23 @@ class AccountAnalyticAccount(models.Model):
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
     konum_kodu = fields.Char(
         string='Konum Kodu',
-        help='Stok konumu kodu (örn: ADANA/Stok, UNIQ/Stok). Bu kod kaynak konum ve arızalı konum belirleme için kullanılır.'
+        compute='_compute_konum_kodu',
+        store=True,
+        help='Stok konumu kodu (örn: ADANA/Stok, UNIQ/Stok). Bu kod kaynak konum ve arızalı konum belirleme için kullanılır. Warehouse\'dan otomatik doldurulur.'
     )
+    
+    @api.depends('warehouse_id', 'warehouse_id.lot_stock_id')
+    def _compute_konum_kodu(self):
+        """
+        Konum kodunu warehouse'dan otomatik hesaplar.
+        Warehouse'un lot_stock_id'sinden konum adını alır.
+        """
+        for record in self:
+            if record.warehouse_id and record.warehouse_id.lot_stock_id:
+                # Warehouse'un stok konumunun adını al (örn: "ADANA/Stok")
+                record.konum_kodu = record.warehouse_id.lot_stock_id.name
+            else:
+                record.konum_kodu = False
 
     @api.model
     def _setup_zuhal_addresses(self):
@@ -620,31 +635,22 @@ class ArizaKayit(models.Model):
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                # Zuhal seçildiğinde arıza/stok konumu
+                # Zuhal Arıza Depo seçildiğinde Arıza/Stok konumu
                 ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
                     self.env
                 )
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
+            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
+                # Zuhal Nefesli seçildiğinde NFSL/Arızalı konumu
+                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
+                    self.env
+                )
+                if nfsl_konum:
+                    self.hedef_konum_id = nfsl_konum
             elif self.teknik_servis == TeknikServis.MAGAZA:
-                # Mağaza seçildiğinde [KOD]/arızalı konumu (konum_kodu gerekli)
-                if self.analitik_hesap_id:
-                    # Önce analitik hesaptan konum_kodu field'ını al
-                    konum_kodu = self.analitik_hesap_id.konum_kodu
-                    # Eğer field'da yoksa, dosyadan okumayı dene (fallback)
-                    if not konum_kodu:
-                        dosya_yolu = os.path.join(
-                            os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                        )
-                        konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                            self.env, self.analitik_hesap_id.name, dosya_yolu
-                        )
-                    if konum_kodu:
-                        arizali_konum = location_helper.LocationHelper.get_arizali_location(
-                            self.env, konum_kodu
-                        )
-                        if arizali_konum:
-                            self.hedef_konum_id = arizali_konum
+                # Mağaza seçildiğinde hedef konum boş olmalı
+                self.hedef_konum_id = False
         
         # Mağaza ürünü için hedef konum ayarları
         elif self.ariza_tipi == ArizaTipi.MAGAZA:
@@ -750,6 +756,12 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if konum:
                     self.kaynak_konum_id = konum
+            else:
+                # Konum kodu bulunamadı - kullanıcıya uyarı göster
+                _logger.warning(
+                    f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} "
+                    f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
+                )
 
         # DTL Beyoğlu adresini otomatik ekle
         if self.teknik_servis == 'dtl_beyoglu':
@@ -804,6 +816,12 @@ class ArizaKayit(models.Model):
                 )
                 if konum:
                     self.kaynak_konum_id = konum
+            else:
+                # Konum kodu bulunamadı - kullanıcıya uyarı göster
+                _logger.warning(
+                    f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} "
+                    f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
+                )
 
             # Hedef konumu güncelle (ortak metod - sadece mağaza ürünü için)
             if self.ariza_tipi == ArizaTipi.MAGAZA:
