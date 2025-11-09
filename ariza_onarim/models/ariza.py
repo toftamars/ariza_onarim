@@ -449,7 +449,7 @@ class ArizaKayit(models.Model):
                 # Chatter'a arıza tanımını içeren mesaj ekle
                 ariza_tanimi = record.ariza_tanimi or "Arıza tanımı belirtilmemiş"
                 chatter_mesaji = f"Arıza Tanımı: {ariza_tanimi}"
-                record.message_post(body=chatter_mesaji)
+                record.message_post(body=chatter_mesaji, message_type='notification')
                 
             except Exception as e:
                 _logger.error(f"Chatter mesajı eklenemedi: {record.name} - {str(e)}")
@@ -489,7 +489,7 @@ class ArizaKayit(models.Model):
         
         # Arıza kaydını onayla
         self.state = ArizaStates.ONAYLANDI
-        self.message_post(body=_('Arıza kaydı onaylandı ve onarım süreci aktif hale getirildi.'))
+        self.message_post(body=_('Arıza kaydı onaylandı ve onarım süreci aktif hale getirildi.'), message_type='notification')
         _logger.info(f"Arıza kaydı onaylandı: {self.name} - Kullanıcı: {current_user.login}")
 
     def action_onarim_baslat(self):
@@ -507,7 +507,7 @@ class ArizaKayit(models.Model):
         # Onarım sürecini başlat
         self.onarim_baslangic_tarihi = fields.Date.today()
         self.onarim_durumu = 'devam_ediyor'
-        self.message_post(body=_('Onarım süreci başlatıldı.'))
+        self.message_post(body=_('Onarım süreci başlatıldı.'), message_type='notification')
         _logger.info(f"Onarım süreci başlatıldı: {self.name} - Kullanıcı: {current_user.login}")
 
     @api.depends('invoice_line_id')
@@ -1303,7 +1303,7 @@ class ArizaKayit(models.Model):
                 _logger.error(f"Sürücü ataması başarısız: {self.name} - Transfer: {picking.name if picking else 'Yok'} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)} - Hata Tipi: {type(e).__name__}")
                 # Hata mesajını chatter'a da ekle
                 try:
-                    picking.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
+                    picking.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}", message_type='notification')
                 except Exception as chatter_error:
                     _logger.warning(f"Chatter mesajı eklenemedi (sürücü ataması hatası): {str(chatter_error)} - Transfer: {picking.name if picking else 'N/A'}")
         
@@ -1346,7 +1346,8 @@ class ArizaKayit(models.Model):
                  f"Hedef: {hedef.display_name}<br/>"
                  f"Tarih: {fields.Date.today()}<br/>"
                  f"Durum: {durum}<br/>"
-                 f"SMS Gönderildi: {sms_bilgi}"
+                 f"SMS Gönderildi: {sms_bilgi}",
+            message_type='notification'
         )
         return picking
 
@@ -1360,7 +1361,7 @@ class ArizaKayit(models.Model):
             self.env, self.partner_id, message, self.name
         )
         if sms_sent:
-            self.message_post(body=f"SMS başarıyla gönderildi: {message}")
+            self.message_post(body=f"SMS başarıyla gönderildi: {message}", message_type='notification')
             
 
     # NOT: _create_delivery_order fonksiyonu kaldırıldı
@@ -1492,7 +1493,8 @@ class ArizaKayit(models.Model):
                 # Teknik onarım başlatma bildirimi
                 record.message_post(
                     body=f"Teknik onarım süreci başlatıldı. Sorumlu: {record.sorumlu_id.name}",
-                    subject="Teknik Onarım Başlatıldı"
+                    subject="Teknik Onarım Başlatıldı",
+                    message_type='notification'
                 )
 
     def action_onayla(self):
@@ -1528,7 +1530,8 @@ class ArizaKayit(models.Model):
         # İptal mesajı gönder
         self.message_post(
             body=_('Arıza kaydı iptal edildi.'),
-            subject="Arıza Kaydı İptal Edildi"
+            subject="Arıza Kaydı İptal Edildi",
+            message_type='notification'
         )
         
         # Log kaydı
@@ -1800,7 +1803,7 @@ class ArizaKayit(models.Model):
                 _logger.error(f"Sürücü ataması başarısız (Teslim Al): {self.name} - Transfer: {tamir_alim_transfer.name if tamir_alim_transfer else 'Yok'} - Sürücü: {driver_partner.name if driver_partner else 'Bulunamadı'} - Hata: {str(e)} - Hata Tipi: {type(e).__name__}")
                 # Hata mesajını chatter'a da ekle
                 try:
-                    tamir_alim_transfer.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}")
+                    tamir_alim_transfer.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}", message_type='notification')
                 except Exception as chatter_error:
                     _logger.warning(f"Chatter mesajı eklenemedi (teslim al sürücü ataması hatası): {str(chatter_error)} - Transfer: {tamir_alim_transfer.name if tamir_alim_transfer else 'N/A'}")
         
@@ -1856,7 +1859,8 @@ class ArizaKayit(models.Model):
         
         self.message_post(
             body=transfer_bilgisi,
-            subject="Mağaza Ürünü Teslim Alındı - Tamir Alımlar Transferi Oluşturuldu"
+            subject="Mağaza Ürünü Teslim Alındı - Tamir Alımlar Transferi Oluşturuldu",
+            message_type='notification'
         )
         
         # Tamir Alımlar transferine yönlendir
@@ -1899,7 +1903,8 @@ class ArizaKayit(models.Model):
                 # Chatter'a mesaj ekle
                 record.message_post(
                     body=f"Teslim Al butonuna basıldı. Müşteriye 2. SMS gönderildi: {message}",
-                    subject="Teslim Al - 2. SMS Gönderildi"
+                    subject="Teslim Al - 2. SMS Gönderildi",
+                    message_type='notification'
                 )
             elif record.ikinci_sms_gonderildi:
                 raise UserError(_('2. SMS zaten gönderilmiş. Tekrar gönderilemez.'))

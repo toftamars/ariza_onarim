@@ -123,21 +123,24 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         
         # Mağaza ürünü işlemleri için 2. transfer artık kullanıcı "Teslim AL" butonuna bastığında oluşacak
         
-        # Mesaj gönder
+        # Mesaj gönder (mail gönderilmesin)
         if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.message_post(
                 body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Adrese gönderim seçildi. Durum otomatik olarak 'Teslim Edildi' olarak güncellendi.",
-                subject="Onarım Tamamlandı - Adrese Gönderim"
+                subject="Onarım Tamamlandı - Adrese Gönderim",
+                message_type='notification'
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
                 body=f"Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.",
-                subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor"
+                subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor",
+                message_type='notification'
             )
         else:
             ariza.message_post(
                 body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
-                subject="Onarım Tamamlandı"
+                subject="Onarım Tamamlandı",
+                message_type='notification'
             )
         
         return {'type': 'ir.actions.act_window_close'} 

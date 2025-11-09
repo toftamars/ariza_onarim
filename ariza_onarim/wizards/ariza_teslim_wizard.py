@@ -97,10 +97,11 @@ class ArizaTeslimWizard(models.TransientModel):
             ariza._send_sms_to_customer(message)
             ariza.ucuncu_sms_gonderildi = True
         
-        # Chatter'a mesaj ekle
+        # Chatter'a mesaj ekle (mail gönderilmesin)
         ariza.message_post(
             body=f"Ürün teslim edildi. Teslim alan: {self.teslim_alan}. SMS gönderildi.",
-            subject="Ürün Teslim Edildi"
+            subject="Ürün Teslim Edildi",
+            message_type='notification'
         )
         
         return {'type': 'ir.actions.act_window_close'} 

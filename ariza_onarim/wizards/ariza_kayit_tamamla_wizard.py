@@ -36,7 +36,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     'transfer_sayisi': ariza.transfer_sayisi + 1,
                 })
                 
-                # SMS ve Email gönderimi
+                # SMS gönderimi (Email gönderimi kaldırıldı)
                 if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
                     if ariza.partner_id.phone:
                         # SMS gönderimi
@@ -57,33 +57,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                         
                         ariza._send_sms_to_customer(sms_mesaji)
                     
-                    if ariza.partner_id.email:
-                        # Email gönderimi
-                        if ariza.ariza_tipi == 'musteri':
-                            subject = f"Ürününüz Teslim Edilmeye Hazır: {ariza.name}"
-                            body = f"""
-                            Sayın {ariza.partner_id.name},
-                            
-                            {ariza.urun} ürününüz teslim edilmeye hazırdır. 
-                            Ürününüzü mağazamızdan teslim alabilirsiniz.
-                            
-                            Arıza No: {ariza.name}
-                            
-                            Saygılarımızla,
-                            B021
-                            """
-                        else: # ariza.ariza_tipi == 'magaza'
-                            subject = f"Ürününüz Teslim Edildi: {ariza.name}"
-                            body = f"""
-                            Sayın {ariza.partner_id.name},
-                            
-                            {ariza.urun} ürününüz teslim edilmiştir.
-                            
-                            Arıza No: {ariza.name}
-                            
-                            Saygılarımızla,
-                            B021
-                            """
+                    # Email gönderimi kaldırıldı - Mail gönderilmesin
                         
                 
                 # 2. transfer oluşturulduğunda transfer'e yönlendir (ilk transferdeki gibi)
