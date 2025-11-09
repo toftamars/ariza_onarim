@@ -49,6 +49,9 @@
                                     <li><strong>Kullanıcı (Arıza Onarım / Kullanıcı):</strong> Arıza kaydı oluşturabilir, görüntüleyebilir ve bazı işlemleri gerçekleştirebilir.</li>
                                     <li><strong>Yönetici (Arıza Onarım / Yönetici):</strong> Tüm işlemleri yapabilir, onarım süreçlerini yönetebilir ve onaylayabilir.</li>
                                 </ul>
+                                <p style="font-size: 15px; margin-top: 15px; padding: 10px; background-color: #d4edda; border-radius: 5px; border-left: 4px solid #28a745;">
+                                    <strong>ℹ️ Otomatik Grup Ataması:</strong> Modül yüklendiğinde tüm iç kullanıcılar otomatik olarak "Arıza Onarım / Kullanıcı" grubuna eklenir. Bir kullanıcıyı bu gruptan çıkarırsanız, o kullanıcı modülü göremez.
+                                </p>
                             </div>
                         </div>
 
@@ -289,6 +292,9 @@
                                 <p style="font-size: 15px; margin-bottom: 15px;">
                                     <strong>Sadece müşteri ürünü için SMS gönderilir.</strong> Mağaza ürünü için SMS gönderilmez.
                                 </p>
+                                <p style="font-size: 15px; margin-top: 15px; padding: 10px; background-color: #fff3cd; border-radius: 5px;">
+                                    <strong>⚠️ Önemli:</strong> SMS gönderimi için müşterinin telefon numarası kayıtlı olmalıdır. Telefon numarası yoksa SMS gönderilmez ancak işlem devam eder.
+                                </p>
                             </div>
 
                             <div style="background-color: #fff; border: 2px solid #03a9f4; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
@@ -350,6 +356,26 @@
                                     Eğer garanti kapsamında veya ürün değişimi varsa: <strong>"Ürününüzün değişimi sağlanmıştır."</strong> cümlesi SMS'in sonuna eklenir.
                                 </p>
                             </div>
+
+                            <div style="background-color: #fff; border: 2px solid #9c27b0; border-radius: 8px; padding: 20px; margin-top: 20px;">
+                                <h3 style="color: #7b1fa2; margin-bottom: 15px; font-size: 20px;">4️⃣ Adrese Gönderim SMS - Özel Format</h3>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>Ne Zaman Gönderilir?</strong></p>
+                                <p style="font-size: 15px; margin-bottom: 15px; padding-left: 20px;">
+                                    ✅ "Onarımı Tamamla ve SMS Gönder" wizard'ında "Adresime Gönderilsin" seçeneği işaretlendiğinde ve kaydedildiğinde
+                                </p>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>SMS Şablonu:</strong></p>
+                                <div style="background-color: #f3e5f5; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 13px; border-left: 4px solid #9c27b0; margin-bottom: 15px;">
+                                    "Sayın [Müşteri Adı]. [Ürün] ürününüz adresinize gönderilmiştir. [Tarih] tarihinde. Kayıt No: [Arıza No] B021"
+                                </div>
+                                <p style="font-size: 15px; margin-bottom: 10px;"><strong>📱 Örnek SMS:</strong></p>
+                                <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; border-left: 4px solid #ffc107; line-height: 1.6;">
+                                    <strong>Sayın Ayşe Demir. Stanley The AeroLight™ Transit Mug .35L ürününüz adresinize gönderilmiştir. 15.11.2025 14:30 tarihinde. Kayıt No: ARZ/2025/00017 B021</strong>
+                                </div>
+                                <p style="font-size: 15px; margin-top: 15px; margin-bottom: 10px;"><strong>ℹ️ Önemli Not:</strong></p>
+                                <p style="font-size: 15px; padding-left: 20px;">
+                                    Adrese gönderim seçildiğinde durum otomatik olarak <strong>"Teslim Edildi"</strong> olur ve SMS otomatik gönderilir. "Teslim Al" ve "Teslim Et" butonları görünmez.
+                                </p>
+                            </div>
                         </div>
 
                         <!-- ÖRNEKLER -->
@@ -399,18 +425,30 @@
                                 <div style="background-color: #fff3e0; padding: 15px; border-radius: 5px;">
                                     <p style="font-size: 15px; margin-bottom: 15px;"><strong>Senaryo:</strong> Müşteri Ayşe Demir'in ürünü garanti kapsamında, adresine gönderilecek.</p>
                                     <ol style="font-size: 15px; line-height: 2;">
-                                        <li>Kullanıcı arıza kaydı oluşturur ve onaylar</li>
-                                        <li>Yönetici onarımı tamamlar</li>
-                                        <li>Yönetici "Onarımı Tamamla ve SMS Gönder" wizard'ında:
+                                        <li>Kullanıcı yeni arıza kaydı oluşturur:
                                             <ul style="margin-left: 20px; margin-top: 5px;">
-                                                <li>Garanti Kapsamında: Evet</li>
-                                                <li>Adresime Gönderilsin: ✅ İşaretler</li>
-                                                <li>Teslimat Adresi seçer</li>
+                                                <li>Arıza Tipi: Müşteri Ürünü</li>
+                                                <li>Müşteri: Ayşe Demir</li>
+                                                <li>Ürün: Ürün bilgileri girilir</li>
+                                                <li>Teknik Servis: DTL BEYOĞLU</li>
                                             </ul>
                                         </li>
-                                        <li>Durum otomatik olarak <span style="color: #27ae60;">Teslim Edildi</span> olur (adrese gönderim için)</li>
-                                        <li><strong>Not:</strong> Adrese gönderim için "Teslim Al" ve "Teslim Et" butonları görünmez</li>
+                                        <li>"Onayla" butonuna basar → <span style="color: #3498db;">İlk SMS gönderilir</span> → Transfer oluşturulur</li>
+                                        <li>Yönetici onarımı başlatır ve tamamlar</li>
+                                        <li>Yönetici "Onarımı Tamamla ve SMS Gönder" wizard'ında:
+                                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                                <li>Onarım Bilgisi: "Ürün değişimi yapıldı"</li>
+                                                <li>Garanti Kapsamında: Evet (otomatik olarak ücret 0 olur)</li>
+                                                <li>Adresime Gönderilsin: ✅ İşaretler</li>
+                                                <li>Teslimat Adresi: Ayşe Demir'in adresi seçilir</li>
+                                            </ul>
+                                        </li>
+                                        <li>Durum otomatik olarak <span style="color: #27ae60;">Teslim Edildi</span> olur</li>
+                                        <li><span style="color: #3498db;">Adrese Gönderim SMS'i otomatik gönderilir</span> (3. SMS - özel format)</li>
+                                        <li><strong>Not:</strong> Adrese gönderim için "Teslim Al" ve "Teslim Et" butonları görünmez, SMS otomatik gönderilir</li>
                                     </ol>
+                                    <p style="font-size: 15px; margin-top: 15px; padding: 10px; background-color: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;"><strong>📱 Adrese Gönderim SMS Örneği:</strong><br/>
+                                    <em>"Sayın Ayşe Demir. [Ürün] ürününüz adresinize gönderilmiştir. 15.11.2025 14:30 tarihinde. Kayıt No: ARZ/2025/00017 B021"</em></p>
                                 </div>
                             </div>
 
