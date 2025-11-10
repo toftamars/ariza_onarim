@@ -1188,7 +1188,7 @@ class ArizaKayit(models.Model):
             # İkinci transfer: Gönderen = Teknik servis/tedarikçi, Gönderi = Mağaza
             if magaza_partner:
                 picking_vals['partner_id'] = magaza_partner.id
-                else:
+        else:
             # Varsayılan: partner_id'yi teknik servis/tedarikçi olarak ayarla
             if teknik_servis_partner:
                 picking_vals['partner_id'] = teknik_servis_partner.id
