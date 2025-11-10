@@ -1169,7 +1169,7 @@ class ArizaKayit(models.Model):
         teknik_servis_partner = False
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
             teknik_servis_partner = self.tedarikci_id
-                else:
+        else:
             # Partner bulma - Helper kullanımı (DTL, Zuhal için)
             teknik_servis_partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
                 self.env, self.teknik_servis
