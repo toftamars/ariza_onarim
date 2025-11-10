@@ -757,7 +757,7 @@ class ArizaKayit(models.Model):
 
         # Mağaza ürünü için kaynak konum belirleme (analitik hesap seçiliyse)
         if self.ariza_tipi == ArizaTipi.MAGAZA and self.analitik_hesap_id:
-        konum_kodu = None
+            konum_kodu = None
             # Önce warehouse'dan direkt oku (computed field henüz hesaplanmamış olabilir)
             if self.analitik_hesap_id.warehouse_id and self.analitik_hesap_id.warehouse_id.lot_stock_id:
                 konum_kodu = self.analitik_hesap_id.warehouse_id.lot_stock_id.name
@@ -773,12 +773,12 @@ class ArizaKayit(models.Model):
                     self.env, self.analitik_hesap_id.name, dosya_yolu
                 )
 
-        if konum_kodu:
+            if konum_kodu:
                 konum = location_helper.LocationHelper.get_location_by_name(
                     self.env, konum_kodu
                 )
-            if konum:
-                self.kaynak_konum_id = konum
+                if konum:
+                    self.kaynak_konum_id = konum
                     _logger.info(f"Kaynak konum belirlendi: {konum_kodu} -> {konum.name}")
                 else:
                     _logger.warning(f"Konum bulunamadı: {konum_kodu}")
@@ -1195,7 +1195,7 @@ class ArizaKayit(models.Model):
         teknik_servis_partner = False
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
             teknik_servis_partner = self.tedarikci_id
-                else:
+        else:
             # Partner bulma - Helper kullanımı (DTL, Zuhal için)
             teknik_servis_partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
                 self.env, self.teknik_servis
@@ -1214,7 +1214,7 @@ class ArizaKayit(models.Model):
             # İkinci transfer: Gönderen = Teknik servis/tedarikçi, Gönderi = Mağaza
             if magaza_partner:
                 picking_vals['partner_id'] = magaza_partner.id
-                else:
+        else:
             # Varsayılan: partner_id'yi teknik servis/tedarikçi olarak ayarla
             if teknik_servis_partner:
                 picking_vals['partner_id'] = teknik_servis_partner.id
@@ -1751,9 +1751,9 @@ class ArizaKayit(models.Model):
         
         # edespatch_delivery_type'ı her zaman 'printed' (matbu) olarak ayarla
         if tamir_alim_transfer:
-        tamir_alim_transfer.sudo().write({
+            tamir_alim_transfer.sudo().write({
                 'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
-        })
+            })
         
         # Sürücü ataması - Standart Odoo davranışı (create sonrası)
         # driver_ids One2many ilişki olduğu için vehicle_id ile birlikte eklenmeli
@@ -1777,12 +1777,12 @@ class ArizaKayit(models.Model):
                 
                 # driver_ids One2many ise bu format kullanılmalı
                 _logger.info(f"Sürücü ataması yapılıyor (Teslim Al): {self.name} - Sürücü ID: {driver_partner.id} - Vehicle ID: {vehicle_id_val}")
-            tamir_alim_transfer.sudo().write({
+                tamir_alim_transfer.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
                         'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
                     })]
-            })
+                })
                 _logger.info(f"Sürücü ataması başarılı (Teslim Al): {self.name} - Transfer: {tamir_alim_transfer.name}")
             except Exception as e:
                 # Hata durumunda detaylı logla
@@ -2066,13 +2066,13 @@ class StockPicking(models.Model):
                     # Sadece arıza kayıtlarından gelen transferler için arıza kaydına dön
                     # Diğer transferler için normal davranışı sürdür
                     if len(self) == 1:  # Tek bir transfer doğrulanıyorsa
-                    return {
-                        'type': 'ir.actions.act_window',
-                        'res_model': 'ariza.kayit',
-                        'res_id': ariza.id,
-                        'view_mode': 'form',
-                        'target': 'current',
-                    }
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
         
         # Normal davranışı sürdür (modül dışı transferler için)
         return result 
