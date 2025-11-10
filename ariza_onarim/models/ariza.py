@@ -1725,7 +1725,7 @@ class ArizaKayit(models.Model):
         
         # edespatch_delivery_type'ı her zaman 'printed' (matbu) olarak ayarla
         if tamir_alim_transfer:
-        tamir_alim_transfer.sudo().write({
+            tamir_alim_transfer.sudo().write({
                 'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
             })
         
