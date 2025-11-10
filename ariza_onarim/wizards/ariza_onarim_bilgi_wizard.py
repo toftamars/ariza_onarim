@@ -97,7 +97,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
             
             # Adrese gönderim için SMS gönder (Üçüncü SMS)
-            if ariza.partner_id and ariza.partner_id.phone and not ariza.ucuncu_sms_gonderildi:
+            if ariza.partner_id and (ariza.partner_id.phone or ariza.partner_id.mobile) and not ariza.ucuncu_sms_gonderildi:
                 from datetime import datetime
                 teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
                 

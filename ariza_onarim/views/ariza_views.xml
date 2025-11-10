@@ -268,7 +268,7 @@
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
                                 <field name="seri_no"/>
-                                <field name="notlar"/>
+                                <field name="notlar" required="1"/>
                             </group>
                         </page>
 

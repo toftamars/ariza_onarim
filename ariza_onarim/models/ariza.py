@@ -226,7 +226,7 @@ class ArizaKayit(models.Model):
     )
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     seri_no = fields.Char(string='Seri No', tracking=True)
-    notlar = fields.Text(string='Notlar')
+    notlar = fields.Text(string='Notlar', required=True)
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id', tracking=True)
@@ -656,6 +656,7 @@ class ArizaKayit(models.Model):
         
         # Mağaza ürünü için hedef konum ayarları
         elif self.ariza_tipi == ArizaTipi.MAGAZA:
+            _logger.info(f"Mağaza ürünü için hedef konum belirleniyor - Teknik Servis: {self.teknik_servis}")
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
                 # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
@@ -663,7 +664,7 @@ class ArizaKayit(models.Model):
                 )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
-                    _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
+                    _logger.info(f"Hedef konum başarıyla belirlendi (DTL): {dtl_konum.name} (ID: {dtl_konum.id})")
                 else:
                     _logger.warning("DTL/Stok konumu bulunamadı")
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
@@ -673,6 +674,9 @@ class ArizaKayit(models.Model):
                 )
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
+                    _logger.info(f"Hedef konum başarıyla belirlendi (Arıza/Stok): {ariza_konum.name} (ID: {ariza_konum.id})")
+                else:
+                    _logger.warning("Arıza/Stok konumu bulunamadı")
             elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
                 # ZUHAL NEFESLİ → NFSL/Arızalı
                 nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
@@ -680,10 +684,18 @@ class ArizaKayit(models.Model):
                 )
                 if nfsl_konum:
                     self.hedef_konum_id = nfsl_konum
+                    _logger.info(f"Hedef konum başarıyla belirlendi (NFSL/Arızalı): {nfsl_konum.name} (ID: {nfsl_konum.id})")
+                else:
+                    _logger.warning("NFSL/Arızalı konumu bulunamadı")
             elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
                 # TEDARİKÇİ → tedarikçi konumu
                 if self.tedarikci_id.property_stock_supplier:
                     self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+                    _logger.info(f"Hedef konum başarıyla belirlendi (Tedarikçi): {self.tedarikci_id.property_stock_supplier.name} (ID: {self.tedarikci_id.property_stock_supplier.id})")
+                else:
+                    _logger.warning(f"Tedarikçi konumu bulunamadı - Tedarikçi: {self.tedarikci_id.name}")
+            else:
+                _logger.warning(f"Teknik servis için hedef konum belirlenemedi - Teknik Servis: {self.teknik_servis}")
 
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
@@ -708,43 +720,8 @@ class ArizaKayit(models.Model):
             if self.teslim_magazasi_id and self.teslim_magazasi_id.name in [TeknikServis.DTL_OKMEYDANI, TeknikServis.DTL_BEYOGLU]:
                 self.teslim_adresi = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
             
-            # Mağaza ürünü için kaynak konum belirleme (analitik hesap seçiliyse)
-            if self.analitik_hesap_id:
-                konum_kodu = None
-                # Önce warehouse'dan direkt oku (computed field henüz hesaplanmamış olabilir)
-                if self.analitik_hesap_id.warehouse_id and self.analitik_hesap_id.warehouse_id.lot_stock_id:
-                    konum_kodu = self.analitik_hesap_id.warehouse_id.lot_stock_id.name
-                # Eğer warehouse'dan yoksa, computed field'dan oku
-                if not konum_kodu:
-                    konum_kodu = self.analitik_hesap_id.konum_kodu
-                # Eğer hala yoksa, dosyadan okumayı dene (fallback)
-                if not konum_kodu:
-                    dosya_yolu = os.path.join(
-                        os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                    )
-                    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                        self.env, self.analitik_hesap_id.name, dosya_yolu
-                    )
-
-                if konum_kodu:
-                    konum = location_helper.LocationHelper.get_location_by_name(
-                        self.env, konum_kodu
-                    )
-                    if konum:
-                        self.kaynak_konum_id = konum
-                        _logger.info(f"Kaynak konum belirlendi: {konum_kodu} -> {konum.name}")
-                    else:
-                        _logger.warning(f"Konum bulunamadı: {konum_kodu}")
-                else:
-                    # Konum kodu bulunamadı - kullanıcıya uyarı göster
-                    _logger.warning(
-                        f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} "
-                        f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
-                    )
-            
-            # Mağaza ürünü için konumları güncelle
-            if self.ariza_tipi == ArizaTipi.MAGAZA:
-                self._onchange_magaza_konumlar()
+            # Mağaza ürünü için konumları güncelle (merkezi metod kullan)
+            self._onchange_magaza_konumlar()
         elif self.ariza_tipi == 'teknik':
             self.partner_id = False
             self.urun = False
@@ -768,40 +745,6 @@ class ArizaKayit(models.Model):
         # İşlem tipi kontrolü - sadece MAĞAZA VE TEDARİKÇİ seçildiğinde ek seçenekler
         if self.teknik_servis not in [TeknikServis.MAGAZA, TeknikServis.TEDARIKCI] and self.islem_tipi not in [IslemTipi.ARIZA_KABUL]:
             self.islem_tipi = IslemTipi.ARIZA_KABUL
-
-        # Mağaza ürünü için kaynak konum belirleme (analitik hesap seçiliyse)
-        if self.ariza_tipi == ArizaTipi.MAGAZA and self.analitik_hesap_id:
-            konum_kodu = None
-            # Önce warehouse'dan direkt oku (computed field henüz hesaplanmamış olabilir)
-            if self.analitik_hesap_id.warehouse_id and self.analitik_hesap_id.warehouse_id.lot_stock_id:
-                konum_kodu = self.analitik_hesap_id.warehouse_id.lot_stock_id.name
-            # Eğer warehouse'dan yoksa, computed field'dan oku
-            if not konum_kodu:
-                konum_kodu = self.analitik_hesap_id.konum_kodu
-            # Eğer hala yoksa, dosyadan okumayı dene (fallback)
-            if not konum_kodu:
-                dosya_yolu = os.path.join(
-                    os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                )
-                konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                    self.env, self.analitik_hesap_id.name, dosya_yolu
-                )
-
-            if konum_kodu:
-                konum = location_helper.LocationHelper.get_location_by_name(
-                    self.env, konum_kodu
-                )
-                if konum:
-                    self.kaynak_konum_id = konum
-                    _logger.info(f"Kaynak konum belirlendi: {konum_kodu} -> {konum.name}")
-                else:
-                    _logger.warning(f"Konum bulunamadı: {konum_kodu}")
-            else:
-                # Konum kodu bulunamadı - kullanıcıya uyarı göster
-                _logger.warning(
-                    f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} "
-                    f"(ID: {self.analitik_hesap_id.id}). Warehouse atanmış mı kontrol edin."
-                )
 
         # DTL Beyoğlu adresini otomatik ekle
         if self.teknik_servis == 'dtl_beyoglu':
@@ -828,7 +771,7 @@ class ArizaKayit(models.Model):
             
             self.tedarikci_adresi = ', '.join(adres_parcalari) if adres_parcalari else ''
 
-        # Mağaza ürünü için konumları güncelle
+        # Mağaza ürünü için konumları güncelle (merkezi metod kullan)
         if self.ariza_tipi == ArizaTipi.MAGAZA:
             self._onchange_magaza_konumlar()
 
@@ -839,15 +782,20 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi != ArizaTipi.MAGAZA:
             return
         
+        _logger.info(f"_onchange_magaza_konumlar çağrıldı - Analitik Hesap: {self.analitik_hesap_id.name if self.analitik_hesap_id else 'Yok'}, Teknik Servis: {self.teknik_servis}")
+        
         # Kaynak konum belirleme (analitik hesap seçiliyse)
         if self.analitik_hesap_id:
             konum_kodu = None
             # Önce warehouse'dan direkt oku
             if self.analitik_hesap_id.warehouse_id and self.analitik_hesap_id.warehouse_id.lot_stock_id:
                 konum_kodu = self.analitik_hesap_id.warehouse_id.lot_stock_id.name
+                _logger.info(f"Konum kodu warehouse'dan alındı: {konum_kodu}")
             # Eğer warehouse'dan yoksa, computed field'dan oku
             if not konum_kodu:
                 konum_kodu = self.analitik_hesap_id.konum_kodu
+                if konum_kodu:
+                    _logger.info(f"Konum kodu computed field'dan alındı: {konum_kodu}")
             # Eğer hala yoksa, dosyadan okumayı dene (fallback)
             if not konum_kodu:
                 dosya_yolu = os.path.join(
@@ -856,6 +804,8 @@ class ArizaKayit(models.Model):
                 konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
                     self.env, self.analitik_hesap_id.name, dosya_yolu
                 )
+                if konum_kodu:
+                    _logger.info(f"Konum kodu dosyadan alındı: {konum_kodu}")
 
             if konum_kodu:
                 konum = location_helper.LocationHelper.get_location_by_name(
@@ -863,10 +813,20 @@ class ArizaKayit(models.Model):
                 )
                 if konum:
                     self.kaynak_konum_id = konum
+                    _logger.info(f"Kaynak konum başarıyla belirlendi: {konum.name} (ID: {konum.id})")
+                else:
+                    _logger.warning(f"Konum bulunamadı - Konum Kodu: {konum_kodu}")
+            else:
+                _logger.warning(f"Konum kodu bulunamadı - Analitik Hesap: {self.analitik_hesap_id.name} (ID: {self.analitik_hesap_id.id})")
+        else:
+            _logger.warning("Analitik hesap seçilmedi - kaynak konum belirlenemiyor")
 
         # Hedef konum belirleme (teknik servis seçiliyse)
         if self.teknik_servis:
+            _logger.info(f"Hedef konum belirleniyor - Teknik Servis: {self.teknik_servis}")
             self._update_hedef_konum()
+        else:
+            _logger.warning("Teknik servis seçilmedi - hedef konum belirlenemiyor")
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):
@@ -874,7 +834,7 @@ class ArizaKayit(models.Model):
         self.teslim_adresi = ''
         self.tedarikci_telefon = ''
         self.tedarikci_email = ''
-        
+
         # Analitik hesaptan adres bilgilerini al
         if self.analitik_hesap_id:
             if self.analitik_hesap_id.adres:
@@ -1176,7 +1136,7 @@ class ArizaKayit(models.Model):
             
             if edespatch_sequence:
                 edespatch_number_sequence_id = edespatch_sequence.id
-        
+
         # Transfer oluştur - try-except ile güvenlik hatası yakalama
         picking_vals = {
             'picking_type_id': picking_type.id,
@@ -1209,7 +1169,7 @@ class ArizaKayit(models.Model):
         teknik_servis_partner = False
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
             teknik_servis_partner = self.tedarikci_id
-        else:
+                else:
             # Partner bulma - Helper kullanımı (DTL, Zuhal için)
             teknik_servis_partner = partner_helper.PartnerHelper.get_partner_by_teknik_servis(
                 self.env, self.teknik_servis
@@ -1228,7 +1188,7 @@ class ArizaKayit(models.Model):
             # İkinci transfer: Gönderen = Teknik servis/tedarikçi, Gönderi = Mağaza
             if magaza_partner:
                 picking_vals['partner_id'] = magaza_partner.id
-        else:
+                else:
             # Varsayılan: partner_id'yi teknik servis/tedarikçi olarak ayarla
             if teknik_servis_partner:
                 picking_vals['partner_id'] = teknik_servis_partner.id
@@ -1355,7 +1315,7 @@ class ArizaKayit(models.Model):
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != ArizaTipi.MUSTERI:
             return
-        
+            
         # SMS gönderme - Helper kullanımı
         sms_sent = sms_helper.SMSHelper.send_sms(
             self.env, self.partner_id, message, self.name
@@ -1765,7 +1725,7 @@ class ArizaKayit(models.Model):
         
         # edespatch_delivery_type'ı her zaman 'printed' (matbu) olarak ayarla
         if tamir_alim_transfer:
-            tamir_alim_transfer.sudo().write({
+        tamir_alim_transfer.sudo().write({
                 'edespatch_delivery_type': 'printed'  # Odoo standardı: 'printed' = Matbu
             })
         
@@ -1791,7 +1751,7 @@ class ArizaKayit(models.Model):
                 
                 # driver_ids One2many ise bu format kullanılmalı
                 _logger.info(f"Sürücü ataması yapılıyor (Teslim Al): {self.name} - Sürücü ID: {driver_partner.id} - Vehicle ID: {vehicle_id_val}")
-                tamir_alim_transfer.sudo().write({
+            tamir_alim_transfer.sudo().write({
                     'driver_ids': [(0, 0, {
                         'driver_id': driver_partner.id,
                         'vehicle_id': vehicle_id_val,  # Otomatik ID ataması
@@ -1871,7 +1831,7 @@ class ArizaKayit(models.Model):
             'view_mode': 'form',
             'context': {'hide_note': True},
             'target': 'current',
-        }
+        } 
 
     def action_teslim_al_musteri(self):
         """Müşteri ürünü için Teslim Al butonu - 2. SMS gönderir"""
@@ -1885,7 +1845,7 @@ class ArizaKayit(models.Model):
                 raise UserError(_('Bu işlem sadece tamamlandı durumundaki kayıtlar için kullanılabilir.'))
             
             # 2. SMS gönderimi - Müşteriye teslim edilmeye hazır bilgisi
-            if record.partner_id and record.partner_id.phone and not record.ikinci_sms_gonderildi:
+            if record.partner_id and (record.partner_id.phone or record.partner_id.mobile) and not record.ikinci_sms_gonderildi:
                 # Mağaza adını temizle
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
@@ -2080,13 +2040,13 @@ class StockPicking(models.Model):
                     # Sadece arıza kayıtlarından gelen transferler için arıza kaydına dön
                     # Diğer transferler için normal davranışı sürdür
                     if len(self) == 1:  # Tek bir transfer doğrulanıyorsa
-                        return {
-                            'type': 'ir.actions.act_window',
-                            'res_model': 'ariza.kayit',
-                            'res_id': ariza.id,
-                            'view_mode': 'form',
-                            'target': 'current',
-                        }
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'res_model': 'ariza.kayit',
+                        'res_id': ariza.id,
+                        'view_mode': 'form',
+                        'target': 'current',
+                    }
         
         # Normal davranışı sürdür (modül dışı transferler için)
         return result 
