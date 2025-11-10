@@ -38,7 +38,7 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                 
                 # SMS gönderimi (Email gönderimi kaldırıldı)
                 if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
-                    if ariza.partner_id.phone or ariza.partner_id.mobile:
+                    if ariza.partner_id.phone:
                         # SMS gönderimi
                         # NOT: Bu wizard artık kullanılmıyor, ancak eski kod uyumluluğu için şablon kullanımına güncellendi
                         if ariza.ariza_tipi == 'musteri':

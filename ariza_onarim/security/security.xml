@@ -1,24 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Arıza Onarım Kullanıcı Grubu -->
-        <record id="group_ariza_user" model="res.groups">
-            <field name="name">Arıza Onarım / Kullanıcı</field>
-            <field name="category_id" ref="base.module_category_inventory"/>
-            <field name="comment">Arıza kayıtları oluşturabilir, görüntüleyebilir ve düzenleyebilir. Tüm iç kullanıcılar (base.group_user) bu yetkilere sahiptir.</field>
-            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
-        </record>
-
         <!-- Arıza Onarım Yönetici Grubu -->
         <record id="group_ariza_manager" model="res.groups">
             <field name="name">Arıza Onarım / Yönetici</field>
             <field name="category_id" ref="base.module_category_inventory"/>
             <field name="comment">Arıza kayıtlarını yönetebilir, onaylayabilir ve silebilir. Bu gruba kullanıcı eklemek için: Settings &gt; Users &amp; Companies &gt; Groups &gt; Arıza Onarım / Yönetici</field>
             <!-- KRİTİK GÜVENLİK: base.group_system kaldırıldı - süper kullanıcı yetkisi verilmemeli -->
-            <field name="implied_ids" eval="[(4, ref('group_ariza_user')), (4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
 
+
+        <!-- Stock picking için record rule - Company bazlı erişim -->
+        <record id="stock_picking_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Picking Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Stock move için record rule - Company bazlı erişim -->
+        <record id="stock_move_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Move Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_move"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Stock location için record rule - Company bazlı erişim -->
+        <record id="stock_location_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Location Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_location"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Stock picking type için record rule - Company bazlı erişim -->
+        <record id="stock_picking_type_ariza_rule" model="ir.rule">
+            <field name="name">Arıza Onarım - Stock Picking Type Erişimi</field>
+            <field name="model_id" ref="stock.model_stock_picking_type"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
 
         <!-- Arıza kayıtları için record rule - Company bazlı erişim -->
         <record id="ariza_kayit_rule" model="ir.rule">
