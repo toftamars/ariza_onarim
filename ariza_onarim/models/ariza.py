@@ -544,9 +544,13 @@ class ArizaKayit(models.Model):
     def _compute_beklenen_tamamlanma_tarihi(self):
         """Onarım başlangıç tarihinden belirlenen iş günü sonrasını hesapla"""
         for record in self:
-            
-            # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan, yoksa arıza tarihini kullan
-            baslangic_tarihi = record.onarim_baslangic_tarihi or record.tarih or fields.Date.today()
+            # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan
+            # Eğer onarım başlangıç tarihi yoksa, bugünden itibaren hesapla (geçmiş tarih kullanma)
+            if record.onarim_baslangic_tarihi:
+                baslangic_tarihi = record.onarim_baslangic_tarihi
+            else:
+                # Onarım başlamadıysa, bugünden itibaren hesapla
+                baslangic_tarihi = fields.Date.today()
             
             # Belirlenen iş günü sonrasını hesapla (hafta sonları hariç)
             is_gunu_sayisi = 0
