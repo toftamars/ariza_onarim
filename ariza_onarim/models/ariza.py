@@ -540,17 +540,12 @@ class ArizaKayit(models.Model):
                 record.garanti_bitis_tarihi = False
                 record.kalan_garanti = False
 
-    @api.depends('onarim_baslangic_tarihi', 'tarih')
+    @api.depends('tarih')
     def _compute_beklenen_tamamlanma_tarihi(self):
-        """Onarım başlangıç tarihinden belirlenen iş günü sonrasını hesapla"""
+        """Belge oluşturulma tarihinden belirlenen iş günü sonrasını hesapla"""
         for record in self:
-            # Başlangıç tarihi: onarım başlangıç tarihi varsa onu kullan
-            # Eğer onarım başlangıç tarihi yoksa, bugünden itibaren hesapla (geçmiş tarih kullanma)
-            if record.onarim_baslangic_tarihi:
-                baslangic_tarihi = record.onarim_baslangic_tarihi
-            else:
-                # Onarım başlamadıysa, bugünden itibaren hesapla
-                baslangic_tarihi = fields.Date.today()
+            # Başlangıç tarihi: Her zaman belge oluşturulma tarihi (tarih alanı)
+            baslangic_tarihi = record.tarih or fields.Date.today()
             
             # Belirlenen iş günü sonrasını hesapla (hafta sonları hariç)
             is_gunu_sayisi = 0
@@ -564,9 +559,9 @@ class ArizaKayit(models.Model):
             
             record.beklenen_tamamlanma_tarihi = hedef_tarih
 
-    @api.depends('onarim_baslangic_tarihi', 'beklenen_tamamlanma_tarihi')
+    @api.depends('beklenen_tamamlanma_tarihi')
     def _compute_kalan_is_gunu(self):
-        """Bugünden itibaren kalan iş günü sayısını hesapla"""
+        """Bugünden itibaren kalan iş günü sayısını hesapla - Her gün otomatik azalır"""
         for record in self:
             if record.beklenen_tamamlanma_tarihi:
                 bugun = datetime.now().date()
@@ -578,7 +573,7 @@ class ArizaKayit(models.Model):
                     if record.onarim_durumu != 'tamamlandi':
                         record.onarim_durumu = 'gecikti'
                 else:
-                    # Kalan iş günü sayısını hesapla
+                    # Kalan iş günü sayısını hesapla (bugünün tarihine göre)
                     kalan_gun = 0
                     current_date = bugun
                     
@@ -593,7 +588,7 @@ class ArizaKayit(models.Model):
                     if kalan_gun <= MagicNumbers.UYARI_IS_GUNU and record.onarim_durumu == 'beklemede':
                         record.onarim_durumu = 'devam_ediyor'
             else:
-                                    record.kalan_is_gunu = 0
+                record.kalan_is_gunu = 0
 
     @api.depends('kalan_is_gunu')
     def _compute_kalan_sure_gosterimi(self):
@@ -2053,14 +2048,17 @@ class ArizaKayit(models.Model):
         Günlük cron job - Kalan iş günü ve süre gösterimini günceller
         Bu metod her gün çalıştırılarak kalan süre bilgilerini güncel tutar
         """
-        # Beklenen tamamlanma tarihi olan ve henüz tamamlanmamış kayıtları al
+        # Henüz tamamlanmamış kayıtları al (beklenen tamamlanma tarihi olan veya olmayan)
         records = self.search([
-            ('beklenen_tamamlanma_tarihi', '!=', False),
             ('state', 'not in', ['teslim_edildi'])
         ])
         
         if records:
-            # Cache'i temizle ve compute field'ları yeniden hesapla
+            # Önce beklenen tamamlanma tarihini güncelle (onarım başlangıç tarihi olmayanlar için)
+            records.invalidate_cache(['beklenen_tamamlanma_tarihi'])
+            records._compute_beklenen_tamamlanma_tarihi()
+            
+            # Sonra kalan süreleri güncelle
             records.invalidate_cache(['kalan_is_gunu', 'kalan_sure_gosterimi'])
             records._compute_kalan_is_gunu()
             records._compute_kalan_sure_gosterimi()
