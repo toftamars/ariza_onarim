@@ -62,7 +62,7 @@ class ArizaTeslimWizard(models.TransientModel):
         ariza.state = 'teslim_edildi'
         
         # Teslim edildi SMS'i gönder (Üçüncü SMS)
-        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and ariza.partner_id.phone and not ariza.ucuncu_sms_gonderildi:
+        if ariza.ariza_tipi == 'musteri' and ariza.partner_id and (ariza.partner_id.mobile or ariza.partner_id.phone) and not ariza.ucuncu_sms_gonderildi:
             # Tarih ve saat bilgisini al
             from datetime import datetime
             teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")

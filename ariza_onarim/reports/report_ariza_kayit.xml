@@ -409,7 +409,12 @@
                         </tr>
                         <tr>
                             <td><strong>Ürün:</strong></td>
-                            <td><span t-field="o.urun"/></td>
+                            <td>
+                                <span t-if="o.ariza_tipi == 'magaza' and o.magaza_urun_adi" t-esc="o.magaza_urun_adi"/>
+                                <span t-elif="o.ariza_tipi == 'magaza' and o.magaza_urun_id" t-field="o.magaza_urun_id"/>
+                                <span t-elif="o.urun" t-field="o.urun"/>
+                                <span t-else="">-</span>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Model:</strong></td>

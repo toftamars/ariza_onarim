@@ -1871,7 +1871,7 @@ class ArizaKayit(models.Model):
                 raise UserError(_('Bu işlem sadece tamamlandı durumundaki kayıtlar için kullanılabilir.'))
             
             # 2. SMS gönderimi - Müşteriye teslim edilmeye hazır bilgisi
-            if record.partner_id and record.partner_id.phone and not record.ikinci_sms_gonderildi:
+            if record.partner_id and (record.partner_id.mobile or record.partner_id.phone) and not record.ikinci_sms_gonderildi:
                 # Mağaza adını temizle
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
@@ -2042,6 +2042,25 @@ class ArizaKayit(models.Model):
                     record.magaza_urun_adi = urun_adi
             else:
                 record.magaza_urun_adi = ''
+
+    @api.model
+    def _cron_update_kalan_sure(self):
+        """
+        Günlük cron job - Kalan iş günü ve süre gösterimini günceller
+        Bu metod her gün çalıştırılarak kalan süre bilgilerini güncel tutar
+        """
+        # Beklenen tamamlanma tarihi olan ve henüz tamamlanmamış kayıtları al
+        records = self.search([
+            ('beklenen_tamamlanma_tarihi', '!=', False),
+            ('state', 'not in', ['teslim_edildi'])
+        ])
+        
+        if records:
+            # Cache'i temizle ve compute field'ları yeniden hesapla
+            records.invalidate_cache(['kalan_is_gunu', 'kalan_sure_gosterimi'])
+            records._compute_kalan_is_gunu()
+            records._compute_kalan_sure_gosterimi()
+            _logger.info(f"Kalan süre güncellendi: {len(records)} kayıt")
 
 
 

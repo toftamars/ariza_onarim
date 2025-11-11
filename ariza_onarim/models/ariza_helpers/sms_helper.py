@@ -25,7 +25,9 @@ class SMSHelper:
         Returns:
             bool: Başarılı ise True, değilse False
         """
-        if not partner or not partner.phone:
+        # Önce mobile, yoksa phone kullan
+        phone_number = partner.mobile or partner.phone if partner else None
+        if not partner or not phone_number:
             _logger.warning(
                 f"SMS gönderilemedi: Partner veya telefon yok - "
                 f"Kayıt: {record_name}"
@@ -35,14 +37,14 @@ class SMSHelper:
         try:
             # SMS'i doğru yöntemle gönder
             sms = env['sms.sms'].create({
-                'number': partner.phone,
+                'number': phone_number,
                 'body': message,
                 'partner_id': partner.id,
             })
             sms.send()
             
             # Başarılı SMS logu
-            _logger.info(f"SMS gönderildi: {record_name} - {partner.phone}")
+            _logger.info(f"SMS gönderildi: {record_name} - {phone_number}")
             return True
             
         except Exception as e:
