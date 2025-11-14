@@ -1341,9 +1341,9 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi != ArizaTipi.MUSTERI:
             return
             
-        # SMS gönderme - Helper kullanımı
+        # SMS gönderme - Helper kullanımı - sudo() ile herkes SMS gönderebilsin
         sms_sent = sms_helper.SMSHelper.send_sms(
-            self.env, self.partner_id, message, self.name
+            self.env.sudo(), self.partner_id, message, self.name
         )
         if sms_sent:
             self.sms_gonderildi = True  # SMS gönderildi flag'ini set et
@@ -1408,15 +1408,16 @@ class ArizaKayit(models.Model):
                             }
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
-                if record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
+                if record.islem_tipi == IslemTipi.ARIZA_KABUL and record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
                     message = SMSTemplates.ILK_SMS.format(
                         musteri_adi=record.partner_id.name or '',
                         urun=record.urun or '',
                         kayit_no=record.name or ''
                     )
-                    record._send_sms_to_customer(message)
-                    record.ilk_sms_gonderildi = True
-                    record.sms_gonderildi = True  # SMS gönderildi flag'ini de set et
+                    # sudo() ile herkes SMS gönderebilsin
+                    record.sudo()._send_sms_to_customer(message)
+                    record.sudo().ilk_sms_gonderildi = True
+                    record.sudo().sms_gonderildi = True  # SMS gönderildi flag'ini de set et
                 
                 
                 # Arıza kayıtları görünümüne dön

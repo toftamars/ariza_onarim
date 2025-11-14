@@ -35,13 +35,13 @@ class SMSHelper:
             return False
         
         try:
-            # SMS'i doğru yöntemle gönder
-            sms = env['sms.sms'].create({
+            # SMS'i doğru yöntemle gönder - sudo() ile herkes SMS gönderebilsin
+            sms = env['sms.sms'].sudo().create({
                 'number': phone_number,
                 'body': message,
                 'partner_id': partner.id,
             })
-            sms.send()
+            sms.sudo().send()
             
             # Başarılı SMS logu
             _logger.info(f"SMS gönderildi: {record_name} - {phone_number}")
