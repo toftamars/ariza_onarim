@@ -1346,6 +1346,7 @@ class ArizaKayit(models.Model):
             self.env, self.partner_id, message, self.name
         )
         if sms_sent:
+            self.sms_gonderildi = True  # SMS gönderildi flag'ini set et
             self.message_post(body=f"SMS başarıyla gönderildi: {message}", message_type='notification')
             
 
@@ -1407,7 +1408,7 @@ class ArizaKayit(models.Model):
                             }
                 
                 # Personel onayı sonrası SMS ve E-posta gönder (İlk SMS)
-                if record.islem_tipi == IslemTipi.ARIZA_KABUL and record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
+                if record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
                     message = SMSTemplates.ILK_SMS.format(
                         musteri_adi=record.partner_id.name or '',
                         urun=record.urun or '',
@@ -1415,6 +1416,7 @@ class ArizaKayit(models.Model):
                     )
                     record._send_sms_to_customer(message)
                     record.ilk_sms_gonderildi = True
+                    record.sms_gonderildi = True  # SMS gönderildi flag'ini de set et
                 
                 
                 # Arıza kayıtları görünümüne dön
