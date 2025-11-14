@@ -79,10 +79,10 @@ class ArizaTeslimWizard(models.TransientModel):
                 # Mağazadan teslim - normal SMS template
                 magaza_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''
                 temiz_magaza_adi = ariza._clean_magaza_adi(magaza_adi)
-            
-            # Teslim edilen kişi bilgisini al
-            teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
-            
+                
+                # Teslim edilen kişi bilgisini al
+                teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"
+                
                 message = SMSTemplates.UCUNCU_SMS.format(
                     musteri_adi=ariza.partner_id.name or '',
                     urun=ariza.urun or '',
