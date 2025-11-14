@@ -1342,8 +1342,9 @@ class ArizaKayit(models.Model):
             return
             
         # SMS gönderme - Helper kullanımı - sudo() ile herkes SMS gönderebilsin
+        # self.sudo().env ile sudo environment kullan
         sms_sent = sms_helper.SMSHelper.send_sms(
-            self.env.sudo(), self.partner_id, message, self.name
+            self.sudo().env, self.partner_id, message, self.name
         )
         if sms_sent:
             self.sms_gonderildi = True  # SMS gönderildi flag'ini set et
