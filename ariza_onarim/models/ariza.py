@@ -419,7 +419,7 @@ class ArizaKayit(models.Model):
             if vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') in TeknikServis.DTL_SERVISLER:
                 if not vals.get('hedef_konum_id'):
                     dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                        self.env, self.env.company.id
+                        self.env, vals.get('company_id') or self.env.company.id
                     )
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
@@ -644,7 +644,7 @@ class ArizaKayit(models.Model):
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
                 # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env
+                    self.env, self.company_id.id
                 )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
