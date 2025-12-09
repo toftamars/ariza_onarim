@@ -35,9 +35,17 @@ class LocationHelper:
             company_id = env.company.id
         
         try:
+            # Önce şirket filtreli ara
             dtl_konum = env['stock.location'].search([
                 ('name', '=', LocationNames.DTL_STOK),
                 ('company_id', '=', company_id)
+            ], limit=1)
+            if dtl_konum:
+                return dtl_konum
+
+            # Bulunamazsa şirket filtresi olmadan dene (eski kayıtlar için)
+            dtl_konum = env['stock.location'].search([
+                ('name', '=', LocationNames.DTL_STOK),
             ], limit=1)
             return dtl_konum if dtl_konum else False
         except Exception as e:
