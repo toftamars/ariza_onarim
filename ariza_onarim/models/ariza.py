@@ -424,8 +424,12 @@ class ArizaKayit(models.Model):
                     if not dtl_konum:
                         # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
                         dtl_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'DTL/Stok')
+                        ], limit=1) or self.env['stock.location'].search([
                             ('name', 'ilike', 'DTL'),
                             ('name', 'ilike', 'Stok'),
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'DTL')
                         ], limit=1)
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
@@ -656,8 +660,12 @@ class ArizaKayit(models.Model):
                 if not dtl_konum:
                     # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
                     dtl_konum = self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'DTL/Stok')
+                    ], limit=1) or self.env['stock.location'].search([
                         ('name', 'ilike', 'DTL'),
                         ('name', 'ilike', 'Stok'),
+                    ], limit=1) or self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'DTL')
                     ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
