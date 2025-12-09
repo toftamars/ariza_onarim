@@ -111,6 +111,40 @@ class LocationHelper:
             return False
 
     @staticmethod
+    def get_nfsl_stok_location(env, company_id=None):
+        """
+        NFSL/Stok konumunu bulur (flexible arama).
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            # Önce şirket filtreli tam eşleşme
+            nfsl_stok = env['stock.location'].search([
+                ('name', '=', LocationNames.NFSL_STOK),
+                ('company_id', '=', company_id)
+            ], limit=1)
+            if nfsl_stok:
+                return nfsl_stok
+
+            # Tam isim ile (complete_name) ara
+            nfsl_stok = env['stock.location'].search([
+                ('complete_name', 'ilike', LocationNames.NFSL_STOK)
+            ], limit=1)
+            if nfsl_stok:
+                return nfsl_stok
+
+            # Parçalı ilike: NFSL ve Stok
+            nfsl_stok = env['stock.location'].search([
+                ('name', 'ilike', 'NFSL'),
+                ('name', 'ilike', 'Stok'),
+            ], limit=1)
+            return nfsl_stok if nfsl_stok else False
+        except Exception as e:
+            _logger.warning(f"NFSL/Stok konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
     def get_arizali_location(env, konum_kodu, company_id=None):
         """
         Arızalı konumunu bulur ([KOD]/arızalı formatında).

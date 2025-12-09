@@ -433,6 +433,34 @@ class ArizaKayit(models.Model):
                         ], limit=1)
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_ARIZA_DEPO:
+                if not vals.get('hedef_konum_id'):
+                    ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if not ariza_konum:
+                        ariza_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'Arıza/Stok')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('name', 'ilike', 'Arıza'),
+                            ('name', 'ilike', 'Stok'),
+                        ], limit=1)
+                    if ariza_konum:
+                        vals['hedef_konum_id'] = ariza_konum.id
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_NEFESLI:
+                if not vals.get('hedef_konum_id'):
+                    nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if not nfsl_konum:
+                        nfsl_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'NFSL/Stok')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('name', 'ilike', 'NFSL'),
+                            ('name', 'ilike', 'Stok'),
+                        ], limit=1)
+                    if nfsl_konum:
+                        vals['hedef_konum_id'] = nfsl_konum.id
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = ArizaTipi.MUSTERI
             if not vals.get('sorumlu_id'):
@@ -627,22 +655,32 @@ class ArizaKayit(models.Model):
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
                 # DTL seçildiğinde DTL/Stok konumu
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env
+                    self.env, self.company_id.id or self.env.company.id
                 )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
                 # Zuhal Arıza Depo seçildiğinde Arıza/Stok konumu
                 ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env
-                )
+                    self.env, self.company_id.id or self.env.company.id
+                ) or self.env['stock.location'].search([
+                    ('complete_name', 'ilike', 'Arıza/Stok')
+                ], limit=1) or self.env['stock.location'].search([
+                    ('name', 'ilike', 'Arıza'),
+                    ('name', 'ilike', 'Stok'),
+                ], limit=1)
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
             elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                # Zuhal Nefesli seçildiğinde NFSL/Arızalı konumu
-                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
-                    self.env
-                )
+                # Zuhal Nefesli seçildiğinde NFSL/Stok konumu
+                nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
+                    self.env, self.company_id.id or self.env.company.id
+                ) or self.env['stock.location'].search([
+                    ('complete_name', 'ilike', 'NFSL/Stok')
+                ], limit=1) or self.env['stock.location'].search([
+                    ('name', 'ilike', 'NFSL'),
+                    ('name', 'ilike', 'Stok'),
+                ], limit=1)
                 if nfsl_konum:
                     self.hedef_konum_id = nfsl_konum
             elif self.teknik_servis == TeknikServis.MAGAZA:
@@ -675,15 +713,25 @@ class ArizaKayit(models.Model):
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
                 # ZUHAL ARIZA DEPO → Arıza/Stok
                 ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env
-                )
+                    self.env, self.company_id.id or self.env.company.id
+                ) or self.env['stock.location'].search([
+                    ('complete_name', 'ilike', 'Arıza/Stok')
+                ], limit=1) or self.env['stock.location'].search([
+                    ('name', 'ilike', 'Arıza'),
+                    ('name', 'ilike', 'Stok'),
+                ], limit=1)
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
             elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                # ZUHAL NEFESLİ → NFSL/Arızalı
-                nfsl_konum = location_helper.LocationHelper.get_nfsl_arizali_location(
-                    self.env
-                )
+                # ZUHAL NEFESLİ → NFSL/Stok
+                nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
+                    self.env, self.company_id.id or self.env.company.id
+                ) or self.env['stock.location'].search([
+                    ('complete_name', 'ilike', 'NFSL/Stok')
+                ], limit=1) or self.env['stock.location'].search([
+                    ('name', 'ilike', 'NFSL'),
+                    ('name', 'ilike', 'Stok'),
+                ], limit=1)
                 if nfsl_konum:
                     self.hedef_konum_id = nfsl_konum
             elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:

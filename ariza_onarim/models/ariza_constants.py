@@ -149,6 +149,7 @@ class LocationNames:
     DTL_STOK = 'DTL/Stok'
     ARIZA_STOK = 'Arıza/Stok'
     NFSL_ARIZALI = 'NFSL/Arızalı'
+    NFSL_STOK = 'NFSL/Stok'
 
 
 class PartnerNames:
