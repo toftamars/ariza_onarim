@@ -47,6 +47,14 @@ class LocationHelper:
             dtl_konum = env['stock.location'].search([
                 ('name', '=', LocationNames.DTL_STOK),
             ], limit=1)
+            if dtl_konum:
+                return dtl_konum
+
+            # Son çare: isimde DTL ve Stok geçen konumu yakala (manuel elle girilmiş)
+            dtl_konum = env['stock.location'].search([
+                ('name', 'ilike', 'DTL'),
+                ('name', 'ilike', 'Stok'),
+            ], limit=1)
             return dtl_konum if dtl_konum else False
         except Exception as e:
             _logger.warning(f"DTL/Stok konumu bulunamadı: {str(e)}")

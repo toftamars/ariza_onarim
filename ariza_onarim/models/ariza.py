@@ -421,6 +421,12 @@ class ArizaKayit(models.Model):
                     dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
+                    if not dtl_konum:
+                        # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
+                        dtl_konum = self.env['stock.location'].search([
+                            ('name', 'ilike', 'DTL'),
+                            ('name', 'ilike', 'Stok'),
+                        ], limit=1)
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
             if not vals.get('ariza_tipi'):
@@ -643,9 +649,16 @@ class ArizaKayit(models.Model):
         elif self.ariza_tipi == ArizaTipi.MAGAZA:
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
                 # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
+                company_id = self.company_id.id or self.env.company.id
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env, self.company_id.id
+                    self.env, company_id
                 )
+                if not dtl_konum:
+                    # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
+                    dtl_konum = self.env['stock.location'].search([
+                        ('name', 'ilike', 'DTL'),
+                        ('name', 'ilike', 'Stok'),
+                    ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
                     _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
@@ -816,21 +829,6 @@ class ArizaKayit(models.Model):
         # Mağaza ürünü için konumları güncelle
         if self.ariza_tipi == ArizaTipi.MAGAZA:
             self._onchange_magaza_konumlar()
-
-        # Emniyet: Mağaza ürünü + DTL seçili ise hedef konumu zorla ayarla
-        if (
-            self.ariza_tipi == ArizaTipi.MAGAZA
-            and self.teknik_servis in TeknikServis.DTL_SERVISLER
-            and not self.hedef_konum_id
-        ):
-            dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                self.env, self.company_id.id or self.env.company.id
-            )
-            if dtl_konum:
-                self.hedef_konum_id = dtl_konum
-                _logger.info(f"Hedef konum (onchange fallback) DTL olarak ayarlandı: {dtl_konum.name}")
-            else:
-                _logger.warning("DTL/Stok konumu bulunamadı (onchange fallback)")
 
     @api.onchange('ariza_tipi', 'analitik_hesap_id', 'teknik_servis')
     def _onchange_magaza_konumlar(self):
