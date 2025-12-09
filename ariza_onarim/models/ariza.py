@@ -817,6 +817,21 @@ class ArizaKayit(models.Model):
         if self.ariza_tipi == ArizaTipi.MAGAZA:
             self._onchange_magaza_konumlar()
 
+        # Emniyet: Mağaza ürünü + DTL seçili ise hedef konumu zorla ayarla
+        if (
+            self.ariza_tipi == ArizaTipi.MAGAZA
+            and self.teknik_servis in TeknikServis.DTL_SERVISLER
+            and not self.hedef_konum_id
+        ):
+            dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
+                self.env, self.company_id.id or self.env.company.id
+            )
+            if dtl_konum:
+                self.hedef_konum_id = dtl_konum
+                _logger.info(f"Hedef konum (onchange fallback) DTL olarak ayarlandı: {dtl_konum.name}")
+            else:
+                _logger.warning("DTL/Stok konumu bulunamadı (onchange fallback)")
+
     @api.onchange('ariza_tipi', 'analitik_hesap_id', 'teknik_servis')
     def _onchange_magaza_konumlar(self):
         """Mağaza ürünü için kaynak ve hedef konumları otomatik belirle"""
