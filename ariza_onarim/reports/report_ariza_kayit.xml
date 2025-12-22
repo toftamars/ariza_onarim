@@ -222,16 +222,25 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
                         <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
+                        <!-- Teslim Mağazası seçilmişse öncelikle onu göster -->
+                        <t t-if="o.teslim_magazasi_id">
+                            <t t-esc="o.teslim_magazasi_id.name"/><br/>
+                            <t t-if="o.teslim_magazasi_id.adres">
+                                <t t-esc="o.teslim_magazasi_id.adres"/>
+                            </t>
+                            <t t-elif="o.teslim_magazasi_id.partner_id">
+                                <t t-esc="o.teslim_magazasi_id.partner_id.street or ''"/>
+                                <t t-if="o.teslim_magazasi_id.partner_id.street2"><br/><t t-esc="o.teslim_magazasi_id.partner_id.street2"/></t>
+                                <t t-if="o.teslim_magazasi_id.partner_id.city"><br/><t t-esc="o.teslim_magazasi_id.partner_id.city"/></t>
+                                <t t-if="o.teslim_magazasi_id.partner_id.state_id"><br/><t t-esc="o.teslim_magazasi_id.partner_id.state_id.name"/></t>
+                                <t t-if="o.teslim_magazasi_id.partner_id.zip"><br/><t t-esc="o.teslim_magazasi_id.partner_id.zip"/></t>
+                                <t t-if="o.teslim_magazasi_id.partner_id.country_id"><br/><t t-esc="o.teslim_magazasi_id.partner_id.country_id.name"/></t>
+                            </t>
+                        </t>
                         <!-- Yönetici onarımı başlattıktan sonra: Sağ tarafta mağaza -->
-                        <t t-if="onarim_baslatildi">
+                        <t t-elif="onarim_baslatildi">
                             <!-- Teslim edildi durumunda özel kontrol -->
                             <t t-if="o.state == 'teslim_edildi'">
-                                <!-- Teslim Mağazası seçilmişse -->
-                                <t t-if="o.teslim_alan == 'Teslim Mağazası' and o.teslim_magazasi_id">
-                                    <t t-esc="o.teslim_magazasi_id.name"/><br/>
-                                    <t t-esc="o.teslim_magazasi_id.street or ''"/><br/>
-                                    <t t-esc="o.teslim_magazasi_id.city or ''"/>, <t t-esc="o.teslim_magazasi_id.country_id.name or ''"/>
-                                </t>
                                 <!-- Adrese Gönderim seçilmişse -->
                                 <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.partner_id">
                                     <t t-esc="o.partner_id.name"/><br/>
@@ -307,7 +316,22 @@
                         </t>
                         <!-- Kullanıcı yazdırdığında: Sağ tarafta teknik servis -->
                         <t t-else="">
-                                <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                <!-- Teslim Mağazası seçilmişse öncelikle onu göster -->
+                                <t t-if="o.teslim_magazasi_id">
+                                    <t t-esc="o.teslim_magazasi_id.name"/><br/>
+                                    <t t-if="o.teslim_magazasi_id.adres">
+                                        <t t-esc="o.teslim_magazasi_id.adres"/>
+                                    </t>
+                                    <t t-elif="o.teslim_magazasi_id.partner_id">
+                                        <t t-esc="o.teslim_magazasi_id.partner_id.street or ''"/>
+                                        <t t-if="o.teslim_magazasi_id.partner_id.street2"><br/><t t-esc="o.teslim_magazasi_id.partner_id.street2"/></t>
+                                        <t t-if="o.teslim_magazasi_id.partner_id.city"><br/><t t-esc="o.teslim_magazasi_id.partner_id.city"/></t>
+                                        <t t-if="o.teslim_magazasi_id.partner_id.state_id"><br/><t t-esc="o.teslim_magazasi_id.partner_id.state_id.name"/></t>
+                                        <t t-if="o.teslim_magazasi_id.partner_id.zip"><br/><t t-esc="o.teslim_magazasi_id.partner_id.zip"/></t>
+                                        <t t-if="o.teslim_magazasi_id.partner_id.country_id"><br/><t t-esc="o.teslim_magazasi_id.partner_id.country_id.name"/></t>
+                                    </t>
+                                </t>
+                                <t t-elif="o.teknik_servis == 'DTL BEYOĞLU'">
                                     DTL BEYOĞLU<br/>
                                     Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
                                     Beyoğlu, İstanbul
