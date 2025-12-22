@@ -184,7 +184,15 @@
                         </t>
                         <!-- Kullanıcı yazdırdığında: Sol tarafta mağaza -->
                         <t t-else="">
-                            <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
+                            <!-- Özel durum: Tünel analitik hesabı için sabit adres -->
+                            <t t-if="o.analitik_hesap_id and ('Tünel' in o.analitik_hesap_id.name or 'TUNEL' in o.analitik_hesap_id.name.upper())">
+                                Tünel Mağaza<br/>
+                                Galip Dede Cad. No:33 Tünel<br/>
+                                Beyoğlu<br/>
+                                İstanbul (TR) 34000<br/>
+                                Türkiye
+                            </t>
+                            <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.adres">
                                 <div style="font-size: 12px; font-weight: bold; line-height: 1.2;"><t t-esc="o.analitik_hesap_id.adres"/></div>
                             </t>
                             <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
@@ -231,8 +239,16 @@
                         <strong style="color: #000; display: block; margin-bottom: 8px;">GÖNDERİ ADRESİ:</strong>
                         <!-- Teslim Mağazası seçilmişse öncelikle onu göster -->
                         <t t-if="o.teslim_magazasi_id">
-                            <t t-esc="o.teslim_magazasi_id.name or ''"/><br/>
-                            <t t-if="o.teslim_magazasi_id.adres">
+                            <!-- Özel durum: Tünel teslim mağazası için sabit adres -->
+                            <t t-if="'Tünel' in o.teslim_magazasi_id.name or 'TUNEL' in o.teslim_magazasi_id.name.upper()">
+                                Tünel Mağaza<br/>
+                                Galip Dede Cad. No:33 Tünel<br/>
+                                Beyoğlu<br/>
+                                İstanbul (TR) 34000<br/>
+                                Türkiye
+                            </t>
+                            <t t-elif="o.teslim_magazasi_id.adres">
+                                <t t-esc="o.teslim_magazasi_id.name or ''"/><br/>
                                 <t t-esc="o.teslim_magazasi_id.adres"/>
                             </t>
                             <t t-elif="o.teslim_magazasi_id.partner_id and o.teslim_magazasi_id.partner_id.street">
@@ -247,28 +263,44 @@
                                 <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                 <t t-if="zuhal_partner">
                                     <t t-set="magaza_adi_temiz" t-value="o.teslim_magazasi_id.name.replace('Perakende - ', '').strip()"/>
+                                    <!-- Özel durum: Tünel mağazası için öncelikli arama (Showroom Mağaza) -->
+                                    <t t-if="'Tünel' in magaza_adi_temiz or 'TUNEL' in magaza_adi_temiz.upper()">
+                                        <!-- Tünel analitik hesabı için partner adı "Showroom Mağaza" olarak kayıtlı -->
+                                        <!-- Önce tam eşleşme dene -->
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Showroom Mağaza')], limit=1)"/>
+                                        <!-- Tam eşleşme yoksa ilike ile ara -->
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Showroom Mağaza')], limit=1)"/>
+                                        </t>
+                                        <!-- Hala bulunamadıysa sadece "Showroom" ile ara -->
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Showroom')], limit=1)"/>
+                                        </t>
+                                        <!-- Son çare: parent_id kontrolü olmadan da ara (eğer parent_id yanlışsa) -->
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('name', '=', 'Showroom Mağaza')], limit=1)"/>
+                                        </t>
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('name', 'ilike', 'Showroom Mağaza')], limit=1)"/>
+                                        </t>
+                                    </t>
                                     <!-- Önce tam eşleşme dene -->
-                                    <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', magaza_adi_temiz)], limit=1)"/>
+                                    <t t-if="not magaza_kontak">
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', magaza_adi_temiz)], limit=1)"/>
+                                    </t>
                                     <!-- Tam eşleşme yoksa "Mağaza" ekleyerek ara -->
                                     <t t-if="not magaza_kontak and 'Mağaza' not in magaza_adi_temiz">
                                         <t t-set="magaza_adi_mağaza" t-value="magaza_adi_temiz + ' Mağaza'"/>
                                         <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', magaza_adi_mağaza)], limit=1)"/>
                                     </t>
-                                    <!-- Özel durum: Tünel mağazası için alternatif isimler -->
+                                    <!-- Tünel için diğer alternatifler (Showroom bulunamadıysa) -->
                                     <t t-if="not magaza_kontak and ('Tünel' in magaza_adi_temiz or 'TUNEL' in magaza_adi_temiz.upper())">
-                                        <!-- Tünel analitik hesabı için partner adı "Showroom Mağaza" olarak kayıtlı -->
-                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Showroom Mağaza')], limit=1)"/>
-                                        <t t-if="not magaza_kontak">
-                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tünel')], limit=1)"/>
-                                        </t>
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tünel')], limit=1)"/>
                                         <t t-if="not magaza_kontak">
                                             <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tünel Mağaza')], limit=1)"/>
                                         </t>
                                         <t t-if="not magaza_kontak">
                                             <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'TUNEL')], limit=1)"/>
-                                        </t>
-                                        <t t-if="not magaza_kontak">
-                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Showroom')], limit=1)"/>
                                         </t>
                                         <t t-if="not magaza_kontak">
                                             <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tünel')], limit=1)"/>
