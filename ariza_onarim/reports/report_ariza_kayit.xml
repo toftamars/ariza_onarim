@@ -246,7 +246,23 @@
                             <t t-elif="o.teslim_magazasi_id.name">
                                 <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                 <t t-if="zuhal_partner">
-                                    <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', o.teslim_magazasi_id.name.replace('Perakende - ', ''))], limit=1)"/>
+                                    <t t-set="magaza_adi_temiz" t-value="o.teslim_magazasi_id.name.replace('Perakende - ', '').strip()"/>
+                                    <!-- Önce tam eşleşme dene -->
+                                    <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', magaza_adi_temiz)], limit=1)"/>
+                                    <!-- Tam eşleşme yoksa ilike ile ara -->
+                                    <t t-if="not magaza_kontak">
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_temiz)], limit=1)"/>
+                                    </t>
+                                    <!-- Hala bulunamadıysa, boşlukları kaldırıp ara (Temaworld için) -->
+                                    <t t-if="not magaza_kontak">
+                                        <t t-set="magaza_adi_no_space" t-value="magaza_adi_temiz.replace(' ', '')"/>
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_no_space)], limit=1)"/>
+                                    </t>
+                                    <!-- Son çare: sadece ilk kelimeyi ara -->
+                                    <t t-if="not magaza_kontak and ' ' in magaza_adi_temiz">
+                                        <t t-set="ilk_kelime" t-value="magaza_adi_temiz.split()[0]"/>
+                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', ilk_kelime)], limit=1)"/>
+                                    </t>
                                     <t t-if="magaza_kontak">
                                         <t t-if="magaza_kontak.street"><t t-esc="magaza_kontak.street"/></t>
                                         <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
