@@ -107,14 +107,21 @@
                 }
                 
                 .gonderi-adresi {
-                    padding: 12px !important;
+                    padding: 10px !important;
                     font-size: 13px !important;
                     margin-bottom: 12px !important;
                     border-radius: 5px !important;
+                    line-height: 1.5 !important;
                 }
                 
                 .gonderi-adresi strong {
                     font-size: 15px !important;
+                    display: block !important;
+                    margin-bottom: 8px !important;
+                }
+                
+                .gonderi-adresi br {
+                    line-height: 1.4 !important;
                 }
                 
                 strong {
@@ -128,8 +135,8 @@
             
             <div class="row mb-4">
                 <div class="col-6">
-                    <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px;">
-                        <strong>Gönderen:</strong><br/>
+                    <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; line-height: 1.5; min-height: 120px;">
+                        <strong style="display: block; margin-bottom: 8px;">Gönderen:</strong>
                         <!-- Yönetici onarımı başlattıktan sonra: Sol tarafta teknik servis -->
                         <t t-if="onarim_baslatildi">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
@@ -220,8 +227,8 @@
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold;">
-                        <strong style="color: #000;">GÖNDERİ ADRESİ:</strong><br/>
+                    <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; min-height: 120px;">
+                        <strong style="color: #000; display: block; margin-bottom: 8px;">GÖNDERİ ADRESİ:</strong>
                         <!-- Teslim Mağazası seçilmişse öncelikle onu göster -->
                         <t t-if="o.teslim_magazasi_id">
                             <t t-esc="o.teslim_magazasi_id.name or ''"/><br/>
