@@ -1575,6 +1575,10 @@ class ArizaKayit(models.Model):
 
     def action_iptal(self):
         """Arıza kaydını iptal et"""
+        # Transfer bitene döndüyse iptal edilemez
+        if self.transfer_id and self.transfer_id.state == 'done':
+            raise UserError(_('Transferi bitene dönen arıza kayıtları iptal edilemez!'))
+        
         # İptal durumuna geç
         self.state = ArizaStates.IPTAL
         
