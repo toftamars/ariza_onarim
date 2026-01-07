@@ -1679,6 +1679,18 @@ class ArizaKayit(models.Model):
 
     def action_print(self):
         if self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO] and self.transfer_id:
+            # Önce "Kargo Çıktısı - A4" raporunu dene
+            try:
+                # Reporting Studio ile oluşturulmuş raporu ara
+                kargo_a4_report = self.env['ir.actions.report'].search([
+                    ('name', '=', 'Kargo Çıktısı - A4'),
+                    ('model', '=', 'stock.picking')
+                ], limit=1)
+                if kargo_a4_report:
+                    return kargo_a4_report.report_action(self.transfer_id)
+            except Exception as e:
+                _logger.warning(f"Kargo Çıktısı - A4 raporu bulunamadı, standart rapor kullanılıyor: {str(e)}")
+            # Fallback: Standart kargo raporu
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
         teknik_servis_adres = self.teknik_servis_adres
