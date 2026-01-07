@@ -83,9 +83,11 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 # Adrese gönderim seçildi
                 ariza.teslim_magazasi_id = False
                 ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+                ariza.teslimat_adresi_id = self.musteri_adresi_id.id  # Seçilen adresi kaydet
             elif self.teslim_magazasi_id:
                 # Mağazadan teslim seçildi
                 ariza.teslim_magazasi_id = self.teslim_magazasi_id.id
+                ariza.teslimat_adresi_id = False  # Mağazadan teslim seçildiğinde temizle
         
         # Durumu güncelle - Mağaza ürünü için yönetici tamamlandı, müşteri ürünü için normal akış
         if self.ariza_tipi == 'magaza':

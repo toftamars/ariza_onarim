@@ -267,6 +267,7 @@ class ArizaKayit(models.Model):
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
+    teslimat_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi (Adrese Gönderim)', tracking=True, help='Adresime Gönderilsin seçildiğinde seçilen teslimat adresi')
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
     
     # Onarım Süreci Takibi
