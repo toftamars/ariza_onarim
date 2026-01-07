@@ -1245,6 +1245,21 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
         
+        # Carrier otomatik ataması - Ücretsiz veya Ücretli kargo seçildiğinde Aras Kargo (ID: 2) ata
+        if picking_type.code == 'outgoing' and self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO]:
+            # Aras Kargo carrier'ını bul (ID: 2 veya delivery_type='aras')
+            carrier = self.env['delivery.carrier'].search([
+                ('id', '=', 2)
+            ], limit=1)
+            if not carrier:
+                # ID 2 yoksa delivery_type='aras' olan carrier'ı bul
+                carrier = self.env['delivery.carrier'].search([
+                    ('delivery_type', '=', 'aras')
+                ], limit=1)
+            if carrier:
+                picking_vals['carrier_id'] = carrier.id
+                _logger.info(f"Carrier otomatik atandı: {carrier.name} (ID: {carrier.id}) - Transfer: {self.name}")
+        
         # E-İrsaliye türü varsa ekle
         if edespatch_number_sequence_id:
             picking_vals['edespatch_number_sequence'] = edespatch_number_sequence_id
