@@ -82,6 +82,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             if self.adresime_gonderilsin and self.musteri_adresi_id:
                 # Adrese gönderim seçildi
                 ariza.teslim_magazasi_id = False
+                ariza.contact_id = self.musteri_adresi_id.id  # Teslimat adresini contact_id'ye kaydet
                 ariza.teslim_adresi = self.musteri_adresi_id.street or ''
             elif self.teslim_magazasi_id:
                 # Mağazadan teslim seçildi
@@ -94,6 +95,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.state = 'teslim_edildi'
             # Adrese gönderim için teslim bilgilerini güncelle
             ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
+            ariza.contact_id = self.musteri_adresi_id.id  # Teslimat adresini contact_id'ye kaydet
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
             
             # Adrese gönderim için SMS gönder (Üçüncü SMS)
