@@ -472,8 +472,11 @@ class ArizaKayit(models.Model):
         
         # Yeni oluşturulan kayıtlar için kargo firması ve barkod set et
         for record in records:
-            # Kargo firmasını set et
-            record._set_carrier()
+            # _set_carrier() sadece transfer_metodu değiştiğinde çağrılmalı, create sırasında değil
+            # Çünkü kullanıcı manuel olarak carrier_id seçmişse korunmalı
+            # Eğer transfer_metodu kargo ise ve carrier_id boşsa otomatik set et
+            if record.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO] and not record.carrier_id:
+                record._set_carrier()
             
             # Müşteri ürünü için barkod oluştur (stock.picking yok)
             if record.ariza_tipi == ArizaTipi.MUSTERI and not record.barcode:
@@ -1106,6 +1109,11 @@ class ArizaKayit(models.Model):
         """
         # Sadece company_id == 1 için çalış
         if self.company_id.id != 1:
+            return
+        
+        # Eğer carrier_id manuel olarak seçilmişse (ID != 2), koru ve otomatik set etme
+        if self.carrier_id and self.carrier_id.id != 2:
+            _logger.info(f"Manuel seçilmiş carrier_id korunuyor: {self.name} - Carrier: {self.carrier_id.name}")
             return
         
         # Transfer metodu kontrolü - sadece kargo ise otomatik set et
