@@ -1148,9 +1148,14 @@ class ArizaKayit(models.Model):
             if magaza_adi.startswith("Perakende - "):
                 magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
             
+            # Özel durum: Temaworld için "Tema World" olarak ara
+            depo_arama_adi = magaza_adi
+            if magaza_adi.lower() in ['temaworld', 'tema world']:
+                depo_arama_adi = 'Tema World'
+            
             # Mağaza adına göre depo ara
             warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', magaza_adi)
+                ('name', 'ilike', depo_arama_adi)
             ], limit=1)
 
         # Operasyon tipi seçimi - depo bilgisine göre
@@ -1730,9 +1735,14 @@ class ArizaKayit(models.Model):
             if magaza_adi.startswith("Perakende - "):
                 magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
             
+            # Özel durum: Temaworld için "Tema World" olarak ara
+            depo_arama_adi = magaza_adi
+            if magaza_adi.lower() in ['temaworld', 'tema world']:
+                depo_arama_adi = 'Tema World'
+            
             # Mağaza adına göre depo ara
             warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', magaza_adi)
+                ('name', 'ilike', depo_arama_adi)
             ], limit=1)
 
         # Operasyon tipi seçimi - İlk transferdeki gibi depo bazlı 'Tamir Alımlar' ara
