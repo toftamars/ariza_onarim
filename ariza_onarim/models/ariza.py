@@ -2138,41 +2138,6 @@ class ArizaKayit(models.Model):
             records._compute_kalan_sure_gosterimi()
             _logger.info(f"Kalan süre güncellendi: {len(records)} kayıt")
 
-
-
-class StockPicking(models.Model):
-    _inherit = 'stock.picking'
-
-    def button_validate(self):
-        # Önce normal transfer doğrulama işlemini yap
-        result = super().button_validate()
-        
-        # Sadece arıza kayıtlarıyla ilişkili transferler için özel işlem yap
-        # Origin field'ı arıza kayıt numarası formatında mı kontrol et (örn: "ARZ-2024-001")
-        for picking in self:
-            if picking.origin and picking.state == 'done':
-                # Sadece arıza kayıt numarası formatındaki origin'ler için kontrol et
-                # Arıza kayıt numaraları genellikle "ARZ-" ile başlar veya belirli bir pattern'e sahiptir
-                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza:
-                    # Transfer sayısını artır
-                    ariza.transfer_sayisi += 1
-                    
-                    # Sadece arıza kayıtlarından gelen transferler için arıza kaydına dön
-                    # Diğer transferler için normal davranışı sürdür
-                    if len(self) == 1:  # Tek bir transfer doğrulanıyorsa
-                        return {
-                            'type': 'ir.actions.act_window',
-                            'res_model': 'ariza.kayit',
-                            'res_id': ariza.id,
-                            'view_mode': 'form',
-                            'target': 'current',
-                        }
-        
-        # Normal davranışı sürdür (modül dışı transferler için)
-        return result 
-
-
     def aras_send_shipping(self):
         """
         Aras Kargo entegrasyonu - stock.picking kullanmadan doğrudan arıza kaydından kargo gönderimi
@@ -2289,6 +2254,39 @@ class StockPicking(models.Model):
             if hasattr(warehouse, 'delivery_aras_code'):
                 return warehouse.delivery_aras_code or ''
         return ''
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    def button_validate(self):
+        # Önce normal transfer doğrulama işlemini yap
+        result = super().button_validate()
+        
+        # Sadece arıza kayıtlarıyla ilişkili transferler için özel işlem yap
+        # Origin field'ı arıza kayıt numarası formatında mı kontrol et (örn: "ARZ-2024-001")
+        for picking in self:
+            if picking.origin and picking.state == 'done':
+                # Sadece arıza kayıt numarası formatındaki origin'ler için kontrol et
+                # Arıza kayıt numaraları genellikle "ARZ-" ile başlar veya belirli bir pattern'e sahiptir
+                ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
+                if ariza:
+                    # Transfer sayısını artır
+                    ariza.transfer_sayisi += 1
+                    
+                    # Sadece arıza kayıtlarından gelen transferler için arıza kaydına dön
+                    # Diğer transferler için normal davranışı sürdür
+                    if len(self) == 1:  # Tek bir transfer doğrulanıyorsa
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': ariza.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
+        
+        # Normal davranışı sürdür (modül dışı transferler için)
+        return result
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
