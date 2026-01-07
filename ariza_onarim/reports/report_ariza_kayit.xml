@@ -152,11 +152,13 @@
                                 İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
                                 Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
                                 İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                Zuhal Müzik<br/>
                                 ZUHAL NEFESLİ<br/>
                                 Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                             </t>
@@ -509,11 +511,13 @@
                                     İstanbul
                                 </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                    Zuhal Müzik<br/>
                                     ZUHAL ARIZA DEPO<br/>
                                     Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
                                     İstanbul
                                 </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                    Zuhal Müzik<br/>
                                     ZUHAL NEFESLİ<br/>
                                     Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                                 </t>
