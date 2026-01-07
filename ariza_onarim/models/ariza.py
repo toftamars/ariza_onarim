@@ -268,7 +268,7 @@ class ArizaKayit(models.Model):
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
-    carrier_id = fields.Many2one('delivery.carrier', string='Kargo Firması', tracking=True)
+    carrier_id = fields.Many2one('delivery.carrier', string='Nakliyeci', tracking=True)
     barcode = fields.Char(string='Barkod', tracking=True, copy=False)
     
     # Onarım Süreci Takibi

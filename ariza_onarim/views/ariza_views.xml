@@ -39,6 +39,7 @@
                         <group>
                             <field name="transfer_metodu" readonly="1" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' readonly="1" string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                            <field name="carrier_id" readonly="1" string="Nakliyeci" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true, "no_create": true}'/>
                             <field name="kaynak_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="hedef_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                         </group>
@@ -85,8 +86,9 @@
                         <page string="Transfer Bilgileri" name="transfer_bilgileri" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                             <group>
                                 <field name="transfer_metodu" readonly="1"/>
+                                <field name="carrier_id" readonly="1" string="Nakliyeci" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true, "no_create": true}'/>
                                 <field name="contact_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
-                                <field name="teslim_magazasi_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}"/>
+                                <field name="teslim_magazasi_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible": [('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}"/>
                             </group>
                         </page>
                     </notebook>
@@ -219,6 +221,7 @@
                             <field name="teslim_al_visible" invisible="1"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                            <field name="carrier_id" string="Nakliyeci" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}" options='{"no_open": true, "no_create": true}'/>
                             <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options='{"no_open": true, "no_create": true}'/>
                         </group>
                         <group>
