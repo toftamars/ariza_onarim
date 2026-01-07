@@ -157,7 +157,9 @@ class ArizaKayit(models.Model):
     )
     teknik_servis = fields.Selection(
         TeknikServis.SELECTION,
-        string='Teknik Servis'
+        string='Teknik Servis',
+        required=True,
+        tracking=True
     )
     transfer_metodu = fields.Selection(
         TransferMetodu.SELECTION,
