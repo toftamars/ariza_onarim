@@ -197,7 +197,10 @@
                                 Türkiye
                             </t>
                             <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.adres">
-                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;"><t t-esc="o.analitik_hesap_id.adres"/></div>
+                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                    <t t-esc="o.analitik_hesap_id.adres"/>
+                                </div>
                             </t>
                             <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
                                 <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
@@ -283,7 +286,7 @@
                                 Türkiye
                             </t>
                             <t t-elif="o.teslim_magazasi_id.adres">
-                                <t t-esc="o.teslim_magazasi_id.name or ''"/><br/>
+                                Zuhal Müzik <t t-esc="o.teslim_magazasi_id.name or ''"/><br/>
                                 <t t-esc="o.teslim_magazasi_id.adres"/>
                             </t>
                             <t t-elif="o.teslim_magazasi_id.partner_id and o.teslim_magazasi_id.partner_id.street">
@@ -411,7 +414,10 @@
                                 <!-- Eğer teslim alanı belirlenmemişse mağaza bilgisi -->
                                 <t t-else="">
                                     <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
-                                        <div style="font-size: 12px; font-weight: bold; line-height: 1.2;"><t t-esc="o.analitik_hesap_id.adres"/></div>
+                                        <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                            Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                            <t t-esc="o.analitik_hesap_id.adres"/>
+                                        </div>
                                     </t>
                                     <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
                                         Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
@@ -455,7 +461,10 @@
                             <!-- Diğer durumlar (teknik_onarim, onaylandi, vb.) - mağaza bilgisi -->
                             <t t-else="">
                                 <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
-                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;"><t t-esc="o.analitik_hesap_id.adres"/></div>
+                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                        Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                        <t t-esc="o.analitik_hesap_id.adres"/>
+                                    </div>
                                 </t>
                                 <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
                                     Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
@@ -466,7 +475,7 @@
                                     <t t-if="o.analitik_hesap_id.partner_id.zip"><br/><t t-esc="o.analitik_hesap_id.partner_id.zip"/></t>
                                 </t>
                                 <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
-                                    <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                                     <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                     <t t-if="zuhal_partner">
                                         <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
