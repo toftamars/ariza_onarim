@@ -140,11 +140,13 @@
                         <!-- Yönetici onarımı başlattıktan sonra: Sol tarafta teknik servis -->
                         <t t-if="onarim_baslatildi">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
                                 Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
                                 Beyoğlu, İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                Dtl Elektronik<br/>
                                 DTL OKMEYDANI<br/>
                                 MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
                                 İstanbul
@@ -495,11 +497,13 @@
                         <!-- Kullanıcı yazdırdığında: Sağ tarafta teknik servis -->
                         <t t-else="">
                                 <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                    Dtl Elektronik<br/>
                                     DTL BEYOĞLU<br/>
                                     Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
                                     Beyoğlu, İstanbul
                                 </t>
                                 <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                    Dtl Elektronik<br/>
                                     DTL OKMEYDANI<br/>
                                     MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
                                     İstanbul
