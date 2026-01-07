@@ -89,6 +89,31 @@
                                 <field name="teslim_magazasi_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}"/>
                             </group>
                         </page>
+                        
+                        <page string="Kargo Bilgileri" name="kargo_bilgileri" attrs="{'invisible': [('transfer_metodu', 'not in', ['ucretsiz_kargo', 'ucretli_kargo'])]}">
+                            <group>
+                                <group string="Kargo Şirketi">
+                                    <field name="carrier_id" options='{"no_create": true}' attrs="{'required': [('transfer_metodu', 'in', ['ucretsiz_kargo', 'ucretli_kargo'])]}"/>
+                                    <field name="delivery_aras_tracking_number" readonly="1"/>
+                                    <button name="aras_send_shipping" string="Aras Kargo Gönder" type="object" class="oe_highlight" 
+                                            attrs="{'invisible': ['|', ('carrier_id', '=', False), ('delivery_aras_tracking_number', '!=', False)]}"
+                                            confirm="Aras Kargo ile gönderim yapılacak. Devam etmek istiyor musunuz?"/>
+                                </group>
+                                <group string="Alıcı Bilgileri">
+                                    <field name="delivery_aras_receiver_name" attrs="{'required': [('transfer_metodu', 'in', ['ucretsiz_kargo', 'ucretli_kargo'])]}"/>
+                                    <field name="delivery_aras_receiver_phone" attrs="{'required': [('transfer_metodu', 'in', ['ucretsiz_kargo', 'ucretli_kargo'])]}"/>
+                                    <field name="delivery_aras_receiver_city"/>
+                                    <field name="delivery_aras_receiver_town"/>
+                                    <field name="delivery_aras_receiver_address" widget="text"/>
+                                </group>
+                                <group string="Kargo Detayları">
+                                    <field name="delivery_aras_invoice_number"/>
+                                    <field name="delivery_aras_piece_count"/>
+                                    <field name="delivery_aras_cod_ok"/>
+                                    <field name="delivery_aras_payor_type_code"/>
+                                </group>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">

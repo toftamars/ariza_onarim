@@ -6,6 +6,7 @@ Arıza Kayıt Modeli - Ana model dosyası
 # Standard library imports
 import logging
 import os
+import random
 from datetime import datetime, timedelta
 
 # Third-party imports
@@ -269,6 +270,19 @@ class ArizaKayit(models.Model):
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     teslimat_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi (Adrese Gönderim)', tracking=True, help='Adresime Gönderilsin seçildiğinde seçilen teslimat adresi')
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
+    
+    # Aras Kargo Entegrasyonu Alanları
+    carrier_id = fields.Many2one('delivery.carrier', string='Kargo Şirketi', tracking=True)
+    delivery_aras_tracking_number = fields.Char(string='Kargo Takip Numarası', tracking=True, help='Aras Kargo takip numarası')
+    delivery_aras_invoice_number = fields.Char(string='Fatura Numarası', tracking=True)
+    delivery_aras_receiver_name = fields.Char(string='Alıcı Adı', tracking=True)
+    delivery_aras_receiver_address = fields.Text(string='Alıcı Adresi', tracking=True)
+    delivery_aras_receiver_phone = fields.Char(string='Alıcı Telefonu', tracking=True)
+    delivery_aras_receiver_city = fields.Char(string='Alıcı Şehri', tracking=True)
+    delivery_aras_receiver_town = fields.Char(string='Alıcı İlçesi', tracking=True)
+    delivery_aras_piece_count = fields.Integer(string='Parça Sayısı', default=1, tracking=True)
+    delivery_aras_cod_ok = fields.Boolean(string='Kapıda Ödeme', default=False, tracking=True)
+    delivery_aras_payor_type_code = fields.Char(string='Ödeme Tipi Kodu', tracking=True)
     
     # Onarım Süreci Takibi
     onarim_baslangic_tarihi = fields.Date(string='Onarım Başlangıç Tarihi', tracking=True)
@@ -2158,6 +2172,123 @@ class StockPicking(models.Model):
         # Normal davranışı sürdür (modül dışı transferler için)
         return result 
 
+
+    def aras_send_shipping(self):
+        """
+        Aras Kargo entegrasyonu - stock.picking kullanmadan doğrudan arıza kaydından kargo gönderimi
+        """
+        if not self.carrier_id:
+            raise UserError(_('Kargo şirketi seçilmedi. Lütfen önce kargo şirketini seçin.'))
+        
+        # Mevcut entegrasyon modülündeki connector alanını kullan (varsa)
+        # delivery_aras_connector_id alanı mevcut entegrasyon modülünde tanımlı olmalı
+        connector = getattr(self.carrier_id, 'delivery_aras_connector_id', False)
+        if not connector:
+            raise UserError(_('Aras Kargo connector tanımlı değil. Lütfen kargo şirketi ayarlarını kontrol edin.'))
+        
+        # Teslimat adresi bilgilerini al
+        receiver_partner = self.teslimat_adresi_id or self.partner_id
+        if not receiver_partner:
+            raise UserError(_('Teslimat adresi bulunamadı. Lütfen teslimat adresini seçin.'))
+        
+        # Random referans numarası oluştur
+        random_number = ''.join(random.choice('0123456789') for _ in range(15))
+        
+        # Kargo parametrelerini hazırla
+        params = {
+            'reference': random_number,
+            'dispatch_number': getattr(self, 'document_number', self.name),
+            'invoice_number': self.delivery_aras_invoice_number or '',
+            'receiver_name': self.delivery_aras_receiver_name or receiver_partner.name or '',
+            'receiver_address': self.delivery_aras_receiver_address or self._get_receiver_address(receiver_partner),
+            'receiver_phone': self.delivery_aras_receiver_phone or receiver_partner.phone or receiver_partner.mobile or '',
+            'receiver_city': self.delivery_aras_receiver_city or (receiver_partner.city_id.name if receiver_partner.city_id else receiver_partner.city or ''),
+            'receiver_town': self.delivery_aras_receiver_town or (receiver_partner.state_id.name if receiver_partner.state_id else ''),
+            'piece_count': self.delivery_aras_piece_count or 1,
+            'is_cod': self.delivery_aras_cod_ok or False,
+            'payor_type_code': self.delivery_aras_payor_type_code or '',
+            'piece_details': [{'PieceDetail': []}],
+            'warehouse_code': self._get_warehouse_code() or ''
+        }
+        
+        # Ürün bilgilerini hazırla
+        product = None
+        if self.ariza_tipi == ArizaTipi.MAGAZA and self.magaza_urun_id:
+            product = self.magaza_urun_id
+        elif self.ariza_tipi == ArizaTipi.MUSTERI and self.invoice_line_id:
+            product = self.invoice_line_id.product_id
+        
+        if product:
+            barcode_number = random_number + '00'
+            params['piece_details'][0]['PieceDetail'].append({
+                'ProductNumber': product.id,
+                'Weight': max(product.weight or 0, 2),
+                'VolumetricWeight': max(product.volume or 0, 2),
+                'BarcodeNumber': barcode_number,
+            })
+        else:
+            # Ürün yoksa varsayılan değerler
+            params['piece_details'][0]['PieceDetail'].append({
+                'ProductNumber': 0,
+                'Weight': 2,
+                'VolumetricWeight': 2,
+                'BarcodeNumber': random_number + '00',
+            })
+        
+        # Connector ile kargo gönderimi yap
+        # Mevcut entegrasyon modülündeki connector alanını kullan
+        connector = getattr(self.carrier_id, 'delivery_aras_connector_id', False)
+        
+        # syncops.connector modülü kontrolü
+        if 'syncops.connector' not in self.env:
+            raise UserError(_('syncops.connector modülü bulunamadı. Lütfen modülün yüklü olduğundan emin olun.'))
+        
+        res = self.env['syncops.connector'].sudo()._execute('delivery_post_order', params=params, connectors=connector)
+        
+        if not res:
+            raise ValidationError(_('Kargo gönderimi sırasında bir hata oluştu. Lütfen logları kontrol edin.'))
+        
+        # Sonuçları işle
+        result_list = res if isinstance(res, list) else [res]
+        for r in result_list:
+            if not r.get('result_code') == '0':
+                raise ValidationError(r.get('result_message', 'Bilinmeyen hata'))
+            
+            # Takip numarasını kaydet
+            if r.get('tracking_number'):
+                self.delivery_aras_tracking_number = r.get('tracking_number')
+            
+            # Chatter'a mesaj ekle
+            self.message_post(
+                body=f"Aras Kargo ile gönderildi. Takip Numarası: {r.get('tracking_number', 'N/A')}",
+                subject="Kargo Gönderildi",
+                message_type='notification'
+            )
+        
+        return result_list
+    
+    def _get_receiver_address(self, partner):
+        """Teslimat adresini formatla"""
+        address_parts = []
+        if partner.street:
+            address_parts.append(partner.street)
+        if partner.street2:
+            address_parts.append(partner.street2)
+        if partner.city:
+            address_parts.append(partner.city)
+        if partner.state_id:
+            address_parts.append(partner.state_id.name)
+        if partner.zip:
+            address_parts.append(partner.zip)
+        return ', '.join(address_parts) if address_parts else ''
+    
+    def _get_warehouse_code(self):
+        """Warehouse kodunu al"""
+        if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id:
+            warehouse = self.analitik_hesap_id.warehouse_id
+            if hasattr(warehouse, 'delivery_aras_code'):
+                return warehouse.delivery_aras_code or ''
+        return ''
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
