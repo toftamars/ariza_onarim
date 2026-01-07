@@ -210,7 +210,18 @@
                                     <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                                     <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                     <t t-if="zuhal_partner">
-                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', o.analitik_hesap_id.name.replace('Perakende - ', ''))], limit=1)"/>
+                                        <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
+                                        <!-- Özel durum: Tema World mağazası için "Tema World Mağaza" partner'ını öncelikli ara -->
+                                        <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tema World Mağaza')], limit=1)"/>
+                                            <t t-if="not magaza_kontak">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tema World')], limit=1)"/>
+                                            </t>
+                                        </t>
+                                        <!-- Diğer mağazalar için normal arama -->
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_temiz)], limit=1)"/>
+                                        </t>
                                         <t t-if="magaza_kontak">
                                             <br/><t t-esc="magaza_kontak.street or ''"/>
                                             <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
@@ -408,7 +419,18 @@
                                         <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                                         <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                         <t t-if="zuhal_partner">
-                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', o.analitik_hesap_id.name.replace('Perakende - ', ''))], limit=1)"/>
+                                            <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
+                                            <!-- Özel durum: Tema World mağazası için "Tema World Mağaza" partner'ını öncelikli ara -->
+                                            <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tema World Mağaza')], limit=1)"/>
+                                                <t t-if="not magaza_kontak">
+                                                    <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tema World')], limit=1)"/>
+                                                </t>
+                                            </t>
+                                            <!-- Diğer mağazalar için normal arama -->
+                                            <t t-if="not magaza_kontak">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_temiz)], limit=1)"/>
+                                            </t>
                                             <t t-if="magaza_kontak">
                                                 <br/><t t-esc="magaza_kontak.street or ''"/>
                                                 <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
@@ -441,7 +463,18 @@
                                     <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
                                     <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
                                     <t t-if="zuhal_partner">
-                                        <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', o.analitik_hesap_id.name.replace('Perakende - ', ''))], limit=1)"/>
+                                        <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
+                                        <!-- Özel durum: Tema World mağazası için "Tema World Mağaza" partner'ını öncelikli ara -->
+                                        <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tema World Mağaza')], limit=1)"/>
+                                            <t t-if="not magaza_kontak">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tema World')], limit=1)"/>
+                                            </t>
+                                        </t>
+                                        <!-- Diğer mağazalar için normal arama -->
+                                        <t t-if="not magaza_kontak">
+                                            <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_temiz)], limit=1)"/>
+                                        </t>
                                         <t t-if="magaza_kontak">
                                             <br/><t t-esc="magaza_kontak.street or ''"/>
                                             <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
