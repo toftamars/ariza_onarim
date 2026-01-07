@@ -1102,23 +1102,28 @@ class ArizaKayit(models.Model):
         """
         Kargo firmasını otomatik set et.
         Hem mağaza ürünü (stock.picking var) hem de müşteri ürünü (stock.picking yok) için çalışır.
+        Sadece transfer_metodu kargo ise otomatik set eder, manuel seçimi korur.
         """
         # Sadece company_id == 1 için çalış
         if self.company_id.id != 1:
             return
         
-        # Transfer metodu kontrolü
+        # Transfer metodu kontrolü - sadece kargo ise otomatik set et
         if self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO]:
-            # Kargo firması ID = 2 (sabit değer, gerekirse parametreye çevrilebilir)
-            carrier = self.env['delivery.carrier'].browse(2)
-            if carrier.exists():
-                self.carrier_id = carrier.id
-                _logger.info(f"Kargo firması set edildi: {self.name} - Carrier: {carrier.name}")
-            else:
-                _logger.warning(f"Kargo firması bulunamadı (ID: 2): {self.name}")
+            # Eğer carrier_id zaten seçilmişse (manuel veya otomatik), değiştirme
+            if not self.carrier_id:
+                # Kargo firması ID = 2 (sabit değer, gerekirse parametreye çevrilebilir)
+                carrier = self.env['delivery.carrier'].browse(2)
+                if carrier.exists():
+                    self.carrier_id = carrier.id
+                    _logger.info(f"Kargo firması otomatik set edildi: {self.name} - Carrier: {carrier.name}")
+                else:
+                    _logger.warning(f"Kargo firması bulunamadı (ID: 2): {self.name}")
+        # Kargo metodu değilse ve carrier_id otomatik set edilmişse (ID=2) temizle, manuel seçimi koru
         else:
-            # Kargo metodu değilse carrier_id'yi temizle
-            self.carrier_id = False
+            # Sadece otomatik set edilmiş carrier_id'yi (ID=2) temizle, manuel seçimi koru
+            if self.carrier_id and self.carrier_id.id == 2:
+                self.carrier_id = False
     
     def _get_default_driver_id(self):
         """
