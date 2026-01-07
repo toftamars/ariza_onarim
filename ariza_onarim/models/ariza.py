@@ -268,7 +268,6 @@ class ArizaKayit(models.Model):
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
-    carrier_id = fields.Many2one('delivery.carrier', string='Nakliyeci', tracking=True)
     barcode = fields.Char(string='Barkod', tracking=True, copy=False)
     
     # Onarım Süreci Takibi
@@ -472,11 +471,6 @@ class ArizaKayit(models.Model):
         
         # Yeni oluşturulan kayıtlar için kargo firması ve barkod set et
         for record in records:
-            # _set_carrier() sadece transfer_metodu değiştiğinde çağrılmalı, create sırasında değil
-            # Çünkü kullanıcı manuel olarak carrier_id seçmişse korunmalı
-            # Eğer transfer_metodu kargo ise ve carrier_id boşsa otomatik set et
-            if record.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO] and not record.carrier_id:
-                record._set_carrier()
             
             # Müşteri ürünü için barkod oluştur (stock.picking yok)
             if record.ariza_tipi == ArizaTipi.MUSTERI and not record.barcode:
@@ -1101,38 +1095,6 @@ class ArizaKayit(models.Model):
             for field in fields_to_copy:
                 setattr(self, field, getattr(self.ariza_kabul_id, field, False))
 
-    def _set_carrier(self):
-        """
-        Kargo firmasını otomatik set et.
-        Hem mağaza ürünü (stock.picking var) hem de müşteri ürünü (stock.picking yok) için çalışır.
-        Sadece transfer_metodu kargo ise otomatik set eder, manuel seçimi korur.
-        """
-        # Sadece company_id == 1 için çalış
-        if self.company_id.id != 1:
-            return
-        
-        # Eğer carrier_id manuel olarak seçilmişse (ID != 2), koru ve otomatik set etme
-        if self.carrier_id and self.carrier_id.id != 2:
-            _logger.info(f"Manuel seçilmiş carrier_id korunuyor: {self.name} - Carrier: {self.carrier_id.name}")
-            return
-        
-        # Transfer metodu kontrolü - sadece kargo ise otomatik set et
-        if self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO]:
-            # Eğer carrier_id zaten seçilmişse (manuel veya otomatik), değiştirme
-            if not self.carrier_id:
-                # Kargo firması ID = 2 (sabit değer, gerekirse parametreye çevrilebilir)
-                carrier = self.env['delivery.carrier'].browse(2)
-                if carrier.exists():
-                    self.carrier_id = carrier.id
-                    _logger.info(f"Kargo firması otomatik set edildi: {self.name} - Carrier: {carrier.name}")
-                else:
-                    _logger.warning(f"Kargo firması bulunamadı (ID: 2): {self.name}")
-        # Kargo metodu değilse ve carrier_id otomatik set edilmişse (ID=2) temizle, manuel seçimi koru
-        else:
-            # Sadece otomatik set edilmiş carrier_id'yi (ID=2) temizle, manuel seçimi koru
-            if self.carrier_id and self.carrier_id.id == 2:
-                self.carrier_id = False
-    
     def _get_default_driver_id(self):
         """
         Default sürücü ID'sini system parameter'dan alır.
@@ -1293,10 +1255,6 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
         
-        # Kargo firmasını ariza.kayit'ten al (varsa)
-        if self.carrier_id:
-            picking_vals['carrier_id'] = self.carrier_id.id
-        
         # E-İrsaliye türü varsa ekle
         if edespatch_number_sequence_id:
             picking_vals['edespatch_number_sequence'] = edespatch_number_sequence_id
@@ -1344,16 +1302,12 @@ class ArizaKayit(models.Model):
                 picking_vals['partner_id'] = teknik_servis_partner.id
         
         # Nakliye bilgilerini ekle
-        # Kargo firmasını ariza.kayit'ten al (varsa), yoksa eski mantık
-        if self.carrier_id:
-            picking_vals['carrier_id'] = self.carrier_id.id
-        else:
-            # Kargo şirketini bul (ücretsiz kargo)
-            delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(
-                self.env
-            )
-            if delivery_carrier:
-                picking_vals['carrier_id'] = delivery_carrier.id
+        # Kargo şirketini bul (ücretsiz kargo)
+        delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(
+            self.env
+        )
+        if delivery_carrier:
+            picking_vals['carrier_id'] = delivery_carrier.id
             
         # Araç bilgisi ekle - basit yöntem
         if self.vehicle_id:
@@ -1841,10 +1795,6 @@ class ArizaKayit(models.Model):
             'date': fields.Datetime.now(),
         }
         
-        # Kargo firmasını ariza.kayit'ten al (varsa)
-        if self.carrier_id:
-            picking_vals['carrier_id'] = self.carrier_id.id
-        
         # Güvenlik kısıtı nedeniyle note alanına yazma
         
         # Teknik servise göre partner_id ayarla
@@ -2070,8 +2020,8 @@ class ArizaKayit(models.Model):
 
     @api.onchange('transfer_metodu')
     def _onchange_transfer_metodu(self):
-        """Transfer metodu değiştiğinde kargo firmasını otomatik set et"""
-        self._set_carrier()
+        """Transfer metodu değiştiğinde"""
+        pass
     
     @api.onchange('fatura_kalem_id')
     def _onchange_fatura_kalem_id(self):

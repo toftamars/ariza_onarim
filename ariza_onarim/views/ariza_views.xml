@@ -39,7 +39,6 @@
                         <group>
                             <field name="transfer_metodu" readonly="1" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' readonly="1" string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
-                            <field name="carrier_id" string="Nakliyeci" options='{"no_open": true, "no_create": true}'/>
                             <field name="kaynak_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="hedef_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                         </group>
@@ -86,7 +85,6 @@
                         <page string="Transfer Bilgileri" name="transfer_bilgileri" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                             <group>
                                 <field name="transfer_metodu" readonly="1"/>
-                                <field name="carrier_id" string="Nakliyeci" options='{"no_open": true, "no_create": true}'/>
                                 <field name="contact_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')]}"/>
                                 <field name="teslim_magazasi_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}"/>
                             </group>
@@ -216,7 +214,6 @@
                             <field name="teknik_servis"/>
                             <field name="tarih"/>
                             <field name="sorumlu_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
-                            <field name="carrier_id" string="Nakliyeci" options='{"no_open": true, "no_create": true}'/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
                             <field name="teslim_alan" invisible="1"/>
                             <field name="teslim_al_visible" invisible="1"/>
