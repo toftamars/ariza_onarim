@@ -6,7 +6,6 @@ Arıza Kayıt Modeli - Ana model dosyası
 # Standard library imports
 import logging
 import os
-import random
 from datetime import datetime, timedelta
 
 # Third-party imports
@@ -269,10 +268,6 @@ class ArizaKayit(models.Model):
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
     vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
-    
-    # Aras Kargo bilgileri
-    aras_kargo_barkod = fields.Char(string='Aras Kargo Barkod', readonly=True, tracking=True)
-    aras_kargo_gonderildi = fields.Boolean(string='Aras Kargo Gönderildi', default=False, tracking=True)
     
     # Onarım Süreci Takibi
     onarim_baslangic_tarihi = fields.Date(string='Onarım Başlangıç Tarihi', tracking=True)
@@ -1245,21 +1240,6 @@ class ArizaKayit(models.Model):
             'analytic_account_id': self.analitik_hesap_id.id if self.analitik_hesap_id else False,
         }
         
-        # Carrier otomatik ataması - Ücretsiz veya Ücretli kargo seçildiğinde Aras Kargo (ID: 2) ata
-        if picking_type.code == 'outgoing' and self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO]:
-            # Aras Kargo carrier'ını bul (ID: 2 veya delivery_type='aras')
-            carrier = self.env['delivery.carrier'].search([
-                ('id', '=', 2)
-            ], limit=1)
-            if not carrier:
-                # ID 2 yoksa delivery_type='aras' olan carrier'ı bul
-                carrier = self.env['delivery.carrier'].search([
-                    ('delivery_type', '=', 'aras')
-                ], limit=1)
-            if carrier:
-                picking_vals['carrier_id'] = carrier.id
-                _logger.info(f"Carrier otomatik atandı: {carrier.name} (ID: {carrier.id}) - Transfer: {self.name}")
-        
         # E-İrsaliye türü varsa ekle
         if edespatch_number_sequence_id:
             picking_vals['edespatch_number_sequence'] = edespatch_number_sequence_id
@@ -1652,31 +1632,6 @@ class ArizaKayit(models.Model):
         ctx = dict(self.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
         return self.env.ref('ariza_onarim.action_report_ariza_kayit').with_context(ctx).report_action(self)
-    
-    def action_print_aras_kargo(self):
-        """
-        Arıza Kayıt Kargo - Aras Kargo gönderimi yap ve kargo etiketini yazdır
-        """
-        self.ensure_one()
-        
-        # Aras Kargo gönderimini yap
-        try:
-            self._aras_send_shipping()
-        except Exception as e:
-            raise UserError(_('Aras Kargo gönderimi başarısız: %s') % str(e))
-        
-        # Kargo etiketi raporunu aç (eğer varsa)
-        # Şimdilik sadece başarı mesajı göster
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Başarılı'),
-                'message': _('Aras Kargo gönderimi oluşturuldu. Barkod: %s') % (self.aras_kargo_barkod or ''),
-                'type': 'success',
-                'sticky': False,
-            }
-        }
 
     def action_print_invoice(self):
         """
@@ -1727,115 +1682,6 @@ class ArizaKayit(models.Model):
     def action_print_delivery(self):
         if self.transfer_id:
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
-    
-    def _aras_send_shipping(self):
-        """
-        Aras Kargo'ya kargo gönderimi oluşturur (ariza.kayit için uyarlanmış versiyon)
-        """
-        self.ensure_one()
-        
-        # Aras Kargo carrier'ını bul
-        carrier = self.env['delivery.carrier'].search([
-            ('delivery_type', '=', 'aras')
-        ], limit=1)
-        
-        if not carrier:
-            raise UserError(_('Aras Kargo carrier\'ı bulunamadı!'))
-        
-        # Alıcı bilgilerini hazırla
-        if self.contact_id:
-            # Adresime Gönderilsin seçildiyse contact_id kullan
-            receiver = self.contact_id
-        elif self.partner_id:
-            # Müşteri bilgileri
-            receiver = self.partner_id
-        else:
-            raise UserError(_('Alıcı bilgisi bulunamadı!'))
-        
-        # Rastgele referans numarası oluştur
-        random_number = ''.join(random.choice('0123456789') for _ in range(15))
-        
-        # Aras Kargo parametrelerini hazırla
-        params = {
-            'reference': random_number,
-            'dispatch_number': getattr(self, 'document_number', self.name),
-            'invoice_number': getattr(self, 'delivery_aras_invoice_number', ''),
-            'receiver_name': receiver.name or '',
-            'receiver_address': receiver.street or '',
-            'receiver_phone': receiver.phone or receiver.mobile or '',
-            'receiver_city': receiver.city or '',
-            'receiver_town': receiver.state_id.name if receiver.state_id else '',
-            'piece_count': 1,  # Arıza kaydı için genellikle 1 parça
-            'is_cod': False,  # Kapıda ödeme varsayılan olarak False
-            'payor_type_code': '1',  # Gönderen öder
-            'piece_details': [{'PieceDetail': []}],
-            'warehouse_code': self.analitik_hesap_id.warehouse_id.delivery_aras_code if self.analitik_hesap_id and self.analitik_hesap_id.warehouse_id else ''
-        }
-        
-        # Ürün bilgilerini ekle (eğer ürün varsa)
-        if self.magaza_urun_id or (hasattr(self, 'urun') and self.urun):
-            product = self.magaza_urun_id if self.magaza_urun_id else None
-            if product:
-                params['piece_details'][0]['PieceDetail'].append({
-                    'ProductNumber': product.id,
-                    'Weight': max(product.weight or 2, 2),
-                    'VolumetricWeight': max(product.volume or 2, 2),
-                    'BarcodeNumber': random_number + '00',
-                })
-            else:
-                # Ürün yoksa varsayılan değerler
-                params['piece_details'][0]['PieceDetail'].append({
-                    'ProductNumber': 0,
-                    'Weight': 2,
-                    'VolumetricWeight': 2,
-                    'BarcodeNumber': random_number + '00',
-                })
-        
-        # Connector'ı al
-        connector = carrier.delivery_aras_connector_id
-        if not connector:
-            raise UserError(_('Aras Kargo connector\'ı bulunamadı!'))
-        
-        # API çağrısı yap
-        try:
-            res = self.env['syncops.connector'].sudo()._execute(
-                'delivery_post_order',
-                params=params,
-                connectors=connector
-            )
-            
-            if not res:
-                raise ValidationError(_('Bir hata oluştu. Lütfen logları kontrol edin.'))
-            
-            # Sonuçları kontrol et
-            for r in res:
-                if not r.get('result_code') == '0':
-                    raise ValidationError(r.get('result_message', 'Bilinmeyen hata'))
-                r.update({'exact_price': 0})
-            
-            # Barkod numarasını kaydet
-            if res and len(res) > 0:
-                # Aras Kargo'dan dönen barkod numarasını al
-                barkod = res[0].get('barcode_number', random_number)
-                self.aras_kargo_barkod = barkod
-                self.aras_kargo_gonderildi = True
-                
-                # Chatter'a mesaj ekle
-                self.message_post(
-                    body=_('Aras Kargo gönderimi oluşturuldu. Barkod: %s') % barkod,
-                    subject="Aras Kargo Gönderildi",
-                    message_type='notification'
-                )
-                
-                _logger.info(f"Aras Kargo gönderimi başarılı: {self.name} - Barkod: {barkod}")
-                
-                return res
-            else:
-                raise ValidationError(_('Aras Kargo\'dan yanıt alınamadı.'))
-                
-        except Exception as e:
-            _logger.error(f"Aras Kargo gönderimi hatası: {self.name} - {str(e)}")
-            raise UserError(_('Aras Kargo gönderimi sırasında hata oluştu: %s') % str(e))
     
     def action_teslim_al(self):
         """Mağaza ürünü teslim al işlemi - Tamir Alımlar transferi oluşturur"""

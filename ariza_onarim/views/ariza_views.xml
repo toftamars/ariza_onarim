@@ -15,7 +15,6 @@
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
-                    <button name="action_print_aras_kargo" string="Arıza Kayıt Kargo" type="object" class="btn-secondary" attrs="{'invisible': [('state', 'not in', ['onaylandi', 'yonetici_tamamlandi', 'tamamlandi', 'teslim_edildi'])]}" icon="fa-truck"/>
                     <!-- İptal butonu - teknik ekip için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', 'in', ['iptal', 'teslim_edildi'])]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi"/>
@@ -190,7 +189,6 @@
                     <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
-                    <button name="action_print_aras_kargo" string="Arıza Kayıt Kargo" type="object" class="btn-secondary" attrs="{'invisible': [('state', 'not in', ['onaylandi', 'yonetici_tamamlandi', 'tamamlandi', 'teslim_edildi'])]}" icon="fa-truck"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
                     <!-- Müşteri ürünü için Hazır butonu - 2. SMS gönderir -->
                     <button name="action_teslim_al_musteri" string="Hazır" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" confirm="Hazır butonuna basıldığında müşteriye durum bilgilendirmesi için sms gönderilecektir. Devam etmek istiyor musunuz?"/>
@@ -222,10 +220,6 @@
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options='{"no_open": true, "no_create": true}'/>
-                        </group>
-                        <group string="Aras Kargo Bilgileri">
-                            <field name="aras_kargo_gonderildi" readonly="1"/>
-                            <field name="aras_kargo_barkod" readonly="1"/>
                         </group>
                         <group>
                             <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
