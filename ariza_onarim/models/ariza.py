@@ -1679,6 +1679,14 @@ class ArizaKayit(models.Model):
 
     def action_print(self):
         if self.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO] and self.transfer_id:
+            # Önce "Kargo Çıktısı - A4" raporunu ara (Reporting Studio ile oluşturulmuş)
+            kargo_raporu = self.env['ir.actions.report'].search([
+                ('name', '=', 'Kargo Çıktısı - A4'),
+                ('model', '=', 'stock.picking')
+            ], limit=1)
+            if kargo_raporu:
+                return kargo_raporu.report_action(self.transfer_id)
+            # Bulunamazsa standart delivery raporunu kullan
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
         teknik_servis_adres = self.teknik_servis_adres
@@ -1734,6 +1742,14 @@ class ArizaKayit(models.Model):
 
     def action_print_delivery(self):
         if self.transfer_id:
+            # Önce "Kargo Çıktısı - A4" raporunu ara (Reporting Studio ile oluşturulmuş)
+            kargo_raporu = self.env['ir.actions.report'].search([
+                ('name', '=', 'Kargo Çıktısı - A4'),
+                ('model', '=', 'stock.picking')
+            ], limit=1)
+            if kargo_raporu:
+                return kargo_raporu.report_action(self.transfer_id)
+            # Bulunamazsa standart delivery raporunu kullan
             return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
     
     def action_teslim_al(self):
