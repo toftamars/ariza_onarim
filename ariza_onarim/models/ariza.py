@@ -330,11 +330,15 @@ class ArizaKayit(models.Model):
     
     @api.depends()
     def _compute_is_manager(self):
-        """Kullanıcının yönetici grubunda olup olmadığını kontrol et"""
-        manager_group = self.env.ref('ariza_onarim.group_ariza_manager', raise_if_not_found=False)
+        """Kullanıcının normal yönetici grubunda olup olmadığını kontrol et (süper yöneticiler hariç)"""
         for rec in self:
-            if manager_group:
-                rec.is_manager = self.env.user.has_group('ariza_onarim.group_ariza_manager')
+            # Süper yönetici ise butonları görebilir (is_manager = False)
+            if self.env.user.has_group('ariza_onarim.group_ariza_super_manager'):
+                rec.is_manager = False
+            # Sadece normal yönetici ise butonları göremez (is_manager = True)
+            elif self.env.user.has_group('ariza_onarim.group_ariza_manager'):
+                rec.is_manager = True
+            # Yönetici değilse butonları görebilir (is_manager = False)
             else:
                 rec.is_manager = False
     
