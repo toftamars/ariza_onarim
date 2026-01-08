@@ -162,6 +162,26 @@
                                 ZUHAL NEFESLİ<br/>
                                 Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                             </t>
+                            <t t-elif="o.teknik_servis == 'Prohan Elk.'">
+                                Prohan Elk.<br/>
+                                ÜÇGEN MAH. 107 SK NO: 7/1<br/>
+                                Antalya, 07040
+                            </t>
+                            <t t-elif="o.teknik_servis == 'NGAUDIO'">
+                                NGaudio<br/>
+                                Orta mahalle kuzu sokak no22 A<br/>
+                                ADAPAZARI, Sakarya, 54100
+                            </t>
+                            <t t-elif="o.teknik_servis == 'MATT Guitar'">
+                                MATT Guitar<br/>
+                                HASANPASA MAH. ALIBEY SOK. 21/A<br/>
+                                KADIKÖY, İstanbul, 34000
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
+                                ERK ENSTRÜMAN<br/>
+                                KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
+                                ÇANKAYA, Ankara, 06000
+                            </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
                                 <t t-esc="o.marka_id.partner_id.name"/><br/>
                                 <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
@@ -529,6 +549,26 @@
                                     Zuhal Müzik<br/>
                                     ZUHAL NEFESLİ<br/>
                                     Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
+                                </t>
+                                <t t-elif="o.teknik_servis == 'Prohan Elk.'">
+                                    Prohan Elk.<br/>
+                                    ÜÇGEN MAH. 107 SK NO: 7/1<br/>
+                                    Antalya, 07040
+                                </t>
+                                <t t-elif="o.teknik_servis == 'NGAUDIO'">
+                                    NGaudio<br/>
+                                    Orta mahalle kuzu sokak no22 A<br/>
+                                    ADAPAZARI, Sakarya, 54100
+                                </t>
+                                <t t-elif="o.teknik_servis == 'MATT Guitar'">
+                                    MATT Guitar<br/>
+                                    HASANPASA MAH. ALIBEY SOK. 21/A<br/>
+                                    KADIKÖY, İstanbul, 34000
+                                </t>
+                                <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
+                                    ERK ENSTRÜMAN<br/>
+                                    KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
+                                    ÇANKAYA, Ankara, 06000
                                 </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
                                     <t t-esc="o.marka_id.partner_id.name"/><br/>

@@ -67,6 +67,10 @@ class TeknikServis:
     MAGAZA = 'MAĞAZA'
     ZUHAL_NEFESLI = 'ZUHAL NEFESLİ'
     TEDARIKCI = 'TEDARİKÇİ'
+    NGAUDIO = 'NGAUDIO'
+    ERK_ENSTRUMAN = 'ERK ENSTRÜMAN'
+    MATT_GUITAR = 'MATT Guitar'
+    PROHAN_ELK = 'Prohan Elk.'
     
     # Teknik servis selection listesi
     SELECTION = [
@@ -76,6 +80,10 @@ class TeknikServis:
         (MAGAZA, 'MAĞAZA'),
         (ZUHAL_NEFESLI, 'ZUHAL NEFESLİ'),
         (TEDARIKCI, 'TEDARİKÇİ'),
+        (NGAUDIO, 'NGaudio'),
+        (ERK_ENSTRUMAN, 'ERK ENSTRÜMAN'),
+        (MATT_GUITAR, 'MATT Guitar'),
+        (PROHAN_ELK, 'Prohan Elk.'),
     ]
     
     # DTL teknik servisleri listesi (karşılaştırma için)
