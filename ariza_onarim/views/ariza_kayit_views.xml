@@ -6,7 +6,7 @@
             <field name="name">ariza.kayit.form</field>
             <field name="model">ariza.kayit</field>
             <field name="arch" type="xml">
-                <form string="ARIZA KAYIT FORMU">
+                <form string="ARIZA KAYIT FORMU" delete="0">
                     <header>
                         <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
                         <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
@@ -177,6 +177,20 @@
             <field name="print_report_name">'Arıza Kayıt - %s' % (object.name)</field>
             <field name="binding_model_id" ref="model_ariza_kayit"/>
             <field name="binding_type">report</field>
+        </record>
+
+        <!-- Süper Yönetici için Silme Yetkisi - Arıza Kayıt Form View (ariza_kayit_views.xml) -->
+        <record id="view_ariza_kayit_form_alt_super_manager" model="ir.ui.view">
+            <field name="name">ariza.kayit.form.alt.super.manager</field>
+            <field name="model">ariza.kayit</field>
+            <field name="inherit_id" ref="ariza_onarim.view_ariza_kayit_form"/>
+            <field name="priority" eval="10"/>
+            <field name="groups_id" eval="[(4, ref('ariza_onarim.group_ariza_super_manager'))]"/>
+            <field name="arch" type="xml">
+                <form position="attributes">
+                    <attribute name="delete">1</attribute>
+                </form>
+            </field>
         </record>
     </data>
 </odoo> 

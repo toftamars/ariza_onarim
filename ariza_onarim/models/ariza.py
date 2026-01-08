@@ -1553,10 +1553,31 @@ class ArizaKayit(models.Model):
                     record.ikinci_sms_gonderildi = True
                 
 
+    def action_kabul_et(self):
+        """Kabul etme işlemi - Sadece yöneticiler için, PERSONEL_ONAY'dan KABUL_EDILDI'ye geçiş"""
+        current_user = self.env.user
+        
+        # Sadece yöneticiler kullanabilir
+        if not current_user.has_group('ariza_onarim.group_ariza_manager'):
+            raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
+        
+        for record in self:
+            if record.state == ArizaStates.PERSONEL_ONAY:
+                record.state = ArizaStates.KABUL_EDILDI
+                # Kabul edildi bildirimi
+                record.message_post(
+                    body=f"Arıza kaydı kabul edildi. Kabul eden: {current_user.name}",
+                    subject="Arıza Kaydı Kabul Edildi",
+                    message_type='notification'
+                )
+                _logger.info(f"Arıza kaydı kabul edildi: {record.name} - Kullanıcı: {current_user.login}")
+            else:
+                raise UserError(_('Sadece personel onayı aşamasındaki kayıtlar kabul edilebilir.'))
+
     def action_teknik_onarim_baslat(self):
         """Teknik ekip onarım başlatma işlemi"""
         for record in self:
-            if record.state == ArizaStates.PERSONEL_ONAY:
+            if record.state == ArizaStates.KABUL_EDILDI:
                 record.state = ArizaStates.TEKNIK_ONARIM
                 # Teknik onarım başlatma bildirimi
                 record.message_post(
@@ -1564,6 +1585,11 @@ class ArizaKayit(models.Model):
                     subject="Teknik Onarım Başlatıldı",
                     message_type='notification'
                 )
+            elif record.state == ArizaStates.PERSONEL_ONAY:
+                # Geriye dönük uyumluluk için (eski kayıtlar için)
+                raise UserError(_('Önce "Kabul Et" butonuna basmanız gerekiyor.'))
+            else:
+                raise UserError(_('Sadece kabul edilmiş kayıtlar için onarım başlatılabilir.'))
 
     def action_onayla(self):
         """Final onaylama işlemi - Sadece teknik_onarim durumundan çalışır"""

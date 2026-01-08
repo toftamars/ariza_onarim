@@ -5,9 +5,17 @@
         <record id="group_ariza_manager" model="res.groups">
             <field name="name">Arıza Onarım / Yönetici</field>
             <field name="category_id" ref="base.module_category_inventory"/>
-            <field name="comment">Arıza kayıtlarını yönetebilir, onaylayabilir ve silebilir. Bu gruba kullanıcı eklemek için: Settings &gt; Users &amp; Companies &gt; Groups &gt; Arıza Onarım / Yönetici</field>
+            <field name="comment">Arıza kayıtlarını yönetebilir ve onaylayabilir. Bu gruba kullanıcı eklemek için: Settings &gt; Users &amp; Companies &gt; Groups &gt; Arıza Onarım / Yönetici</field>
             <!-- KRİTİK GÜVENLİK: base.group_system kaldırıldı - süper kullanıcı yetkisi verilmemeli -->
             <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Arıza Onarım Süper Yönetici Grubu -->
+        <record id="group_ariza_super_manager" model="res.groups">
+            <field name="name">Arıza Onarım / Süper Yönetici</field>
+            <field name="category_id" ref="base.module_category_inventory"/>
+            <field name="comment">Tüm yönetici yetkilerine ek olarak arıza kayıtlarını silebilir. Bu gruba kullanıcı eklemek için: Settings &gt; Users &amp; Companies &gt; Groups &gt; Arıza Onarım / Süper Yönetici</field>
+            <field name="implied_ids" eval="[(4, ref('ariza_onarim.group_ariza_manager'))]"/>
         </record>
 
 

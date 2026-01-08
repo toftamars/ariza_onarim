@@ -6,18 +6,19 @@
         <field name="model">ariza.kayit</field>
         <field name="priority" eval="20"/>
         <field name="arch" type="xml">
-            <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false">
+            <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false" delete="0">
                 <header>
                     <!-- Yöneticiler için koşulsuz butonlar - her durumda görünür -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="kabul_edildi" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için koşullu butonlar -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
                     <!-- İptal butonu - teknik ekip için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', 'in', ['iptal', 'teslim_edildi'])]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,kabul_edildi,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -179,14 +180,15 @@
         <field name="name">ariza.kayit.form</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <form string="Arıza Kaydı">
+            <form string="Arıza Kaydı" delete="0">
                 <header>
                     <button name="action_personel_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
                     <!-- Yöneticiler için koşulsuz butonlar - her durumda görünür -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" states="personel_onay" groups="ariza_onarim.group_ariza_manager"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" states="kabul_edildi" groups="ariza_onarim.group_ariza_manager"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için koşullu butonlar -->
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
@@ -198,7 +200,7 @@
                     <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('state', '!=', 'yonetici_tamamlandi'), ('teslim_al_visible', '=', False)]}" confirm="Mağaza ürününü teslim almak istediğinizden emin misiniz? Bu işlem Tamir Alımlar transferi oluşturacaktır."/>
                     <!-- İptal butonu - hem yöneticiler hem kullanıcılar için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', 'in', ['iptal', 'teslim_edildi'])]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,kabul_edildi,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -458,8 +460,8 @@
                                                 string="Onarımı Başlat" 
                                                 type="object" 
                                                 class="btn btn-sm btn-primary" 
-                                                states="personel_onay"
-                                                t-att-disabled="record.state.raw_value != 'personel_onay'"/>
+                                                states="kabul_edildi"
+                                                t-att-disabled="record.state.raw_value != 'kabul_edildi'"/>
                                         <button name="action_onayla" 
                                                 string="Onarımı Bitir" 
                                                 type="object" 
@@ -555,4 +557,32 @@
               action="action_ariza_kayit_manager" 
               sequence="5"
               groups="ariza_onarim.group_ariza_manager"/>
+
+    <!-- Süper Yönetici için Silme Yetkisi - Teknik Ekip Form View -->
+    <record id="view_ariza_kayit_form_teknik_ekip_super_manager" model="ir.ui.view">
+        <field name="name">ariza.kayit.form.teknik.ekip.super.manager</field>
+        <field name="model">ariza.kayit</field>
+        <field name="inherit_id" ref="view_ariza_kayit_form_teknik_ekip"/>
+        <field name="priority" eval="10"/>
+        <field name="groups_id" eval="[(4, ref('ariza_onarim.group_ariza_super_manager'))]"/>
+        <field name="arch" type="xml">
+            <form position="attributes">
+                <attribute name="delete">1</attribute>
+            </form>
+        </field>
+    </record>
+
+    <!-- Süper Yönetici için Silme Yetkisi - Ana Form View (ariza_views.xml) -->
+    <record id="view_ariza_kayit_form_main_super_manager" model="ir.ui.view">
+        <field name="name">ariza.kayit.form.main.super.manager</field>
+        <field name="model">ariza.kayit</field>
+        <field name="inherit_id" ref="view_ariza_kayit_form"/>
+        <field name="priority" eval="10"/>
+        <field name="groups_id" eval="[(4, ref('ariza_onarim.group_ariza_super_manager'))]"/>
+        <field name="arch" type="xml">
+            <form position="attributes">
+                <attribute name="delete">1</attribute>
+            </form>
+        </field>
+    </record>
 </odoo> 

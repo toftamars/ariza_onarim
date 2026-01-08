@@ -11,6 +11,7 @@ class ArizaStates:
     """Arıza kaydı durumları (state field için)"""
     DRAFT = 'draft'
     PERSONEL_ONAY = 'personel_onay'
+    KABUL_EDILDI = 'kabul_edildi'
     TEKNIK_ONARIM = 'teknik_onarim'
     ONAYLANDI = 'onaylandi'
     YONETICI_TAMAMLANDI = 'yonetici_tamamlandi'
@@ -23,6 +24,7 @@ class ArizaStates:
     SELECTION = [
         (DRAFT, 'Taslak'),
         (PERSONEL_ONAY, 'Personel Onayı'),
+        (KABUL_EDILDI, 'Kabul Edildi'),
         (TEKNIK_ONARIM, 'Teknik Onarım'),
         (ONAYLANDI, 'Onaylandı'),
         (YONETICI_TAMAMLANDI, 'Yönetici Tamamlandı'),
