@@ -163,7 +163,7 @@
                                 Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                             </t>
                             <t t-elif="o.teknik_servis == 'Prohan Elk.'">
-                                Prohan Elk.<br/>
+                                Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
                                 ÜÇGEN MAH. 107 SK NO: 7/1<br/>
                                 Antalya, 07040
                             </t>
@@ -551,7 +551,7 @@
                                     Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
                                 </t>
                                 <t t-elif="o.teknik_servis == 'Prohan Elk.'">
-                                    Prohan Elk.<br/>
+                                    Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
                                     ÜÇGEN MAH. 107 SK NO: 7/1<br/>
                                     Antalya, 07040
                                 </t>
