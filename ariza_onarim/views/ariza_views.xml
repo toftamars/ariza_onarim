@@ -192,10 +192,10 @@
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
-                    <!-- Müşteri ürünü için Hazır butonu - 2. SMS gönderir -->
-                    <button name="action_teslim_al_musteri" string="Hazır" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" confirm="Hazır butonuna basıldığında müşteriye durum bilgilendirmesi için sms gönderilecektir. Devam etmek istiyor musunuz?"/>
-                    <!-- Teslim Et butonu -->
-                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
+                    <!-- Müşteri ürünü için Hazır butonu - 2. SMS gönderir - Yöneticilerde görünmez -->
+                    <button name="action_teslim_al_musteri" string="Hazır" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi'), ('is_manager', '=', True)]}" confirm="Hazır butonuna basıldığında müşteriye durum bilgilendirmesi için sms gönderilecektir. Devam etmek istiyor musunuz?"/>
+                    <!-- Teslim Et butonu - Yöneticilerde görünmez -->
+                    <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim'), ('is_manager', '=', True)]}" options='{"no_open": true}'/>
                     <!-- Mağaza ürünü için Teslim Al butonu - Sadece kullanıcılar için (yönetici hariç) -->
                     <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('state', '!=', 'yonetici_tamamlandi'), ('teslim_al_visible', '=', False)]}" confirm="Mağaza ürününü teslim almak istediğinizden emin misiniz? Bu işlem Tamir Alımlar transferi oluşturacaktır."/>
                     <!-- İptal butonu - hem yöneticiler hem kullanıcılar için -->

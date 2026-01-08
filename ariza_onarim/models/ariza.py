@@ -321,6 +321,23 @@ class ArizaKayit(models.Model):
         store=False
     )
     
+    # Yönetici kontrolü için
+    is_manager = fields.Boolean(
+        string='Yönetici mi?',
+        compute='_compute_is_manager',
+        store=False
+    )
+    
+    @api.depends()
+    def _compute_is_manager(self):
+        """Kullanıcının yönetici grubunda olup olmadığını kontrol et"""
+        manager_group = self.env.ref('ariza_onarim.group_ariza_manager', raise_if_not_found=False)
+        for rec in self:
+            if manager_group:
+                rec.is_manager = self.env.user.has_group('ariza_onarim.group_ariza_manager')
+            else:
+                rec.is_manager = False
+    
     @api.depends('ariza_tipi', 'state')
     def _compute_teslim_al_visible(self):
         """Teslim Al butonunu görünür yap"""
@@ -1679,7 +1696,7 @@ class ArizaKayit(models.Model):
                 return kargo_a4_report.report_action(self.transfer_id)
             else:
                 # Fallback: Standart kargo raporu
-                return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
         teknik_servis_adres = self.teknik_servis_adres
         ctx = dict(self.env.context)
@@ -2050,7 +2067,7 @@ class ArizaKayit(models.Model):
     def _onchange_transfer_metodu(self):
         """Transfer metodu değiştiğinde"""
         pass
-    
+
     @api.onchange('fatura_kalem_id')
     def _onchange_fatura_kalem_id(self):
         if self.fatura_kalem_id:
