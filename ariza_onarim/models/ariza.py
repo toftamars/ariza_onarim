@@ -1700,7 +1700,7 @@ class ArizaKayit(models.Model):
                 return kargo_a4_report.report_action(self.transfer_id)
             else:
                 # Fallback: Standart kargo raporu
-            return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
+                return self.env.ref('stock.action_report_delivery').report_action(self.transfer_id)
         # Teknik servis adres bilgisi
         teknik_servis_adres = self.teknik_servis_adres
         ctx = dict(self.env.context)
