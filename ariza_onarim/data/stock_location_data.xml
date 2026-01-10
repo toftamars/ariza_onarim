@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ARIZA parent location (eğer yoksa) -->
+        <record id="stock_location_ariza" model="stock.location">
+            <field name="name">ARIZA</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <!-- NGaudio location -->
+        <record id="stock_location_ariza_ngaudio" model="stock.location">
+            <field name="name">NGaudio</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_ariza"/>
+        </record>
+
+        <!-- MATT location -->
+        <record id="stock_location_ariza_matt" model="stock.location">
+            <field name="name">MATT</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_ariza"/>
+        </record>
+
+        <!-- ANTL parent location (eğer yoksa) -->
+        <record id="stock_location_antl" model="stock.location">
+            <field name="name">ANTL</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <!-- Prohan Elk. - ANTL/Teknik Servis -->
+        <record id="stock_location_antl_teknik_servis" model="stock.location">
+            <field name="name">Teknik Servis</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_antl"/>
+        </record>
+
+        <!-- ANKDEPO parent location (eğer yoksa) -->
+        <record id="stock_location_ankdepo" model="stock.location">
+            <field name="name">ANKDEPO</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <!-- ERK ENSTRÜMAN - ANKDEPO/Ankara Teknik Servis -->
+        <record id="stock_location_ankdepo_ankara_teknik_servis" model="stock.location">
+            <field name="name">Ankara Teknik Servis</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_ankdepo"/>
+        </record>
+    </data>
+</odoo>

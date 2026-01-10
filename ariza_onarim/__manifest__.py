@@ -40,6 +40,7 @@
         'security/security.xml',
         'data/system_parameters.xml',
         'data/sequence.xml',
+        'data/stock_location_data.xml',
         'data/cron.xml',
         'security/ir.model.access.csv',
         'views/menu_views.xml',
