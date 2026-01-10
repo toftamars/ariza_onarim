@@ -24,9 +24,35 @@ class StockPicking(models.Model):
             if self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
                 # ZORLA Matbu yap (mevcut değeri override et)
                 vals['edespatch_delivery_type'] = 'printed'
-                _logger.info(f"Matbu ayarı yapıldı (ZORLA) - Transfer Origin: {origin}, Mevcut değer: {vals.get('edespatch_delivery_type', 'YOK')}")
+                _logger.info(f"[CREATE] Matbu ayarı yapıldı - Transfer Origin: {origin}")
         
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        
+        # Create sonrası da kontrol et ve gerekirse tekrar set et
+        for record in records:
+            if record.origin and 'ARZ' in record.origin.upper():
+                if record.edespatch_delivery_type != 'printed':
+                    _logger.warning(f"[CREATE SONRASI] edespatch_delivery_type değişmiş! Origin: {record.origin}, Mevcut: {record.edespatch_delivery_type}, Düzeltiliyor...")
+                    record.write({'edespatch_delivery_type': 'printed'})
+                    _logger.info(f"[CREATE SONRASI] Matbu olarak düzeltildi: {record.name}")
+        
+        return records
+    
+    def write(self, vals):
+        """
+        Arıza onarım modülünden gelen transferlerde edespatch_delivery_type değiştirilmesin
+        """
+        result = super().write(vals)
+        
+        # Write sonrası kontrol - ARZ ile başlayan origin'ler için
+        for record in self:
+            if record.origin and 'ARZ' in record.origin.upper():
+                if record.edespatch_delivery_type != 'printed':
+                    _logger.warning(f"[WRITE SONRASI] edespatch_delivery_type değiştirilmiş! Origin: {record.origin}, Mevcut: {record.edespatch_delivery_type}, Geri alınıyor...")
+                    super(StockPicking, record).write({'edespatch_delivery_type': 'printed'})
+                    _logger.info(f"[WRITE SONRASI] Matbu olarak geri alındı: {record.name}")
+        
+        return result
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
