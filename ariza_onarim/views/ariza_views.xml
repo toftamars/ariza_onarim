@@ -135,6 +135,7 @@
         <field name="arch" type="xml">
             <search string="Arıza Kayıtları - Teknik Ekip">
                 <field name="name"/>
+                <field name="urun"/>
                 <field name="ariza_tanimi"/>
                 <field name="teknik_servis"/>
                 <field name="sorumlu_id"/>
@@ -502,6 +503,7 @@
             <search string="Arıza Kayıtları - Yönetici Arama">
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="urun"/>
                 <field name="ariza_tanimi"/>
                 <field name="seri_no"/>
                 <field name="teknik_servis"/>
