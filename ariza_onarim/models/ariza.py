@@ -488,10 +488,12 @@ class ArizaKayit(models.Model):
             # Yeni teknik servisler için hedef konum ataması
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.NGAUDIO:
                 if not vals.get('hedef_konum_id'):
+                    _logger.info(f"NGaudio konum araması başlatıldı - Arıza Tipi: {vals.get('ariza_tipi')}, Teknik Servis: {vals.get('teknik_servis')}")
                     ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
                     if not ngaudio_konum:
+                        _logger.warning("NGaudio konum helper'dan bulunamadı, fallback arama yapılıyor")
                         # Fallback: Manuel arama
                         ngaudio_konum = self.env['stock.location'].search([
                             ('complete_name', 'ilike', 'ARIZA/NGaudio')
@@ -499,13 +501,18 @@ class ArizaKayit(models.Model):
                             ('name', 'ilike', 'NGaudio')
                         ], limit=1)
                     if ngaudio_konum:
+                        _logger.info(f"NGaudio konum bulundu: {ngaudio_konum.complete_name} (ID: {ngaudio_konum.id})")
                         vals['hedef_konum_id'] = ngaudio_konum.id
+                    else:
+                        _logger.error("NGaudio konum bulunamadı! Lütfen konumun varlığını kontrol edin.")
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.MATT_GUITAR:
                 if not vals.get('hedef_konum_id'):
+                    _logger.info(f"MATT Guitar konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
                     matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
                     if not matt_konum:
+                        _logger.warning("MATT Guitar konum helper'dan bulunamadı, fallback arama yapılıyor")
                         # Fallback: Manuel arama
                         matt_konum = self.env['stock.location'].search([
                             ('complete_name', 'ilike', 'ARIZA/MATT')
@@ -513,13 +520,18 @@ class ArizaKayit(models.Model):
                             ('name', 'ilike', 'MATT')
                         ], limit=1)
                     if matt_konum:
+                        _logger.info(f"MATT Guitar konum bulundu: {matt_konum.complete_name} (ID: {matt_konum.id})")
                         vals['hedef_konum_id'] = matt_konum.id
+                    else:
+                        _logger.error("MATT Guitar konum bulunamadı!")
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.PROHAN_ELK:
                 if not vals.get('hedef_konum_id'):
+                    _logger.info(f"Prohan Elk. konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
                     prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
                     if not prohan_konum:
+                        _logger.warning("Prohan Elk. konum helper'dan bulunamadı, fallback arama yapılıyor")
                         # Fallback: Manuel arama
                         prohan_konum = self.env['stock.location'].search([
                             ('complete_name', 'ilike', 'ANTL/Teknik Servis')
@@ -528,13 +540,18 @@ class ArizaKayit(models.Model):
                             ('name', 'ilike', 'Teknik')
                         ], limit=1)
                     if prohan_konum:
+                        _logger.info(f"Prohan Elk. konum bulundu: {prohan_konum.complete_name} (ID: {prohan_konum.id})")
                         vals['hedef_konum_id'] = prohan_konum.id
+                    else:
+                        _logger.error("Prohan Elk. konum bulunamadı!")
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ERK_ENSTRUMAN:
                 if not vals.get('hedef_konum_id'):
+                    _logger.info(f"ERK ENSTRÜMAN konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
                     erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
                     if not erk_konum:
+                        _logger.warning("ERK ENSTRÜMAN konum helper'dan bulunamadı, fallback arama yapılıyor")
                         # Fallback: Manuel arama
                         erk_konum = self.env['stock.location'].search([
                             ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
@@ -543,7 +560,10 @@ class ArizaKayit(models.Model):
                             ('name', 'ilike', 'Ankara')
                         ], limit=1)
                     if erk_konum:
+                        _logger.info(f"ERK ENSTRÜMAN konum bulundu: {erk_konum.complete_name} (ID: {erk_konum.id})")
                         vals['hedef_konum_id'] = erk_konum.id
+                    else:
+                        _logger.error("ERK ENSTRÜMAN konum bulunamadı!")
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = ArizaTipi.MUSTERI
             if not vals.get('sorumlu_id'):
