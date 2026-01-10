@@ -846,6 +846,72 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if nfsl_konum:
                     self.hedef_konum_id = nfsl_konum
+            elif self.teknik_servis == TeknikServis.NGAUDIO:
+                # NGAUDIO → ARIZA/NGaudio
+                ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
+                    self.env, self.company_id.id or self.env.company.id
+                )
+                if not ngaudio_konum:
+                    ngaudio_konum = self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ARIZA/NGaudio')
+                    ], limit=1) or self.env['stock.location'].search([
+                        ('name', 'ilike', 'NGaudio')
+                    ], limit=1)
+                if ngaudio_konum:
+                    self.hedef_konum_id = ngaudio_konum
+                    _logger.info(f"Hedef konum belirlendi (NGaudio): {ngaudio_konum.name}")
+                else:
+                    _logger.warning("ARIZA/NGaudio konumu bulunamadı")
+            elif self.teknik_servis == TeknikServis.MATT_GUITAR:
+                # MATT GUITAR → ARIZA/MATT
+                matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
+                    self.env, self.company_id.id or self.env.company.id
+                )
+                if not matt_konum:
+                    matt_konum = self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ARIZA/MATT')
+                    ], limit=1) or self.env['stock.location'].search([
+                        ('name', 'ilike', 'MATT')
+                    ], limit=1)
+                if matt_konum:
+                    self.hedef_konum_id = matt_konum
+                    _logger.info(f"Hedef konum belirlendi (MATT Guitar): {matt_konum.name}")
+                else:
+                    _logger.warning("ARIZA/MATT konumu bulunamadı")
+            elif self.teknik_servis == TeknikServis.PROHAN_ELK:
+                # PROHAN ELK → ANTL/Teknik Servis
+                prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
+                    self.env, self.company_id.id or self.env.company.id
+                )
+                if not prohan_konum:
+                    prohan_konum = self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ANTL/Teknik Servis')
+                    ], limit=1) or self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ANTL'),
+                        ('name', 'ilike', 'Teknik')
+                    ], limit=1)
+                if prohan_konum:
+                    self.hedef_konum_id = prohan_konum
+                    _logger.info(f"Hedef konum belirlendi (Prohan Elk.): {prohan_konum.name}")
+                else:
+                    _logger.warning("ANTL/Teknik Servis konumu bulunamadı")
+            elif self.teknik_servis == TeknikServis.ERK_ENSTRUMAN:
+                # ERK ENSTRÜMAN → ANKDEPO/Ankara Teknik Servis
+                erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
+                    self.env, self.company_id.id or self.env.company.id
+                )
+                if not erk_konum:
+                    erk_konum = self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
+                    ], limit=1) or self.env['stock.location'].search([
+                        ('complete_name', 'ilike', 'ANKDEPO'),
+                        ('name', 'ilike', 'Ankara')
+                    ], limit=1)
+                if erk_konum:
+                    self.hedef_konum_id = erk_konum
+                    _logger.info(f"Hedef konum belirlendi (ERK ENSTRÜMAN): {erk_konum.name}")
+                else:
+                    _logger.warning("ANKDEPO/Ankara Teknik Servis konumu bulunamadı")
             elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
                 # TEDARİKÇİ → tedarikçi konumu
                 if self.tedarikci_id.property_stock_supplier:
