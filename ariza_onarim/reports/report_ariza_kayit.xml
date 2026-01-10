@@ -182,6 +182,16 @@
                                 KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
                                 ÇANKAYA, Ankara, 06000
                             </t>
+                            <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
+                                <t t-esc="o.contact_id.name"/><br/>
+                                <t t-esc="o.contact_id.street or ''"/><br/>
+                                <t t-if="o.contact_id.street2"><t t-esc="o.contact_id.street2"/><br/></t>
+                                <t t-if="o.contact_id.city"><t t-esc="o.contact_id.city"/></t>
+                                <t t-if="o.contact_id.state_id"><t t-esc="o.contact_id.state_id.name"/></t>
+                                <t t-if="o.contact_id.zip"><t t-esc="o.contact_id.zip"/></t>
+                                <t t-if="o.contact_id.country_id">, <t t-esc="o.contact_id.country_id.name"/></t>
+                            </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
                                 <t t-esc="o.marka_id.partner_id.name"/><br/>
                                 <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
@@ -569,6 +579,16 @@
                                     ERK ENSTRÜMAN<br/>
                                     KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
                                     ÇANKAYA, Ankara, 06000
+                                </t>
+                                <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
+                                <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
+                                    <t t-esc="o.contact_id.name"/><br/>
+                                    <t t-esc="o.contact_id.street or ''"/><br/>
+                                    <t t-if="o.contact_id.street2"><t t-esc="o.contact_id.street2"/><br/></t>
+                                    <t t-if="o.contact_id.city"><t t-esc="o.contact_id.city"/></t>
+                                    <t t-if="o.contact_id.state_id"><t t-esc="o.contact_id.state_id.name"/></t>
+                                    <t t-if="o.contact_id.zip"><t t-esc="o.contact_id.zip"/></t>
+                                    <t t-if="o.contact_id.country_id">, <t t-esc="o.contact_id.country_id.name"/></t>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
                                     <t t-esc="o.marka_id.partner_id.name"/><br/>

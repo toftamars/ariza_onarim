@@ -1346,11 +1346,12 @@ class ArizaKayit(models.Model):
         # 2. transferde note alanına yazma (güvenlik kısıtı nedeniyle atlanır)
 
         try:
-            picking = self.env['stock.picking'].sudo().create(picking_vals)
+            # Arıza modülünden oluşturulan transferler için context ekle (Matbu ayarı için)
+            picking = self.env['stock.picking'].with_context(from_ariza_onarim=True).sudo().create(picking_vals)
         except Exception as e:
             # Güvenlik hatası alırsa, daha geniş yetki ile dene
             try:
-                picking = self.env['stock.picking'].with_context(force_company=self.env.company.id).sudo().create(picking_vals)
+                picking = self.env['stock.picking'].with_context(from_ariza_onarim=True, force_company=self.env.company.id).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         

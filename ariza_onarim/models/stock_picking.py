@@ -12,6 +12,21 @@ _logger = logging.getLogger(__name__)
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """
+        Arıza onarım modülünden oluşturulan transferler için
+        edespatch_delivery_type alanını otomatik olarak 'printed' (Matbu) yap
+        """
+        for vals in vals_list:
+            # Eğer context'te ariza_onarim işareti varsa veya origin'de ARIZA varsa
+            if self.env.context.get('from_ariza_onarim') or (vals.get('origin') and 'ARIZA' in str(vals.get('origin'))):
+                # edespatch_delivery_type alanı varsa ve henüz set edilmemişse
+                if 'edespatch_delivery_type' not in vals:
+                    vals['edespatch_delivery_type'] = 'printed'
+        
+        return super().create(vals_list)
+
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         res = super().fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
