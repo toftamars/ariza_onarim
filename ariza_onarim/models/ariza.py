@@ -491,6 +491,13 @@ class ArizaKayit(models.Model):
                     ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
+                    if not ngaudio_konum:
+                        # Fallback: Manuel arama
+                        ngaudio_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ARIZA/NGaudio')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('name', 'ilike', 'NGaudio')
+                        ], limit=1)
                     if ngaudio_konum:
                         vals['hedef_konum_id'] = ngaudio_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.MATT_GUITAR:
@@ -498,6 +505,13 @@ class ArizaKayit(models.Model):
                     matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
+                    if not matt_konum:
+                        # Fallback: Manuel arama
+                        matt_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ARIZA/MATT')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('name', 'ilike', 'MATT')
+                        ], limit=1)
                     if matt_konum:
                         vals['hedef_konum_id'] = matt_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.PROHAN_ELK:
@@ -505,6 +519,14 @@ class ArizaKayit(models.Model):
                     prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
+                    if not prohan_konum:
+                        # Fallback: Manuel arama
+                        prohan_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ANTL/Teknik Servis')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ANTL'),
+                            ('name', 'ilike', 'Teknik')
+                        ], limit=1)
                     if prohan_konum:
                         vals['hedef_konum_id'] = prohan_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ERK_ENSTRUMAN:
@@ -512,6 +534,14 @@ class ArizaKayit(models.Model):
                     erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
+                    if not erk_konum:
+                        # Fallback: Manuel arama
+                        erk_konum = self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
+                        ], limit=1) or self.env['stock.location'].search([
+                            ('complete_name', 'ilike', 'ANKDEPO'),
+                            ('name', 'ilike', 'Ankara')
+                        ], limit=1)
                     if erk_konum:
                         vals['hedef_konum_id'] = erk_konum.id
             if not vals.get('ariza_tipi'):
