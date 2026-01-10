@@ -17,11 +17,20 @@
                         <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False), ('ariza_tipi', '=', 'magaza')], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
                     </group>
                 </group>
-                <group>
+                <!-- Onarım Dışı Alanları (Sadece Mağaza Ürünü için) -->
+                <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
+                    <field name="onarim_mumkun_degil"/>
+                    <field name="onarim_mumkun_degil_aciklama" 
+                           placeholder="Onarımın mümkün olmama nedenini açıklayın..." 
+                           attrs="{'invisible': [('onarim_mumkun_degil', '=', False)], 'required': [('onarim_mumkun_degil', '=', True)]}"/>
+                </group>
+
+                <!-- Normal Onarım Bilgileri -->
+                <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
                     <field name="onarim_bilgisi" placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..."/>
                 </group>
 
-                <group>
+                <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
                     <group>
                         <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                         <field name="currency_id" invisible="1"/>

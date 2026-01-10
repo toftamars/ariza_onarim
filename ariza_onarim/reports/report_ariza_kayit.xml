@@ -791,14 +791,25 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <table class="table">
-                        <tr>
+                        <!-- Onarım Dışı Durumu -->
+                        <tr t-if="o.state == 'onarim_disi'">
+                            <td colspan="2" style="background-color: #fff3cd; border: 2px solid #ffc107; padding: 15px;">
+                                <strong style="color: #856404; font-size: 16px;">⚠️ ONARIM DIŞI</strong><br/>
+                                <span style="color: #856404; font-size: 13px;">
+                                    <strong>Açıklama:</strong> <span t-field="o.onarim_disi_aciklama"/>
+                                </span>
+                            </td>
+                        </tr>
+                        
+                        <!-- Normal Onarım Bilgileri -->
+                        <tr t-if="o.state != 'onarim_disi'">
                             <td><strong>Onarım Bilgisi:</strong></td>
                             <td>
                                 <span t-if="o.onarim_bilgisi" t-field="o.onarim_bilgisi"/>
                                 <span t-else="">Teknik Servis Tarafından doldurulacaktır</span>
                             </td>
                         </tr>
-                        <tr>
+                        <tr t-if="o.state != 'onarim_disi'">
                             <td><strong>Onarım Ücreti:</strong></td>
                             <td>
                                 <span t-if="o.onarim_ucreti and o.onarim_ucreti > 0">

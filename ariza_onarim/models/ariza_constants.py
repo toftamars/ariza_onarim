@@ -17,6 +17,7 @@ class ArizaStates:
     YONETICI_TAMAMLANDI = 'yonetici_tamamlandi'
     TAMAMLANDI = 'tamamlandi'
     TESLIM_EDILDI = 'teslim_edildi'
+    ONARIM_DISI = 'onarim_disi'
     KILITLI = 'kilitli'
     IPTAL = 'iptal'
     
@@ -30,6 +31,7 @@ class ArizaStates:
         (YONETICI_TAMAMLANDI, 'Yönetici Tamamlandı'),
         (TAMAMLANDI, 'Tamamlandı'),
         (TESLIM_EDILDI, 'Teslim Edildi'),
+        (ONARIM_DISI, 'Onarım Dışı'),
         (KILITLI, 'Kilitli'),
         (IPTAL, 'İptal'),
     ]

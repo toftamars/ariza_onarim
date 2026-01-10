@@ -248,6 +248,7 @@ class ArizaKayit(models.Model):
     )
     onarim_bilgisi = fields.Text(string='Onarım Bilgisi', tracking=True)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi', tracking=True)
+    onarim_disi_aciklama = fields.Text(string='Onarım Dışı Açıklama', tracking=True, readonly=True)
     magaza_urun_id = fields.Many2one(
         'product.product',
         string='Ürün',

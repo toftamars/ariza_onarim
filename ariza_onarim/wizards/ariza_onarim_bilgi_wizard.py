@@ -35,6 +35,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
     
+    # Onarım Dışı Alanları (Sadece Mağaza Ürünü için)
+    onarim_mumkun_degil = fields.Boolean(string='Onarımı Mümkün Değil', default=False)
+    onarim_mumkun_degil_aciklama = fields.Text(string='Açıklama')
+    
 
 
     @api.model
@@ -66,6 +70,26 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
         ariza = self.ariza_id
         
+        # Onarım Dışı kontrolü (Sadece Mağaza Ürünü için)
+        if self.ariza_tipi == 'magaza' and self.onarim_mumkun_degil:
+            # Açıklama zorunlu
+            if not self.onarim_mumkun_degil_aciklama:
+                raise UserError(_('Onarımı mümkün değil seçeneği işaretlendiğinde açıklama girmeniz zorunludur.'))
+            
+            # Onarım dışı bilgilerini kaydet
+            ariza.onarim_disi_aciklama = self.onarim_mumkun_degil_aciklama
+            ariza.state = 'onarim_disi'
+            
+            # Chatter'a mesaj ekle
+            ariza.message_post(
+                body=f"Onarım mümkün değil olarak işaretlendi. Açıklama: {self.onarim_mumkun_degil_aciklama}",
+                subject="Onarım Dışı",
+                message_type='notification'
+            )
+            
+            return {'type': 'ir.actions.act_window_close'}
+        
+        # Normal onarım akışı devam ediyor
         # Onarım bilgilerini güncelle
         ariza.onarim_bilgisi = self.onarim_bilgisi
         ariza.garanti_kapsaminda_mi = self.garanti_kapsaminda_mi
