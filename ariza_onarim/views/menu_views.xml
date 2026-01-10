@@ -29,4 +29,220 @@
     
     <!-- Kullanım Talimatları Menüsü -->
     <menuitem id="menu_kullanim_talimatlari" name="Kullanım Talimatları" parent="menu_ariza_root" action="action_kullanim_talimatlari" sequence="20"/>
+
+    <!-- ============================================== -->
+    <!-- ONARIM DIŞI ÜRÜNLER MENÜSÜ -->
+    <!-- ============================================== -->
+    
+    <!-- Onarım Dışı Ürünler - Tree View -->
+    <record id="view_ariza_kayit_onarim_disi_tree" model="ir.ui.view">
+        <field name="name">ariza.kayit.onarim.disi.tree</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <tree string="Onarım Dışı Ürünler" decoration-warning="True">
+                <field name="name"/>
+                <field name="tarih"/>
+                <field name="analitik_hesap_id" string="Mağaza"/>
+                <field name="magaza_urun_id" string="Ürün"/>
+                <field name="teknik_servis"/>
+                <field name="onarim_disi_aciklama" string="Onarım Dışı Açıklama"/>
+                <field name="sorumlu_id"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Onarım Dışı Ürünler - Search View -->
+    <record id="view_ariza_kayit_onarim_disi_search" model="ir.ui.view">
+        <field name="name">ariza.kayit.onarim.disi.search</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Onarım Dışı Ürünler">
+                <field name="name"/>
+                <field name="analitik_hesap_id"/>
+                <field name="magaza_urun_id"/>
+                <field name="teknik_servis"/>
+                <field name="onarim_disi_aciklama"/>
+                <group expand="0" string="Grupla">
+                    <filter string="Mağaza" name="magaza" context="{'group_by': 'analitik_hesap_id'}"/>
+                    <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
+                    <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
+                    <filter string="Ay" name="ay" context="{'group_by': 'tarih:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Onarım Dışı Ürünler - Action -->
+    <record id="action_onarim_disi_urunler" model="ir.actions.act_window">
+        <field name="name">Onarım Dışı Ürünler</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_ariza_kayit_onarim_disi_tree"/>
+        <field name="search_view_id" ref="view_ariza_kayit_onarim_disi_search"/>
+        <field name="domain">[('state', '=', 'onarim_disi')]</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Onarım dışı ürün bulunmuyor.
+            </p>
+            <p>
+                Onarımı mümkün olmayan ürünler burada listelenir.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Onarım Dışı Ürünler - Menü (Yönetici ve Süper Yönetici için) -->
+    <menuitem id="menu_onarim_disi_urunler" 
+              name="Onarım Dışı Ürünler" 
+              parent="menu_ariza_root" 
+              action="action_onarim_disi_urunler" 
+              sequence="25"
+              groups="ariza_onarim.group_ariza_manager"/>
+
+    <!-- ============================================== -->
+    <!-- RAPORLAMA MENÜSÜ -->
+    <!-- ============================================== -->
+    
+    <!-- Raporlama Ana Menü -->
+    <menuitem id="menu_raporlama" 
+              name="Raporlama" 
+              parent="menu_ariza_root" 
+              sequence="30"
+              groups="ariza_onarim.group_ariza_manager"/>
+    
+    <!-- Raporlama - Pivot View -->
+    <record id="view_ariza_kayit_raporlama_pivot" model="ir.ui.view">
+        <field name="name">ariza.kayit.raporlama.pivot</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <pivot string="Arıza Kayıtları Analizi" sample="1">
+                <field name="state" type="row"/>
+                <field name="ariza_tipi" type="col"/>
+                <field name="id" type="measure" string="Kayıt Sayısı"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Graph View (Bar) -->
+    <record id="view_ariza_kayit_raporlama_graph" model="ir.ui.view">
+        <field name="name">ariza.kayit.raporlama.graph</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <graph string="Arıza Kayıtları Grafiği" type="bar" sample="1">
+                <field name="state"/>
+                <field name="id" type="measure" string="Kayıt Sayısı"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Graph View (Pie) -->
+    <record id="view_ariza_kayit_raporlama_graph_pie" model="ir.ui.view">
+        <field name="name">ariza.kayit.raporlama.graph.pie</field>
+        <field name="model">ariza.kayit</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <graph string="Durum Dağılımı" type="pie" sample="1">
+                <field name="state"/>
+                <field name="id" type="measure" string="Kayıt Sayısı"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Search View -->
+    <record id="view_ariza_kayit_raporlama_search" model="ir.ui.view">
+        <field name="name">ariza.kayit.raporlama.search</field>
+        <field name="model">ariza.kayit</field>
+        <field name="arch" type="xml">
+            <search string="Raporlama Filtresi">
+                <field name="name"/>
+                <field name="analitik_hesap_id"/>
+                <field name="teknik_servis"/>
+                <separator/>
+                <filter string="Bu Ay" name="bu_ay" domain="[('tarih', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Son 3 Ay" name="son_3_ay" domain="[('tarih', '&gt;=', (context_today() - relativedelta(months=3)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Bu Yıl" name="bu_yil" domain="[('tarih', '&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Müşteri Ürünleri" name="musteri" domain="[('ariza_tipi', '=', 'musteri')]"/>
+                <filter string="Mağaza Ürünleri" name="magaza" domain="[('ariza_tipi', '=', 'magaza')]"/>
+                <separator/>
+                <filter string="Tamamlanan" name="tamamlanan" domain="[('state', 'in', ['tamamlandi', 'teslim_edildi', 'yonetici_tamamlandi'])]"/>
+                <filter string="Onarım Dışı" name="onarim_disi" domain="[('state', '=', 'onarim_disi')]"/>
+                <filter string="Devam Eden" name="devam_eden" domain="[('state', 'in', ['draft', 'personel_onay', 'kabul_edildi', 'teknik_onarim', 'onaylandi'])]"/>
+                <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
+                <group expand="1" string="Grupla">
+                    <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
+                    <filter string="Arıza Tipi" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
+                    <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
+                    <filter string="Mağaza" name="magaza" context="{'group_by': 'analitik_hesap_id'}"/>
+                    <filter string="Ay" name="ay" context="{'group_by': 'tarih:month'}"/>
+                    <filter string="Yıl" name="yil" context="{'group_by': 'tarih:year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Özet Dashboard Action -->
+    <record id="action_raporlama_ozet" model="ir.actions.act_window">
+        <field name="name">Özet Dashboard</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="view_id" ref="view_ariza_kayit_raporlama_pivot"/>
+        <field name="search_view_id" ref="view_ariza_kayit_raporlama_search"/>
+        <field name="context">{'search_default_bu_ay': 1, 'search_default_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi bulunmuyor.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Durum Analizi Action -->
+    <record id="action_raporlama_durum_analizi" model="ir.actions.act_window">
+        <field name="name">Durum Analizi</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="view_id" ref="view_ariza_kayit_raporlama_graph_pie"/>
+        <field name="search_view_id" ref="view_ariza_kayit_raporlama_search"/>
+        <field name="context">{'search_default_bu_yil': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi bulunmuyor.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Raporlama - Aylık Trend Action -->
+    <record id="action_raporlama_aylik_trend" model="ir.actions.act_window">
+        <field name="name">Aylık Trend</field>
+        <field name="res_model">ariza.kayit</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="view_id" ref="view_ariza_kayit_raporlama_graph"/>
+        <field name="search_view_id" ref="view_ariza_kayit_raporlama_search"/>
+        <field name="context">{'search_default_bu_yil': 1, 'search_default_ay': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Henüz rapor verisi bulunmuyor.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Raporlama Alt Menüleri -->
+    <menuitem id="menu_raporlama_ozet" 
+              name="Özet Dashboard" 
+              parent="menu_raporlama" 
+              action="action_raporlama_ozet" 
+              sequence="10"/>
+              
+    <menuitem id="menu_raporlama_durum_analizi" 
+              name="Durum Analizi" 
+              parent="menu_raporlama" 
+              action="action_raporlama_durum_analizi" 
+              sequence="20"/>
+              
+    <menuitem id="menu_raporlama_aylik_trend" 
+              name="Aylık Trend" 
+              parent="menu_raporlama" 
+              action="action_raporlama_aylik_trend" 
+              sequence="30"/>
 </odoo> 
