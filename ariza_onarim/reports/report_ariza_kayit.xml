@@ -232,6 +232,14 @@
                                     <t t-esc="o.analitik_hesap_id.adres"/>
                                 </div>
                             </t>
+                            <!-- Özel durum: Tünel analitik hesabı için sabit adres (partner_id kontrolünden ÖNCE) -->
+                            <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street and ('Tünel' in o.analitik_hesap_id.name or 'TUNEL' in o.analitik_hesap_id.name.upper())">
+                                Zuhal Müzik Tünel Mağaza<br/>
+                                Galip Dede Cad. No:33 Tünel<br/>
+                                Beyoğlu<br/>
+                                İstanbul (TR) 34000<br/>
+                                Türkiye
+                            </t>
                             <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
                                 <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
                                     Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
@@ -243,13 +251,24 @@
                                 </div>
                             </t>
                             <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.name">
-                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
-                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/>
-                                    <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
-                                    <t t-if="zuhal_partner">
-                                        <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
-                                        <!-- Özel durum: Tema World mağazası için "Tema World Mağaza" partner'ını öncelikli ara -->
-                                        <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
+                                <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
+                                <!-- Özel durum: Tünel analitik hesabı için sabit adres (partner aramasından ÖNCE) -->
+                                <t t-if="'Tünel' in magaza_adi_temiz or 'TUNEL' in magaza_adi_temiz.upper()">
+                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                        Zuhal Müzik Tünel Mağaza<br/>
+                                        Galip Dede Cad. No:33 Tünel<br/>
+                                        Beyoğlu<br/>
+                                        İstanbul (TR) 34000<br/>
+                                        Türkiye
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                        Zuhal Müzik <t t-esc="magaza_adi_temiz + ' Mağaza' if 'Mağaza' not in magaza_adi_temiz else magaza_adi_temiz"/>
+                                        <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
+                                        <t t-if="zuhal_partner">
+                                            <!-- Özel durum: Tema World mağazası için "Tema World Mağaza" partner'ını öncelikli ara -->
+                                            <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
                                             <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tema World Mağaza')], limit=1)"/>
                                             <t t-if="not magaza_kontak">
                                                 <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tema World')], limit=1)"/>
@@ -268,6 +287,7 @@
                                         </t>
                                     </t>
                                 </div>
+                                </t>
                             </t>
                             <t t-else="">
                                 <div t-field="company.name"/><br/>
