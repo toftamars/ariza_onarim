@@ -19,11 +19,13 @@ class StockPicking(models.Model):
         edespatch_delivery_type alanını otomatik olarak 'printed' (Matbu) yap
         """
         for vals in vals_list:
-            # Eğer context'te ariza_onarim işareti varsa veya origin'de ARIZA varsa
-            if self.env.context.get('from_ariza_onarim') or (vals.get('origin') and 'ARIZA' in str(vals.get('origin'))):
+            # Eğer context'te ariza_onarim işareti varsa veya origin'de ARZ varsa
+            origin = str(vals.get('origin', ''))
+            if self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
                 # edespatch_delivery_type alanı varsa ve henüz set edilmemişse
                 if 'edespatch_delivery_type' not in vals:
                     vals['edespatch_delivery_type'] = 'printed'
+                    _logger.info(f"Matbu ayarı yapıldı - Transfer Origin: {origin}")
         
         return super().create(vals_list)
 
