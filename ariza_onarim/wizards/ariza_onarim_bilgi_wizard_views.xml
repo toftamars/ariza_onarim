@@ -27,12 +27,15 @@
 
                 <!-- Normal Onarım Bilgileri -->
                 <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
-                    <field name="onarim_bilgisi" placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..."/>
+                    <field name="onarim_bilgisi" 
+                           placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..." 
+                           attrs="{'required': [('onarim_mumkun_degil', '=', False)]}"/>
                 </group>
 
                 <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
                     <group>
-                        <field name="garanti_kapsaminda_mi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
+                        <field name="garanti_kapsaminda_mi" 
+                               attrs="{'invisible': [('ariza_tipi', '=', 'magaza')], 'required': [('onarim_mumkun_degil', '=', False), ('ariza_tipi', '=', 'musteri')]}"/>
                         <field name="currency_id" invisible="1"/>
                         <field name="onarim_ucreti" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
                     </group>

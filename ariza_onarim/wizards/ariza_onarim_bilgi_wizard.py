@@ -25,12 +25,12 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                                        domain="[('type', 'in', ['delivery', 'contact'])]",
                                        attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)]}",
                                        context="{'default_type': 'delivery'}")
-    onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=True)
+    onarim_bilgisi = fields.Text(string='Onarım Bilgisi', required=False)
     garanti_kapsaminda_mi = fields.Selection([
         ('evet', 'Evet'),
         ('hayir', 'Hayır'),
         ('urun_degisimi', 'Ürün Değişimi'),
-    ], string='Garanti Kapsamında mı?', required=True)
+    ], string='Garanti Kapsamında mı?', required=False)
     ucret_bilgisi = fields.Char(string='Ücret Bilgisi')
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', default=lambda self: self.env.company.currency_id)
@@ -88,6 +88,13 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             )
             
             return {'type': 'ir.actions.act_window_close'}
+        
+        # Normal onarım akışı - Validasyonlar
+        if not self.onarim_mumkun_degil:
+            if not self.onarim_bilgisi:
+                raise UserError(_('Onarım bilgisi girmeniz zorunludur.'))
+            if self.ariza_tipi == 'musteri' and not self.garanti_kapsaminda_mi:
+                raise UserError(_('Garanti kapsamı seçmeniz zorunludur.'))
         
         # Normal onarım akışı devam ediyor
         # Onarım bilgilerini güncelle
