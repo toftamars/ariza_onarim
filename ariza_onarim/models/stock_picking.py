@@ -35,6 +35,23 @@ class StockPicking(models.Model):
                     _logger.warning(f"[CREATE SONRASI] edespatch_delivery_type değişmiş! Origin: {record.origin}, Mevcut: {record.edespatch_delivery_type}, Düzeltiliyor...")
                     record.write({'edespatch_delivery_type': 'printed'})
                     _logger.info(f"[CREATE SONRASI] Matbu olarak düzeltildi: {record.name}")
+                    # Chatter'a da mesaj ekle
+                    try:
+                        record.message_post(
+                            body=f"✅ Teslimat Türü otomatik olarak 'Matbu' yapıldı (Arıza Modülü)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
+                else:
+                    # Başarılı - Chatter'a bilgi ekle
+                    try:
+                        record.message_post(
+                            body=f"✅ Teslimat Türü: Matbu (Arıza Modülü - Otomatik)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
         
         return records
     
