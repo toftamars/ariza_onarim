@@ -820,8 +820,22 @@ class ArizaKayit(models.Model):
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
                     _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{dtl_konum.display_name}</b> (Teknik Servis: {self.teknik_servis})",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
                 else:
                     _logger.warning("DTL/Stok konumu bulunamadı")
+                    try:
+                        self.message_post(
+                            body=f"⚠️ DTL/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
                 # ZUHAL ARIZA DEPO → Arıza/Stok
                 ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
@@ -834,6 +848,21 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if ariza_konum:
                     self.hedef_konum_id = ariza_konum
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{ariza_konum.display_name}</b> (Teknik Servis: ZUHAL ARIZA DEPO)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
+                else:
+                    try:
+                        self.message_post(
+                            body=f"⚠️ Arıza/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
                 # ZUHAL NEFESLİ → NFSL/Stok
                 nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
@@ -846,6 +875,21 @@ class ArizaKayit(models.Model):
                 ], limit=1)
                 if nfsl_konum:
                     self.hedef_konum_id = nfsl_konum
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{nfsl_konum.display_name}</b> (Teknik Servis: ZUHAL NEFESLİ)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
+                else:
+                    try:
+                        self.message_post(
+                            body=f"⚠️ NFSL/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.NGAUDIO:
                 # NGAUDIO → ARIZA/NGaudio
                 ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
@@ -860,8 +904,22 @@ class ArizaKayit(models.Model):
                 if ngaudio_konum:
                     self.hedef_konum_id = ngaudio_konum
                     _logger.info(f"Hedef konum belirlendi (NGaudio): {ngaudio_konum.name}")
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{ngaudio_konum.display_name}</b> (Teknik Servis: NGaudio)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
                 else:
                     _logger.warning("ARIZA/NGaudio konumu bulunamadı")
+                    try:
+                        self.message_post(
+                            body=f"⚠️ ARIZA/NGaudio konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.MATT_GUITAR:
                 # MATT GUITAR → ARIZA/MATT
                 matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
@@ -876,8 +934,22 @@ class ArizaKayit(models.Model):
                 if matt_konum:
                     self.hedef_konum_id = matt_konum
                     _logger.info(f"Hedef konum belirlendi (MATT Guitar): {matt_konum.name}")
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{matt_konum.display_name}</b> (Teknik Servis: MATT Guitar)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
                 else:
                     _logger.warning("ARIZA/MATT konumu bulunamadı")
+                    try:
+                        self.message_post(
+                            body=f"⚠️ ARIZA/MATT konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.PROHAN_ELK:
                 # PROHAN ELK → ANTL/Teknik Servis
                 prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
@@ -893,8 +965,22 @@ class ArizaKayit(models.Model):
                 if prohan_konum:
                     self.hedef_konum_id = prohan_konum
                     _logger.info(f"Hedef konum belirlendi (Prohan Elk.): {prohan_konum.name}")
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{prohan_konum.display_name}</b> (Teknik Servis: Prohan Elk.)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
                 else:
                     _logger.warning("ANTL/Teknik Servis konumu bulunamadı")
+                    try:
+                        self.message_post(
+                            body=f"⚠️ ANTL/Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.ERK_ENSTRUMAN:
                 # ERK ENSTRÜMAN → ANKDEPO/Ankara Teknik Servis
                 erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
@@ -910,8 +996,22 @@ class ArizaKayit(models.Model):
                 if erk_konum:
                     self.hedef_konum_id = erk_konum
                     _logger.info(f"Hedef konum belirlendi (ERK ENSTRÜMAN): {erk_konum.name}")
+                    try:
+                        self.message_post(
+                            body=f"✅ Hedef Konum otomatik atandı: <b>{erk_konum.display_name}</b> (Teknik Servis: ERK ENSTRÜMAN)",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
                 else:
                     _logger.warning("ANKDEPO/Ankara Teknik Servis konumu bulunamadı")
+                    try:
+                        self.message_post(
+                            body=f"⚠️ ANKDEPO/Ankara Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            message_type='notification'
+                        )
+                    except:
+                        pass
             elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
                 # TEDARİKÇİ → tedarikçi konumu
                 if self.tedarikci_id.property_stock_supplier:
