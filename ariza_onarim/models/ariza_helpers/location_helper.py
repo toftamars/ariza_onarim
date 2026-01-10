@@ -175,6 +175,166 @@ class LocationHelper:
             return False
 
     @staticmethod
+    def get_ngaudio_location(env, company_id=None):
+        """
+        ARIZA/NGaudio konumunu bulur.
+        
+        Args:
+            env: Odoo environment
+            company_id: Company ID (opsiyonel, varsayılan: env.company.id)
+            
+        Returns:
+            stock.location record veya False
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            # Önce tam eşleşme ara
+            ngaudio_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ARIZA/NGaudio')
+            ], limit=1)
+            if ngaudio_konum:
+                return ngaudio_konum
+            
+            # Bulamazsa name ile ara
+            ngaudio_konum = env['stock.location'].search([
+                ('name', '=', 'NGaudio')
+            ], limit=1)
+            if ngaudio_konum:
+                return ngaudio_konum
+            
+            # Son çare: ilike ile ara
+            ngaudio_konum = env['stock.location'].search([
+                ('name', 'ilike', 'NGaudio')
+            ], limit=1)
+            return ngaudio_konum if ngaudio_konum else False
+        except Exception as e:
+            _logger.warning(f"ARIZA/NGaudio konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
+    def get_matt_guitar_location(env, company_id=None):
+        """
+        ARIZA/MATT konumunu bulur.
+        
+        Args:
+            env: Odoo environment
+            company_id: Company ID (opsiyonel, varsayılan: env.company.id)
+            
+        Returns:
+            stock.location record veya False
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            # Önce tam eşleşme ara
+            matt_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ARIZA/MATT')
+            ], limit=1)
+            if matt_konum:
+                return matt_konum
+            
+            # Bulamazsa name ile ara
+            matt_konum = env['stock.location'].search([
+                ('name', '=', 'MATT')
+            ], limit=1)
+            if matt_konum:
+                return matt_konum
+            
+            # Son çare: ilike ile ara
+            matt_konum = env['stock.location'].search([
+                ('name', 'ilike', 'MATT')
+            ], limit=1)
+            return matt_konum if matt_konum else False
+        except Exception as e:
+            _logger.warning(f"ARIZA/MATT konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
+    def get_prohan_elk_location(env, company_id=None):
+        """
+        ANTL/Teknik Servis konumunu bulur.
+        
+        Args:
+            env: Odoo environment
+            company_id: Company ID (opsiyonel, varsayılan: env.company.id)
+            
+        Returns:
+            stock.location record veya False
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            # Önce tam eşleşme ara
+            prohan_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ANTL/Teknik Servis')
+            ], limit=1)
+            if prohan_konum:
+                return prohan_konum
+            
+            # Bulamazsa name ile ara
+            prohan_konum = env['stock.location'].search([
+                ('name', '=', 'Teknik Servis'),
+                ('complete_name', 'ilike', 'ANTL')
+            ], limit=1)
+            if prohan_konum:
+                return prohan_konum
+            
+            # Son çare: ANTL içeren herhangi bir teknik servis konumu
+            prohan_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ANTL'),
+                ('name', 'ilike', 'Teknik')
+            ], limit=1)
+            return prohan_konum if prohan_konum else False
+        except Exception as e:
+            _logger.warning(f"ANTL/Teknik Servis konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
+    def get_erk_enstruman_location(env, company_id=None):
+        """
+        ANKDEPO/Ankara Teknik Servis konumunu bulur.
+        
+        Args:
+            env: Odoo environment
+            company_id: Company ID (opsiyonel, varsayılan: env.company.id)
+            
+        Returns:
+            stock.location record veya False
+        """
+        if company_id is None:
+            company_id = env.company.id
+        
+        try:
+            # Önce tam eşleşme ara
+            erk_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
+            ], limit=1)
+            if erk_konum:
+                return erk_konum
+            
+            # Bulamazsa name ile ara
+            erk_konum = env['stock.location'].search([
+                ('name', '=', 'Ankara Teknik Servis'),
+                ('complete_name', 'ilike', 'ANKDEPO')
+            ], limit=1)
+            if erk_konum:
+                return erk_konum
+            
+            # Son çare: ANKDEPO içeren herhangi bir teknik servis konumu
+            erk_konum = env['stock.location'].search([
+                ('complete_name', 'ilike', 'ANKDEPO'),
+                ('name', 'ilike', 'Ankara')
+            ], limit=1)
+            return erk_konum if erk_konum else False
+        except Exception as e:
+            _logger.warning(f"ANKDEPO/Ankara Teknik Servis konumu bulunamadı: {str(e)}")
+            return False
+
+    @staticmethod
     def get_location_by_name(env, location_name, company_id=None):
         """
         İsme göre konum bulur.

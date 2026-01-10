@@ -485,6 +485,35 @@ class ArizaKayit(models.Model):
                         ], limit=1)
                     if nfsl_konum:
                         vals['hedef_konum_id'] = nfsl_konum.id
+            # Yeni teknik servisler için hedef konum ataması
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.NGAUDIO:
+                if not vals.get('hedef_konum_id'):
+                    ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if ngaudio_konum:
+                        vals['hedef_konum_id'] = ngaudio_konum.id
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.MATT_GUITAR:
+                if not vals.get('hedef_konum_id'):
+                    matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if matt_konum:
+                        vals['hedef_konum_id'] = matt_konum.id
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.PROHAN_ELK:
+                if not vals.get('hedef_konum_id'):
+                    prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if prohan_konum:
+                        vals['hedef_konum_id'] = prohan_konum.id
+            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ERK_ENSTRUMAN:
+                if not vals.get('hedef_konum_id'):
+                    erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
+                        self.env, vals.get('company_id') or self.env.company.id
+                    )
+                    if erk_konum:
+                        vals['hedef_konum_id'] = erk_konum.id
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = ArizaTipi.MUSTERI
             if not vals.get('sorumlu_id'):
