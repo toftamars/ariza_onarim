@@ -22,10 +22,9 @@ class StockPicking(models.Model):
             # Eğer context'te ariza_onarim işareti varsa veya origin'de ARZ varsa
             origin = str(vals.get('origin', ''))
             if self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
-                # edespatch_delivery_type alanı varsa ve henüz set edilmemişse
-                if 'edespatch_delivery_type' not in vals:
-                    vals['edespatch_delivery_type'] = 'printed'
-                    _logger.info(f"Matbu ayarı yapıldı - Transfer Origin: {origin}")
+                # ZORLA Matbu yap (mevcut değeri override et)
+                vals['edespatch_delivery_type'] = 'printed'
+                _logger.info(f"Matbu ayarı yapıldı (ZORLA) - Transfer Origin: {origin}, Mevcut değer: {vals.get('edespatch_delivery_type', 'YOK')}")
         
         return super().create(vals_list)
 
