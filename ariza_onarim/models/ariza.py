@@ -1822,14 +1822,15 @@ class ArizaKayit(models.Model):
                 
 
     def action_kabul_et(self):
-        """Kabul etme işlemi - Sadece yöneticiler için, PERSONEL_ONAY'dan KABUL_EDILDI'ye geçiş"""
+        """Kabul etme işlemi - Teknik servis MAĞAZA ise tüm kullanıcılar, diğer durumlar sadece yöneticiler"""
         current_user = self.env.user
-        
-        # Sadece yöneticiler kullanabilir
-        if not current_user.has_group('ariza_onarim.group_ariza_manager'):
-            raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
-        
+
         for record in self:
+            # Teknik servis MAĞAZA değilse yetki kontrolü yap
+            if record.teknik_servis != TeknikServis.MAGAZA:
+                if not current_user.has_group('ariza_onarim.group_ariza_manager'):
+                    raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
+
             if record.state == ArizaStates.PERSONEL_ONAY:
                 record.state = ArizaStates.KABUL_EDILDI
                 # Kabul edildi bildirimi
