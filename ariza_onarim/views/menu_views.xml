@@ -119,7 +119,7 @@
             <pivot string="Arıza Kayıtları Analizi" sample="1">
                 <field name="state" type="row"/>
                 <field name="ariza_tipi" type="col"/>
-                <field name="id" type="measure" string="Kayıt Sayısı"/>
+                <field name="__count" type="measure" string="Kayıt Sayısı"/>
             </pivot>
         </field>
     </record>
