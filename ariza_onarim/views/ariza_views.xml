@@ -8,11 +8,13 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı - Teknik Ekip" create="false" edit="false" delete="0">
                 <header>
-                    <!-- Tekleştirilmiş butonlar - can_approve ve can_start_repair field'larına göre görünürlük -->
+                    <!-- Teknik servis MAĞAZA için yetki kontrolsüz butonlar -->
                     <field name="can_approve" invisible="1"/>
                     <field name="can_start_repair" invisible="1"/>
-                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('can_approve', '=', False)]}"/>
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), ('can_start_repair', '=', False)]}"/>
+                    <!-- Kabul Et: Teknik servis MAĞAZA ise herkes, değilse sadece yöneticiler -->
+                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), '&amp;', ('teknik_servis', '!=', 'MAĞAZA'), ('can_approve', '=', False)]}"/>
+                    <!-- Onarımı Başlat: Teknik servis MAĞAZA ise herkes, değilse sadece yöneticiler -->
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), '&amp;', ('teknik_servis', '!=', 'MAĞAZA'), ('can_start_repair', '=', False)]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için Onayla butonu - mevcut davranışı koruma -->
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
@@ -185,12 +187,14 @@
         <field name="arch" type="xml">
             <form string="Arıza Kaydı" delete="0">
                 <header>
-                    <!-- Tekleştirilmiş butonlar - can_approve ve can_start_repair field'larına göre görünürlük -->
+                    <!-- Teknik servis MAĞAZA için yetki kontrolsüz butonlar -->
                     <field name="can_approve" invisible="1"/>
                     <field name="can_start_repair" invisible="1"/>
                     <button name="action_personel_onayla" string="Onayla" type="object" class="oe_highlight" states="draft"/>
-                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), ('can_approve', '=', False)]}"/>
-                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), ('can_start_repair', '=', False)]}"/>
+                    <!-- Kabul Et: Teknik servis MAĞAZA ise herkes, değilse sadece yöneticiler -->
+                    <button name="action_kabul_et" string="Kabul Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'personel_onay'), '&amp;', ('teknik_servis', '!=', 'MAĞAZA'), ('can_approve', '=', False)]}"/>
+                    <!-- Onarımı Başlat: Teknik servis MAĞAZA ise herkes, değilse sadece yöneticiler -->
+                    <button name="action_teknik_onarim_baslat" string="Onarımı Başlat" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'kabul_edildi'), '&amp;', ('teknik_servis', '!=', 'MAĞAZA'), ('can_start_repair', '=', False)]}"/>
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" states="teknik_onarim" groups="ariza_onarim.group_ariza_manager"/>
                     <!-- Kullanıcılar için Onayla butonu - mevcut davranışı koruma -->
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
