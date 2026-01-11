@@ -359,7 +359,6 @@
                 <field name="sorumlu_id"/>
                 <field name="tarih"/>
                 <field name="state"/>
-                <field name="__count" type="measure" string="Kayıt Sayısı"/>
             </pivot>
         </field>
     </record>
