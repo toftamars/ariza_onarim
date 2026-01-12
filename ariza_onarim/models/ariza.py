@@ -360,7 +360,11 @@ class ArizaKayit(models.Model):
     def _compute_state_manager(self):
         """Yönetici için özel durum gösterimi - personel_onay durumunu onaylandı, teknik_onarim durumunu onarımda, onaylandi durumunu onarım tamamlandı olarak göster"""
         for record in self:
-            if record.state == ArizaStates.PERSONEL_ONAY:
+            if record.state == ArizaStates.DRAFT:
+                record.state_manager = StateManager.DRAFT
+            elif record.state == ArizaStates.PERSONEL_ONAY:
+                record.state_manager = StateManager.ONAYLANDI
+            elif record.state == ArizaStates.KABUL_EDILDI:
                 record.state_manager = StateManager.ONAYLANDI
             elif record.state == ArizaStates.TEKNIK_ONARIM:
                 record.state_manager = StateManager.ONARIMDA
@@ -369,8 +373,19 @@ class ArizaKayit(models.Model):
             elif record.state == ArizaStates.YONETICI_TAMAMLANDI:
                 # Yönetici tamamladı durumu, yöneticinin görünümünde "onarım tamamlandı" olarak gösterilsin
                 record.state_manager = StateManager.ONARIM_TAMAMLANDI
+            elif record.state == ArizaStates.TAMAMLANDI:
+                record.state_manager = StateManager.TAMAMLANDI
+            elif record.state == ArizaStates.TESLIM_EDILDI:
+                record.state_manager = StateManager.TESLIM_EDILDI
+            elif record.state == ArizaStates.ONARIM_DISI:
+                record.state_manager = StateManager.IPTAL
+            elif record.state == ArizaStates.KILITLI:
+                record.state_manager = StateManager.KILITLI
+            elif record.state == ArizaStates.IPTAL:
+                record.state_manager = StateManager.IPTAL
             else:
-                record.state_manager = record.state
+                # Fallback: Bilinmeyen durumlar için draft olarak göster
+                record.state_manager = StateManager.DRAFT
 
     @api.depends('onarim_ucreti', 'currency_id')
     def _compute_onarim_ucreti_tl(self):
