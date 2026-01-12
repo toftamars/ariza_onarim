@@ -1,8 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- TÜM KULLANICILAR İÇİN TEK TREE VIEW - AYNI RENKLENDİRMELER -->
+    <record id="view_ariza_kayit_tree_unified" model="ir.ui.view">
+        <field name="name">ariza.kayit.tree.unified</field>
+        <field name="model">ariza.kayit</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'teslim_edildi' or (state == 'tamamlandi' and ariza_tipi == 'magaza')" decoration-warning="state == 'yonetici_tamamlandi'" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'tamamlandi' and state != 'yonetici_tamamlandi')">
+                <field name="name"/>
+                <field name="tarih"/>
+                <field name="partner_id"/>
+                <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="analitik_hesap_id" string="Mağaza"/>
+                <field name="magaza_urun_adi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}" string="Ürün"/>
+                <field name="model"/>
+                <field name="ariza_tipi"/>
+                <field name="teknik_servis"/>
+                <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi"/>
+                <field name="kalan_is_gunu" invisible="1"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
     <!-- Ana menü -->
     <menuitem id="menu_ariza_root" name="Arıza Onarım" sequence="10" web_icon="ariza_onarim,static/description/icon.png"/>
-    
+
     <record id="action_ariza_kayit" model="ir.actions.act_window">
         <field name="name">Arıza Kayıtları</field>
         <field name="res_model">ariza.kayit</field>
