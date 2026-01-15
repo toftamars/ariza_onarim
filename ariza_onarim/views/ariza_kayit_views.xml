@@ -107,6 +107,7 @@
                     <field name="teknik_servis"/>
                     <field name="state"/>
                     <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': [('kalan_sure_gosterimi_visible', '=', False)]}"/>
+                    <field name="kalan_sure_gosterimi_visible" invisible="1"/>
                 </tree>
             </field>
         </record>

@@ -18,6 +18,7 @@
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
                 <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': [('kalan_sure_gosterimi_visible', '=', False)]}"/>
+                <field name="kalan_sure_gosterimi_visible" invisible="1"/>
                 <field name="kalan_is_gunu" invisible="1"/>
                 <field name="state"/>
             </tree>
