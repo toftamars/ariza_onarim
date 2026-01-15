@@ -330,7 +330,7 @@ class ArizaKayit(models.Model):
     )
     
     @api.model
-    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
+    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None, count=False):
         """
         Custom search for 'urun' field - searches both:
         - urun Char field (müşteri ürünü için)
@@ -372,10 +372,10 @@ class ArizaKayit(models.Model):
         
         # Eğer 'urun' için özel domain yoksa, orijinal domain'i kullan
         if new_domain == domain:
-            return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+            return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid, count=count)
         
         # Özel domain ile arama yap
-        return super()._search(new_domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+        return super()._search(new_domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid, count=count)
     
     @api.depends()
     def _compute_is_manager(self):
