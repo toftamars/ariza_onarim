@@ -278,6 +278,7 @@ class ArizaKayit(models.Model):
     beklenen_tamamlanma_tarihi = fields.Date(string='Beklenen Tamamlanma Tarihi', compute='_compute_beklenen_tamamlanma_tarihi', store=True)
     kalan_is_gunu = fields.Integer(string='Kalan İş Günü', compute='_compute_kalan_is_gunu', store=True)
     kalan_sure_gosterimi = fields.Char(string='Kalan Süre Gösterimi', compute='_compute_kalan_sure_gosterimi', store=True)
+    kalan_sure_gosterimi_visible = fields.Boolean(string='Kalan Süre Gösterimi Görünür', compute='_compute_kalan_sure_gosterimi_visible', store=True)
     onarim_durumu = fields.Selection([
         ('beklemede', 'Beklemede'),
         ('devam_ediyor', 'Devam Ediyor'),
@@ -819,6 +820,18 @@ class ArizaKayit(models.Model):
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
             else:
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
+
+    @api.depends('state', 'ariza_tipi')
+    def _compute_kalan_sure_gosterimi_visible(self):
+        """Yeşil kayıtlarda (teslim edildi veya tamamlandi+magaza) kalan süre gösterimini gizle"""
+        for record in self:
+            # Yeşil kayıtlarda False döndür (gizle)
+            if record.state == ArizaStates.TESLIM_EDILDI:
+                record.kalan_sure_gosterimi_visible = False
+            elif record.state == ArizaStates.TAMAMLANDI and record.ariza_tipi == ArizaTipi.MAGAZA:
+                record.kalan_sure_gosterimi_visible = False
+            else:
+                record.kalan_sure_gosterimi_visible = True
 
     def _update_hedef_konum(self):
         """
