@@ -11,9 +11,8 @@
                 <field name="tarih"/>
                 <field name="partner_id"/>
                 <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
-                <field name="urun" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                 <field name="analitik_hesap_id" string="Mağaza"/>
-                <field name="magaza_urun_adi" attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}" string="Ürün"/>
+                <field name="urun_gosterimi" string="Ürün"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>

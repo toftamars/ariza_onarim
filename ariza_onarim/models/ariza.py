@@ -279,6 +279,7 @@ class ArizaKayit(models.Model):
     kalan_is_gunu = fields.Integer(string='Kalan İş Günü', compute='_compute_kalan_is_gunu', store=True)
     kalan_sure_gosterimi = fields.Char(string='Kalan Süre Gösterimi', compute='_compute_kalan_sure_gosterimi', store=True)
     kalan_sure_gosterimi_visible = fields.Boolean(string='Kalan Süre Gösterimi Görünür', compute='_compute_kalan_sure_gosterimi_visible', store=True)
+    urun_gosterimi = fields.Char(string='Ürün', compute='_compute_urun_gosterimi', store=True)
     onarim_durumu = fields.Selection([
         ('beklemede', 'Beklemede'),
         ('devam_ediyor', 'Devam Ediyor'),
@@ -2526,6 +2527,17 @@ class ArizaKayit(models.Model):
                     record.magaza_urun_adi = urun_adi
             else:
                 record.magaza_urun_adi = ''
+    
+    @api.depends('urun', 'magaza_urun_adi', 'ariza_tipi')
+    def _compute_urun_gosterimi(self):
+        """Birleşik ürün gösterimi - hem müşteri hem mağaza ürünü için"""
+        for record in self:
+            if record.ariza_tipi == ArizaTipi.MAGAZA:
+                # Mağaza ürünü için magaza_urun_adi kullan
+                record.urun_gosterimi = record.magaza_urun_adi or ''
+            else:
+                # Müşteri ürünü için urun kullan
+                record.urun_gosterimi = record.urun or ''
 
     @api.model
     def _cron_update_kalan_sure(self):

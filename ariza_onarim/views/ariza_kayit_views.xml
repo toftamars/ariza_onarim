@@ -101,7 +101,7 @@
                     <field name="name"/>
                     <field name="tarih"/>
                     <field name="partner_id"/>
-                    <field name="urun"/>
+                    <field name="urun_gosterimi" string="Ürün"/>
                     <field name="model"/>
                     <field name="ariza_tipi"/>
                     <field name="teknik_servis"/>
