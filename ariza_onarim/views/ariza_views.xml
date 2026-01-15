@@ -147,7 +147,6 @@
                 <filter string="Teknik Onarımda" name="teknik_onarim" domain="[('state', '=', 'teknik_onarim')]"/>
                 <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
-                <filter string="Yeşil (Teslim Edildi/Tamamlandı)" name="yesil" domain="['|', ('state', '=', 'teslim_edildi'), [('state', '=', 'tamamlandi'), ('ariza_tipi', '=', 'magaza')]]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
                     <filter string="Teknik Servis" name="teknik_servis" context="{'group_by': 'teknik_servis'}"/>
@@ -336,7 +335,6 @@
                 <filter string="Onaylandı" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
                 <filter string="İptal" name="iptal" domain="[('state', '=', 'iptal')]"/>
-                <filter string="Yeşil (Teslim Edildi/Tamamlandı)" name="yesil" domain="['|', ('state', '=', 'teslim_edildi'), [('state', '=', 'tamamlandi'), ('ariza_tipi', '=', 'magaza')]]"/>
                 <group expand="0" string="Grupla">
                     <filter string="Durum" name="state" context="{'group_by': 'state'}"/>
                     <filter string="Tarih" name="tarih" context="{'group_by': 'tarih'}"/>
@@ -522,7 +520,6 @@
                 <filter string="Onarımda" name="onarimda" domain="[('state', '=', 'teknik_onarim')]"/>
                 <filter string="Onarım Tamamlandı" name="onarim_tamamlandi" domain="[('state', '=', 'onaylandi')]"/>
                 <filter string="Tamamlandı" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
-                <filter string="Yeşil (Teslim Edildi/Tamamlandı)" name="yesil" domain="['|', ('state', '=', 'teslim_edildi'), [('state', '=', 'tamamlandi'), ('ariza_tipi', '=', 'magaza')]]"/>
                 <filter string="Geciken Onarımlar" name="geciken" domain="[('kalan_is_gunu', '&lt;', 0)]"/>
                 <filter string="Bugün Bitecek" name="bugun_bitecek" domain="[('kalan_is_gunu', '=', 0)]"/>
                 <separator/>
