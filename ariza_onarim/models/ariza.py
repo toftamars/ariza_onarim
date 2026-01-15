@@ -329,6 +329,54 @@ class ArizaKayit(models.Model):
         store=False
     )
     
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
+        """
+        Custom search for 'urun' field - searches both:
+        - urun Char field (müşteri ürünü için)
+        - magaza_urun_id.product_id.name and default_code (mağaza ürünü için)
+        
+        Bu metod, ürün kodu ile arama yapıldığında hem müşteri hem de mağaza ürünlerini bulur.
+        """
+        # Domain'i parse et ve 'urun' alanı için özel işlem yap
+        new_domain = []
+        i = 0
+        
+        while i < len(domain):
+            item = domain[i]
+            
+            # 'urun' alanı için özel domain varsa genişlet
+            if isinstance(item, (list, tuple)) and len(item) == 3:
+                field, operator, value = item
+                
+                if field == 'urun' and operator in ('ilike', 'like', '=', '!='):
+                    # 'urun' alanı için OR koşulu oluştur:
+                    # - urun Char field'ında ara (müşteri ürünü)
+                    # - magaza_urun_id.name'de ara (mağaza ürünü - ürün adı)
+                    # - magaza_urun_id.default_code'da ara (mağaza ürünü - ürün kodu)
+                    new_domain.extend([
+                        '|',
+                        ('urun', operator, value),
+                        '|',
+                        ('magaza_urun_id.name', operator, value),
+                        ('magaza_urun_id.default_code', operator, value)
+                    ])
+                else:
+                    # Diğer alanlar için normal domain'i ekle
+                    new_domain.append(item)
+            else:
+                # Operatörler ('&', '|', '!') veya diğer özel elemanlar
+                new_domain.append(item)
+            
+            i += 1
+        
+        # Eğer 'urun' için özel domain yoksa, orijinal domain'i kullan
+        if new_domain == domain:
+            return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+        
+        # Özel domain ile arama yap
+        return super()._search(new_domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+    
     @api.depends()
     def _compute_is_manager(self):
         """Kullanıcının normal yönetici grubunda olup olmadığını kontrol et (süper yöneticiler hariç)"""
