@@ -106,7 +106,7 @@
                     <field name="ariza_tipi"/>
                     <field name="teknik_servis"/>
                     <field name="state"/>
-                    <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': ['|', ('state', '=', 'teslim_edildi'), [('state', '=', 'tamamlandi'), ('ariza_tipi', '=', 'magaza')]]}"/>
+                    <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': [('kalan_sure_gosterimi', '=', '')]}"/>
                 </tree>
             </field>
         </record>

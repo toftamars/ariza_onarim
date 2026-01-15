@@ -804,11 +804,16 @@ class ArizaKayit(models.Model):
             else:
                 record.kalan_is_gunu = 0
 
-    @api.depends('kalan_is_gunu')
+    @api.depends('kalan_is_gunu', 'state', 'ariza_tipi')
     def _compute_kalan_sure_gosterimi(self):
         """Kalan süreye göre özel gösterim metni oluştur"""
         for record in self:
-            if record.kalan_is_gunu == 0:
+            # Yeşil kayıtlarda (teslim edildi veya tamamlandi+magaza) boş string döndür
+            if record.state == ArizaStates.TESLIM_EDILDI:
+                record.kalan_sure_gosterimi = ''
+            elif record.state == ArizaStates.TAMAMLANDI and record.ariza_tipi == ArizaTipi.MAGAZA:
+                record.kalan_sure_gosterimi = ''
+            elif record.kalan_is_gunu == 0:
                 record.kalan_sure_gosterimi = "Süre Aşıldı"
             elif record.kalan_is_gunu <= MagicNumbers.KRITIK_IS_GUNU:
                 record.kalan_sure_gosterimi = f"{record.kalan_is_gunu} gün"
