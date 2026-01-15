@@ -126,6 +126,7 @@
                     <filter string="TASLAK" name="draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="ONAYLANDI" name="onaylandi" domain="[('state', '=', 'onaylandi')]"/>
                     <filter string="TAMAMLANDI" name="tamamlandi" domain="[('state', '=', 'tamamlandi')]"/>
+                    <filter string="Yeşil (Teslim Edildi/Tamamlandı)" name="yesil" domain="['|', ('state', '=', 'teslim_edildi'), [('state', '=', 'tamamlandi'), ('ariza_tipi', '=', 'magaza')]]"/>
                     <group expand="0" string="GRUPLA">
                         <filter string="ARIZA TİPİ" name="ariza_tipi" context="{'group_by': 'ariza_tipi'}"/>
                         <filter string="DURUM" name="state" context="{'group_by': 'state'}"/>
