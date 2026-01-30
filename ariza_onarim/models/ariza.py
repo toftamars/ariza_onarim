@@ -1163,9 +1163,7 @@ class ArizaKayit(models.Model):
                 depo_arama_adi = 'Tema World'
             
             # Mağaza adına göre depo ara
-            warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', depo_arama_adi)
-            ], limit=1)
+            warehouse = search_utils.SearchUtils.find_warehouse(self.env, depo_arama_adi)
 
         # Operasyon tipi seçimi - depo bilgisine göre
         picking_type = False
@@ -1784,9 +1782,7 @@ class ArizaKayit(models.Model):
                 depo_arama_adi = 'Tema World'
             
             # Mağaza adına göre depo ara
-            warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', depo_arama_adi)
-            ], limit=1)
+            warehouse = search_utils.SearchUtils.find_warehouse(self.env, depo_arama_adi)
 
         # Operasyon tipi seçimi - İlk transferdeki gibi depo bazlı 'Tamir Alımlar' ara
         if warehouse:
@@ -1824,42 +1820,24 @@ class ArizaKayit(models.Model):
         if self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
             picking_vals['partner_id'] = self.tedarikci_id.id
         elif self.teknik_servis == TeknikServis.DTL_BEYOGLU:
-            dtl_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.DTL_ELEKTRONIK)], limit=1)
+            dtl_partner = search_utils.SearchUtils.find_partner(self.env, PartnerNames.DTL_ELEKTRONIK)
             if dtl_partner:
                 picking_vals['partner_id'] = dtl_partner.id
         elif self.teknik_servis == TeknikServis.DTL_OKMEYDANI:
-            dtl_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.DTL_ELEKTRONIK)], limit=1)
+            dtl_partner = search_utils.SearchUtils.find_partner(self.env, PartnerNames.DTL_ELEKTRONIK)
             if dtl_partner:
-                dtl_okmeydani = self.env['res.partner'].search([
-                    ('parent_id', '=', dtl_partner.id),
-                    ('name', 'ilike', TeknikServis.DTL_OKMEYDANI)
-                ], limit=1)
-                if dtl_okmeydani:
-                    picking_vals['partner_id'] = dtl_okmeydani.id
-                else:
-                    picking_vals['partner_id'] = dtl_partner.id
+                dtl_okmeydani = search_utils.SearchUtils.find_partner_child(self.env, dtl_partner, TeknikServis.DTL_OKMEYDANI)
+                picking_vals['partner_id'] = dtl_okmeydani.id if dtl_okmeydani else dtl_partner.id
         elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.ZUHAL_DIS_TICARET)], limit=1)
+            zuhal_partner = search_utils.SearchUtils.find_partner(self.env, PartnerNames.ZUHAL_DIS_TICARET)
             if zuhal_partner:
-                zuhal_ariza = self.env['res.partner'].search([
-                    ('parent_id', '=', zuhal_partner.id),
-                    ('name', 'ilike', 'Arıza Depo')
-                ], limit=1)
-                if zuhal_ariza:
-                    picking_vals['partner_id'] = zuhal_ariza.id
-                else:
-                    picking_vals['partner_id'] = zuhal_partner.id
+                zuhal_ariza = search_utils.SearchUtils.find_partner_child(self.env, zuhal_partner, 'Arıza Depo')
+                picking_vals['partner_id'] = zuhal_ariza.id if zuhal_ariza else zuhal_partner.id
         elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-            zuhal_partner = self.env['res.partner'].search([('name', 'ilike', PartnerNames.ZUHAL_DIS_TICARET)], limit=1)
+            zuhal_partner = search_utils.SearchUtils.find_partner(self.env, PartnerNames.ZUHAL_DIS_TICARET)
             if zuhal_partner:
-                zuhal_nefesli = self.env['res.partner'].search([
-                    ('parent_id', '=', zuhal_partner.id),
-                    ('name', 'ilike', 'Nefesli Arıza')
-                ], limit=1)
-                if zuhal_nefesli:
-                    picking_vals['partner_id'] = zuhal_nefesli.id
-                else:
-                    picking_vals['partner_id'] = zuhal_partner.id
+                zuhal_nefesli = search_utils.SearchUtils.find_partner_child(self.env, zuhal_partner, 'Nefesli Arıza')
+                picking_vals['partner_id'] = zuhal_nefesli.id if zuhal_nefesli else zuhal_partner.id
         
         # Sürücü ataması - System parameter'dan alınan default driver ID kullanılıyor
         driver_id = self._get_default_driver_id()

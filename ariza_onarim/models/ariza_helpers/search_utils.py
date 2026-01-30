@@ -175,3 +175,31 @@ class SearchUtils:
             _logger.warning(f"Analytic Account bulunamadı: {account_name}")
 
         return account
+
+    @staticmethod
+    def find_partner_child(env, parent_partner, child_name):
+        """
+        Parent partner'ın child'ını bulur (örn: DTL -> DTL Okmeydanı).
+
+        Args:
+            env: Odoo environment
+            parent_partner: Parent partner recordset
+            child_name (str): Child partner adı
+
+        Returns:
+            res.partner recordset veya False
+        """
+        if not parent_partner or not child_name:
+            return False
+
+        child = env['res.partner'].search([
+            ('parent_id', '=', parent_partner.id),
+            ('name', 'ilike', child_name)
+        ], limit=1)
+
+        if child:
+            _logger.info(f"Child partner bulundu: {child.name} (Parent: {parent_partner.name})")
+        else:
+            _logger.warning(f"Child partner bulunamadı: {child_name} (Parent: {parent_partner.name})")
+
+        return child
