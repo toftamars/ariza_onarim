@@ -1,3 +1,4 @@
+from . import ariza_compute
 from . import ariza
 from . import stock_picking
 from . import stock_move_line

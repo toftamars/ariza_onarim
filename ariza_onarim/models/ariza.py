@@ -130,7 +130,7 @@ class AccountAnalyticAccount(models.Model):
 class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
     _description = 'Arıza Kayıtları'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'ariza.kayit.compute.mixin']
     _order = 'id desc'
 
     name = fields.Char(
