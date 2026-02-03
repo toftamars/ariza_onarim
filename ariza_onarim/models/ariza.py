@@ -39,89 +39,10 @@ from .ariza_helpers import (
 
 _logger = logging.getLogger(__name__)
 
-class AccountAnalyticAccount(models.Model):
-    _inherit = 'account.analytic.account'
-    
-    partner_id = fields.Many2one('res.partner', string='Partner')
-    adres = fields.Text(string='Adres')
-    telefon = fields.Char(string='Telefon')
-    email = fields.Char(string='E-posta')
-    warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
-    konum_kodu = fields.Char(
-        string='Konum Kodu',
-        compute='_compute_konum_kodu',
-        store=True,
-        help='Stok konumu kodu (örn: ADANA/Stok, UNIQ/Stok). Bu kod kaynak konum ve arızalı konum belirleme için kullanılır. Warehouse\'dan otomatik doldurulur.'
-    )
-    
-    @api.depends('warehouse_id', 'warehouse_id.lot_stock_id')
-    def _compute_konum_kodu(self):
-        """
-        Konum kodunu warehouse'dan otomatik hesaplar.
-        Warehouse'un lot_stock_id'sinden konum adını alır.
-        """
-        for record in self:
-            if record.warehouse_id and record.warehouse_id.lot_stock_id:
-                # Warehouse'un stok konumunun adını al (örn: "ADANA/Stok")
-                record.konum_kodu = record.warehouse_id.lot_stock_id.name
-            else:
-                record.konum_kodu = False
 
-    @api.model
-    def _setup_zuhal_addresses(self):
-        """Zuhal Dış Ticaret A.Ş. carisine ait adresleri analitik hesaplarla eşleştir"""
-        zuhal_partner = self.env['res.partner'].search(
-            [('name', '=', PartnerNames.ZUHAL_DIS_TICARET)], limit=1
-        )
-        if not zuhal_partner:
-            return
-            
-        # Zuhal'in adreslerini al
-        zuhal_addresses = self.env['res.partner'].search([
-            ('parent_id', '=', zuhal_partner.id),
-            ('type', '=', 'delivery')
-        ])
-        
-        for address in zuhal_addresses:
-            # Bu adrese ait analitik hesap var mı kontrol et
-            existing_analytic = self.search([
-                ('partner_id', '=', address.id)
-            ], limit=1)
-            
-            if not existing_analytic:
-                # Yeni analitik hesap oluştur
-                self.create({
-                    'name': f"{address.name} - {address.street or ''}",
-                    'partner_id': address.id,
-                    'adres': self._format_address(address),
-                    'telefon': address.phone or address.mobile,
-                    'email': address.email,
-                })
-            else:
-                # Mevcut analitik hesabı güncelle
-                existing_analytic.write({
-                    'adres': self._format_address(address),
-                    'telefon': address.phone or address.mobile,
-                    'email': address.email,
-                })
-    
-    def _format_address(self, partner):
-        """Partner adresini formatla"""
-        address_parts = []
-        if partner.street:
-            address_parts.append(partner.street)
-        if partner.street2:
-            address_parts.append(partner.street2)
-        if partner.city:
-            address_parts.append(partner.city)
-        if partner.state_id:
-            address_parts.append(partner.state_id.name)
-        if partner.zip:
-            address_parts.append(partner.zip)
-        if partner.country_id:
-            address_parts.append(partner.country_id.name)
-        
-        return ', '.join(address_parts) if address_parts else ''
+# NOTE: AccountAnalyticAccount model moved to account_analytic_account.py
+# for better modularity and separation of concerns.
+
 
 class ArizaKayit(models.Model):
     _name = 'ariza.kayit'
