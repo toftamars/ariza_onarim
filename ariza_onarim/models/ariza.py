@@ -2448,7 +2448,7 @@ class ArizaKayit(models.Model):
             elif rec.teknik_servis == TeknikServis.PROHAN_ELK:
                 rec.teknik_servis_adres = 'ÜÇGEN MAH. 107 SK NO: 7/1, Antalya, 07040'
             elif rec.teknik_servis == TeknikServis.NGAUDIO:
-                rec.teknik_servis_adres = 'Orta mahalle kuzu sokak no22 A, ADAPAZARI, Sakarya, 54100'
+                rec.teknik_servis_adres = 'Alata Mah şehit yüksel ulak cad no26/b Erdemli Mersin'
             elif rec.teknik_servis == TeknikServis.MATT_GUITAR:
                 rec.teknik_servis_adres = 'HASANPASA MAH. ALIBEY SOK. 21/A, KADIKÖY, İstanbul, 34000'
             elif rec.teknik_servis == TeknikServis.ERK_ENSTRUMAN:
