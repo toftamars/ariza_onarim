@@ -145,7 +145,10 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             _logger.debug(f"No partner for repair {ariza.name}, skipping SMS")
             return
 
-        if not (ariza.partner_id.mobile or ariza.partner_id.phone):
+        has_phone = (ariza.partner_id.mobile or ariza.partner_id.phone) or (
+            ariza.sms_farkli_noya_gonder and ariza.sms_farkli_telefon and ariza.sms_farkli_telefon.strip()
+        )
+        if not has_phone:
             _logger.warning(
                 f"No phone number for partner {ariza.partner_id.name}, "
                 f"cannot send SMS for repair {ariza.name}"

@@ -32,7 +32,7 @@ class SMSHelper:
     """
 
     @staticmethod
-    def send_sms(env, partner, message, record_name='', raise_on_error=False):
+    def send_sms(env, partner, message, record_name='', raise_on_error=False, phone_override=None):
         """
         Send SMS message to partner.
 
@@ -45,6 +45,7 @@ class SMSHelper:
             message (str): SMS message content
             record_name (str, optional): Record name for logging context
             raise_on_error (bool): Raise UserError on failure instead of silent return
+            phone_override (str, optional): If set, use this number instead of partner phone/mobile
 
         Returns:
             tuple: (bool success, str error_message)
@@ -67,8 +68,8 @@ class SMSHelper:
                 raise UserError(error_msg)
             return False, error_msg
 
-        # Get phone number (prefer mobile over phone)
-        phone_number = partner.mobile or partner.phone
+        # Get phone number: override takes precedence, else partner mobile/phone
+        phone_number = (phone_override and str(phone_override).strip()) or (partner.mobile or partner.phone)
 
         # Validate phone number
         if not phone_number:

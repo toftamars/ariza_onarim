@@ -180,6 +180,7 @@
         <field name="arch" type="xml">
             <search string="Raporlama Filtresi">
                 <field name="name"/>
+                <field name="partner_id" string="Müşteri"/>
                 <field name="urun"/>
                 <field name="analitik_hesap_id"/>
                 <field name="teknik_servis"/>

@@ -180,6 +180,17 @@ class ArizaKayit(models.Model):
     ilk_sms_gonderildi = fields.Boolean(string='İlk SMS Gönderildi', default=False, tracking=True)
     ikinci_sms_gonderildi = fields.Boolean(string='İkinci SMS Gönderildi', default=False, tracking=False)
     ucuncu_sms_gonderildi = fields.Boolean(string='Üçüncü SMS Gönderildi', default=False, tracking=False)
+    sms_farkli_noya_gonder = fields.Boolean(
+        string="SMS'i Farklı No'ya Gönder",
+        default=False,
+        tracking=True,
+        help="İşaretlenirse tüm SMS'ler müşteri kontağı yerine aşağıdaki numaraya gönderilir."
+    )
+    sms_farkli_telefon = fields.Char(
+        string="SMS Gönderilecek Telefon",
+        tracking=True,
+        help="SMS'lerin gönderileceği alternatif telefon numarası (SMS'i Farklı No'ya Gönder işaretliyse)."
+    )
     teslim_magazasi_id = fields.Many2one('account.analytic.account', string='Teslim Mağazası')
     teslim_adresi = fields.Char(string='Teslim Adresi', tracking=True)
     musteri_faturalari = fields.Many2many('account.move', string='Müşteri Faturaları')
@@ -1690,13 +1701,19 @@ class ArizaKayit(models.Model):
         # Sadece müşteri ürünü işlemlerinde SMS gönder
         if self.ariza_tipi != ArizaTipi.MUSTERI:
             return
-            
+        if not self.partner_id:
+            return
+
+        # Farklı no'ya gönder işaretliyse o numarayı kullan
+        phone_override = None
+        if self.sms_farkli_noya_gonder and self.sms_farkli_telefon and self.sms_farkli_telefon.strip():
+            phone_override = self.sms_farkli_telefon.strip()
+
         # SMS gönderme - Helper kullanımı - sudo() ile herkes SMS gönderebilsin
-        # self.sudo().env ile sudo environment kullan
         sms_sent = sms_helper.SMSHelper.send_sms(
-            self.sudo().env, self.partner_id, message, self.name
+            self.sudo().env, self.partner_id, message, self.name, phone_override=phone_override
         )
-        if sms_sent:
+        if sms_sent[0]:
             self.sms_gonderildi = True  # SMS gönderildi flag'ini set et
             self.message_post(body=f"SMS başarıyla gönderildi: {message}", message_type='notification')
             
@@ -2264,7 +2281,11 @@ class ArizaKayit(models.Model):
                 raise UserError(_('Bu işlem sadece tamamlandı durumundaki kayıtlar için kullanılabilir.'))
             
             # 2. SMS gönderimi - Müşteriye teslim edilmeye hazır bilgisi
-            if record.partner_id and (record.partner_id.mobile or record.partner_id.phone) and not record.ikinci_sms_gonderildi:
+            has_phone = record.partner_id and (
+                (record.partner_id.mobile or record.partner_id.phone) or
+                (record.sms_farkli_noya_gonder and record.sms_farkli_telefon and record.sms_farkli_telefon.strip())
+            )
+            if has_phone and not record.ikinci_sms_gonderildi:
                 # Mağaza adını temizle
                 magaza_adi = record.teslim_magazasi_id.name if record.teslim_magazasi_id else ''
                 temiz_magaza_adi = record._clean_magaza_adi(magaza_adi) if magaza_adi else ''
