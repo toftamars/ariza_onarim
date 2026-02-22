@@ -1,75 +1,189 @@
 # -*- coding: utf-8 -*-
 """
-Arıza Kayıt Tamamla Wizard - Arıza kaydı tamamlama wizard'ı (Eski - Kullanılmıyor)
+Repair Record Completion Wizard (DEPRECATED)
+
+NOTE: This wizard is deprecated and no longer used in the current workflow.
+Kept for backward compatibility with older records.
+
+Use the main record completion workflow instead.
+
+Author: Arıza Onarım Module - Refactored
+License: LGPL-3
 """
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+import logging
+
 from ..models.ariza_constants import SMSTemplates
 
-class ArizaKayitTamamlaWizard(models.TransientModel):
-    _name = 'ariza.kayit.tamamla.wizard'
-    _description = 'Arıza Kaydı Tamamlama Sihirbazı'
+_logger = logging.getLogger(__name__)
 
-    ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
-    onay_mesaji = fields.Text(string='Onay Mesajı', readonly=True)
+
+class ArizaKayitTamamlaWizard(models.TransientModel):
+    """
+    Repair Record Completion Wizard (DEPRECATED)
+
+    **IMPORTANT**: This wizard is deprecated. Use the main record
+    completion workflow in ariza.kayit model instead.
+
+    Historical functionality:
+    - Creates return transfer (from technical service to store)
+    - Sends completion SMS to customer
+    - Redirects to transfer form
+
+    Kept for compatibility with older installations.
+    """
+    _name = 'ariza.kayit.tamamla.wizard'
+    _description = 'Arıza Kaydı Tamamlama Sihirbazı (ESKİ - KULLANILMIYOR)'
+
+    ariza_id = fields.Many2one(
+        'ariza.kayit',
+        string='Arıza Kaydı',
+        required=True,
+        help='Repair record to complete'
+    )
+    onay_mesaji = fields.Text(
+        string='Onay Mesajı',
+        readonly=True,
+        help='Confirmation message displayed to user'
+    )
 
     def action_tamamla(self):
+        """
+        Complete repair record and create return transfer.
+
+        **DEPRECATED**: Use ariza.kayit.action_teslim_al() instead.
+
+        Workflow:
+        1. Create return transfer (technical service → store)
+        2. Send completion SMS to customer
+        3. Redirect to transfer form
+
+        Returns:
+            dict: Window action to transfer form or close action
+
+        Raises:
+            UserError: If transfer creation fails
+        """
+        self.ensure_one()
         ariza = self.ariza_id
-        
-        # 2. transfer oluştur - İlk transferin tam tersi
-        if ariza.transfer_id:
-            mevcut_kaynak = ariza.transfer_id.location_id
-            mevcut_hedef = ariza.transfer_id.location_dest_id
-            
-            # 2. transfer: Teknik servisten mağazaya geri dönüş
-            yeni_transfer = ariza._create_stock_transfer(
-                kaynak_konum=mevcut_hedef,  # Teknik servis (1. transferin hedefi)
-                hedef_konum=mevcut_kaynak,  # Mağaza (1. transferin kaynağı)
-                transfer_tipi='ikinci'      # 2. transfer olduğunu belirt
+
+        _logger.warning(
+            f"DEPRECATED: Using old completion wizard for repair {ariza.name}. "
+            f"Please use the main workflow instead."
+        )
+
+        # Validate initial transfer exists
+        if not ariza.transfer_id:
+            raise UserError(
+                _("İlk transfer bulunamadı. Bu wizard sadece daha önce "
+                  "transfer oluşturulmuş kayıtlar için kullanılabilir.")
             )
-            
-            if yeni_transfer:
-                # 2. transfer oluşturuldu
-                # Arıza kaydını güncelle
-                ariza.write({
-                    'transfer_sayisi': ariza.transfer_sayisi + 1,
-                })
-                
-                # SMS gönderimi (Email gönderimi kaldırıldı)
-                if ariza.partner_id and (ariza.ariza_tipi == 'musteri' or ariza.ariza_tipi == 'magaza'):
-                    if ariza.partner_id.mobile or ariza.partner_id.phone:
-                        # SMS gönderimi
-                        # NOT: Bu wizard artık kullanılmıyor, ancak eski kod uyumluluğu için şablon kullanımına güncellendi
-                        if ariza.ariza_tipi == 'musteri':
-                            # Mağaza adı yoksa boş string kullan
-                            sms_mesaji = SMSTemplates.IKINCI_SMS.format(
-                                musteri_adi=ariza.partner_id.name or '',
-                                urun=ariza.urun or '',
-                                magaza_adi='',  # Bu wizard'da mağaza adı yok
-                                kayit_no=ariza.name or ''
-                            )
-                            if ariza.garanti_kapsaminda_mi == 'evet':
-                                sms_mesaji += SMSTemplates.GARANTI_EKLENTISI
-                        else: # ariza.ariza_tipi == 'magaza'
-                            # Mağaza ürünü için SMS gönderilmez, ancak eski kod uyumluluğu için şablon kullanıldı
-                            sms_mesaji = f"Sayın {ariza.partner_id.name}., {ariza.urun} ürününüz teslim edilmiştir. Kayıt No: {ariza.name} B021"
-                        
-                        ariza._send_sms_to_customer(sms_mesaji)
-                    
-                    # Email gönderimi kaldırıldı - Mail gönderilmesin
-                        
-                
-                # 2. transfer oluşturulduğunda transfer'e yönlendir (ilk transferdeki gibi)
-                return {
-                    'type': 'ir.actions.act_window',
-                    'name': 'Transfer Belgesi',
-                    'res_model': 'stock.picking',
-                    'res_id': yeni_transfer.id,
-                    'view_mode': 'form',
-                    'target': 'current',
-                }
+
+        # Get transfer source/destination
+        mevcut_kaynak = ariza.transfer_id.location_id
+        mevcut_hedef = ariza.transfer_id.location_dest_id
+
+        try:
+            # Create return transfer (technical service → store)
+            yeni_transfer = ariza._create_stock_transfer(
+                kaynak_konum=mevcut_hedef,  # From: technical service
+                hedef_konum=mevcut_kaynak,  # To: store
+                transfer_tipi='ikinci'  # Mark as return transfer
+            )
+
+            if not yeni_transfer:
+                raise UserError(
+                    _("Transfer oluşturulamadı!\n\n"
+                      "Kaynak: %s\n"
+                      "Hedef: %s\n\n"
+                      "Lütfen konum ayarlarını kontrol edin.") %
+                    (mevcut_hedef.name, mevcut_kaynak.name)
+                )
+
+            # Update transfer counter
+            ariza.write({
+                'transfer_sayisi': ariza.transfer_sayisi + 1,
+            })
+
+            _logger.info(
+                f"Return transfer created for {ariza.name}: {yeni_transfer.name}"
+            )
+
+            # Send completion SMS
+            self._send_completion_sms(ariza)
+
+            # Redirect to transfer form
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Transfer Belgesi'),
+                'res_model': 'stock.picking',
+                'res_id': yeni_transfer.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+
+        except Exception as e:
+            _logger.error(f"Error completing repair {ariza.name}: {str(e)}")
+            raise UserError(
+                _("Tamamlama işlemi başarısız oldu: %s") % str(e)
+            )
+
+    def _send_completion_sms(self, ariza):
+        """
+        Send completion SMS to customer.
+
+        Args:
+            ariza (ariza.kayit): Repair record
+
+        Note:
+            Only sends SMS for customer and store repair types.
+            Email sending has been disabled in current version.
+        """
+        if not ariza.partner_id:
+            _logger.debug(f"No partner for repair {ariza.name}, skipping SMS")
+            return
+
+        if not (ariza.partner_id.mobile or ariza.partner_id.phone):
+            _logger.warning(
+                f"No phone number for partner {ariza.partner_id.name}, "
+                f"cannot send SMS for repair {ariza.name}"
+            )
+            return
+
+        # Only send SMS for customer/store types
+        if ariza.ariza_tipi not in ('musteri', 'magaza'):
+            _logger.debug(
+                f"Repair type {ariza.ariza_tipi} does not require SMS"
+            )
+            return
+
+        try:
+            if ariza.ariza_tipi == 'musteri':
+                # Customer repair completion SMS
+                sms_mesaji = SMSTemplates.IKINCI_SMS.format(
+                    musteri_adi=ariza.partner_id.name or '',
+                    urun=ariza.urun or '',
+                    magaza_adi='',  # Store name not available in this wizard
+                    kayit_no=ariza.name or ''
+                )
+
+                # Add warranty note if applicable
+                if ariza.garanti_kapsaminda_mi == 'evet':
+                    sms_mesaji += SMSTemplates.GARANTI_EKLENTISI
             else:
-                raise UserError(_("Transfer oluşturulamadı! Lütfen kaynak ve hedef konumları kontrol edin."))
-        
-        return {'type': 'ir.actions.act_window_close'} 
+                # Store product completion SMS
+                sms_mesaji = (
+                    f"Sayın {ariza.partner_id.name}, "
+                    f"{ariza.urun} ürününüz teslim edilmiştir. "
+                    f"Kayıt No: {ariza.name} B021"
+                )
+
+            # Send SMS using helper
+            ariza._send_sms_to_customer(sms_mesaji)
+            _logger.info(f"Completion SMS sent for repair {ariza.name}")
+
+        except Exception as e:
+            _logger.error(f"Error sending completion SMS for {ariza.name}: {str(e)}")
+            # Don't raise - SMS failure shouldn't block completion
