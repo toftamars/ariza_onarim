@@ -114,10 +114,11 @@
             </field>
         </record>
 
-        <!-- Arıza Kayıt Arama Görünümü -->
-        <record id="view_ariza_kayit_search" model="ir.ui.view">
-            <field name="name">ariza.kayit.search</field>
+        <!-- Arıza Kayıt Arama Görünümü (yedek - ana arama ariza_views.xml view_ariza_kayit_search) -->
+        <record id="view_ariza_kayit_search_alt" model="ir.ui.view">
+            <field name="name">ariza.kayit.search.alt</field>
             <field name="model">ariza.kayit</field>
+            <field name="priority" eval="99"/>
             <field name="arch" type="xml">
                 <search string="ARIZA KAYITLARI">
                     <field name="name"/>

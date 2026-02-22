@@ -322,6 +322,7 @@
     <record id="view_ariza_kayit_search" model="ir.ui.view">
         <field name="name">ariza.kayit.search</field>
         <field name="model">ariza.kayit</field>
+        <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <search string="Arıza Kayıtları">
                 <field name="name"/>

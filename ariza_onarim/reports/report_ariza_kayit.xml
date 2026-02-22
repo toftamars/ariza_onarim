@@ -143,45 +143,38 @@
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
-                                Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
-                                Beyoğlu, İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
                                 Dtl Elektronik<br/>
                                 DTL OKMEYDANI<br/>
-                                MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
-                                İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
-                                İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                 Zuhal Müzik<br/>
                                 ZUHAL NEFESLİ<br/>
-                                Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'Prohan Elk.'">
                                 Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
-                                ÜÇGEN MAH. 107 SK NO: 7/1<br/>
-                                Antalya, 07040
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
-                            <t t-elif="o.teknik_servis == 'NGAUDIO'">
+                            <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
                                 NGaudio<br/>
-                                Orta mahalle kuzu sokak no22 A<br/>
-                                ADAPAZARI, Sakarya, 54100
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                 MATT Guitar<br/>
-                                HASANPASA MAH. ALIBEY SOK. 21/A<br/>
-                                KADIKÖY, İstanbul, 34000
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                 ERK ENSTRÜMAN<br/>
-                                KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
-                                ÇANKAYA, Ankara, 06000
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
@@ -222,45 +215,38 @@
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
-                                Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
-                                Beyoğlu, İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
                                 Dtl Elektronik<br/>
                                 DTL OKMEYDANI<br/>
-                                MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
-                                İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
-                                İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                 Zuhal Müzik<br/>
                                 ZUHAL NEFESLİ<br/>
-                                Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'Prohan Elk.'">
                                 Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
-                                ÜÇGEN MAH. 107 SK NO: 7/1<br/>
-                                Antalya, 07040
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
-                            <t t-elif="o.teknik_servis == 'NGAUDIO'">
+                            <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
                                 NGaudio<br/>
-                                Orta mahalle kuzu sokak no22 A<br/>
-                                ADAPAZARI, Sakarya, 54100
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                 MATT Guitar<br/>
-                                HASANPASA MAH. ALIBEY SOK. 21/A<br/>
-                                KADIKÖY, İstanbul, 34000
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                 ERK ENSTRÜMAN<br/>
-                                KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
-                                ÇANKAYA, Ankara, 06000
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
@@ -760,45 +746,38 @@
                                 <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                     Dtl Elektronik<br/>
                                     DTL BEYOĞLU<br/>
-                                    Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47<br/>
-                                    Beyoğlu, İstanbul
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
                                     Dtl Elektronik<br/>
                                     DTL OKMEYDANI<br/>
-                                    MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI<br/>
-                                    İstanbul
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                     Zuhal Müzik<br/>
                                     ZUHAL ARIZA DEPO<br/>
-                                    Halkalı merkez mh. Dereboyu cd. No:8/B<br/>
-                                    İstanbul
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
                                     Zuhal Müzik<br/>
                                     ZUHAL NEFESLİ<br/>
-                                    Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'Prohan Elk.'">
                                     Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
-                                    ÜÇGEN MAH. 107 SK NO: 7/1<br/>
-                                    Antalya, 07040
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
-                                <t t-elif="o.teknik_servis == 'NGAUDIO'">
+                                <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
                                     NGaudio<br/>
-                                    Orta mahalle kuzu sokak no22 A<br/>
-                                    ADAPAZARI, Sakarya, 54100
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                     MATT Guitar<br/>
-                                    HASANPASA MAH. ALIBEY SOK. 21/A<br/>
-                                    KADIKÖY, İstanbul, 34000
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                     ERK ENSTRÜMAN<br/>
-                                    KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1<br/>
-                                    ÇANKAYA, Ankara, 06000
+                                    <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
