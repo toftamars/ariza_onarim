@@ -92,6 +92,11 @@ class ArizaKayit(models.Model):
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
     kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
+    hedef_konum_otomatik = fields.Boolean(
+        string='Hedef Konum Otomatik',
+        compute='_compute_hedef_konum_otomatik',
+        help='Otomatik atanan hedef konumlar değiştirilemez.'
+    )
     teknik_servis_location_id = fields.Many2one('stock.location', string='Teknik Servis Konumu', tracking=True, domain="[('company_id', '=', company_id)]")
     tedarikci_id = fields.Many2one('res.partner', string='Tedarikçi', tracking=True)
     marka_id = fields.Many2one('product.brand', string='Marka', tracking=True)
@@ -440,13 +445,10 @@ class ArizaKayit(models.Model):
             # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
             if vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') in TeknikServis.DTL_SERVISLER:
                 if not vals.get('hedef_konum_id'):
-                    company_id = vals.get('company_id') or self.env.company.id
-                    dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                        self.env, company_id
-                    ) or self.env['stock.location'].sudo().search([
-                        ('complete_name', 'ilike', 'DTL/Stok'),
-                        ('company_id', 'in', [company_id, False])
-                    ], limit=1)
+                    dtl_konum = self.env.ref(
+                        'ariza_onarim.stock_location_dtl_stok',
+                        raise_if_not_found=False
+                    )
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_ARIZA_DEPO:
@@ -581,6 +583,18 @@ class ArizaKayit(models.Model):
                 _logger.error(f"Chatter mesajı eklenemedi: {record.name} - {str(e)}")
         
         return records
+
+    def write(self, vals):
+        """Otomatik atanan hedef konum değiştirilemez."""
+        if 'hedef_konum_id' in vals:
+            otomatik = self.filtered(lambda r: r._hedef_konum_otomatik_mi())
+            diger = self - otomatik
+            if otomatik:
+                super(ArizaKayit, otomatik).write(
+                    {k: v for k, v in vals.items() if k != 'hedef_konum_id'}
+                )
+            return super(ArizaKayit, diger).write(vals) if diger else True
+        return super().write(vals)
 
     @api.model
     def _check_onarim_deadlines(self):
@@ -757,6 +771,36 @@ class ArizaKayit(models.Model):
             else:
                 record.kalan_sure_gosterimi_visible = True
 
+    @api.depends('ariza_tipi', 'teknik_servis', 'tedarikci_id')
+    def _compute_hedef_konum_otomatik(self):
+        """Hedef konum otomatik atanıyorsa True (değiştirilemez)."""
+        for rec in self:
+            rec.hedef_konum_otomatik = rec._hedef_konum_otomatik_mi()
+
+    def _hedef_konum_otomatik_mi(self):
+        """Mevcut ariza_tipi + teknik_servis kombinasyonu hedef konumu otomatik atıyor mu?"""
+        if not self.ariza_tipi or not self.teknik_servis:
+            return False
+        if self.ariza_tipi == ArizaTipi.MUSTERI:
+            return self.teknik_servis in (
+                TeknikServis.DTL_SERVISLER
+                + [TeknikServis.ZUHAL_ARIZA_DEPO, TeknikServis.ZUHAL_NEFESLI, TeknikServis.MAGAZA]
+            )
+        if self.ariza_tipi == ArizaTipi.MAGAZA:
+            return self.teknik_servis in (
+                TeknikServis.DTL_SERVISLER
+                + [
+                    TeknikServis.ZUHAL_ARIZA_DEPO,
+                    TeknikServis.ZUHAL_NEFESLI,
+                    TeknikServis.NGAUDIO,
+                    TeknikServis.MATT_GUITAR,
+                    TeknikServis.PROHAN_ELK,
+                    TeknikServis.ERK_ENSTRUMAN,
+                    TeknikServis.MAGAZA,
+                ]
+            ) or (self.teknik_servis == TeknikServis.TEDARIKCI and bool(self.tedarikci_id))
+        return False
+
     def _update_hedef_konum(self):
         """
         Arıza tipi ve teknik servis seçimine göre hedef konumu günceller.
@@ -771,9 +815,10 @@ class ArizaKayit(models.Model):
         # Müşteri ürünü için hedef konum ayarları
         if self.ariza_tipi == ArizaTipi.MUSTERI:
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL seçildiğinde DTL/Stok konumu
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
+                # DTL seçildiğinde DTL/Stok konumu (data'dan env.ref ile)
+                dtl_konum = self.env.ref(
+                    'ariza_onarim.stock_location_dtl_stok',
+                    raise_if_not_found=False
                 )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
@@ -808,14 +853,11 @@ class ArizaKayit(models.Model):
         # Mağaza ürünü için hedef konum ayarları
         elif self.ariza_tipi == ArizaTipi.MAGAZA:
             if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok
-                company_id = self.company_id.id or self.env.company.id
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env, company_id
-                ) or self.env['stock.location'].sudo().search([
-                    ('complete_name', 'ilike', 'DTL/Stok'),
-                    ('company_id', 'in', [company_id, False])
-                ], limit=1)
+                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok (data'dan env.ref ile)
+                dtl_konum = self.env.ref(
+                    'ariza_onarim.stock_location_dtl_stok',
+                    raise_if_not_found=False
+                )
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
                     _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")

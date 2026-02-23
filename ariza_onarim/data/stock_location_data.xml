@@ -25,6 +25,22 @@
             <field name="company_id" ref="base.main_company"/>
         </record>
 
+        <!-- DTL parent location (DTL Beyoğlu/Okmeydani için) -->
+        <record id="stock_location_dtl" model="stock.location">
+            <field name="name">DTL</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- DTL/Stok - DTL Beyoğlu ve DTL Okmeydani hedef konumu -->
+        <record id="stock_location_dtl_stok" model="stock.location">
+            <field name="name">Stok</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock_location_dtl"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
         <!-- ANTL parent location (eğer yoksa) -->
         <record id="stock_location_antl" model="stock.location">
             <field name="name">ANTL</field>

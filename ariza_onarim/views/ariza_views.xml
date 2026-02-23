@@ -226,6 +226,7 @@
                             <field name="tarih"/>
                             <field name="sorumlu_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik', 'musteri'])]}"/>
                             <field name="company_id" groups="base.group_multi_company" invisible="1"/>
+                            <field name="hedef_konum_otomatik" invisible="1"/>
                             <field name="teslim_alan" invisible="1"/>
                             <field name="teslim_al_visible" invisible="1"/>
                             <field name="is_manager" invisible="1"/>
@@ -249,7 +250,7 @@
                     </group>
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
-                        <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
+                        <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')], 'readonly': [('hedef_konum_otomatik', '=', True)]}" options='{"no_open": true, "no_create": true}'/>
                         <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}'/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
