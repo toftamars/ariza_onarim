@@ -121,9 +121,14 @@ class LocationHelper:
         Raises:
             UserError: If not found and raise_if_not_found=True
         """
+        # complete_name fallback: DTL/Stok hiyerarşik olabilir (parent DTL, child Stok → name sadece "Stok")
+        fallback_patterns = [
+            ('complete_name', 'ilike', 'DTL/Stok'),
+        ]
         return LocationHelper._find_location_flexible(
             env,
             LocationNames.DTL_STOK,
+            fallback_patterns=fallback_patterns,
             company_id=company_id,
             raise_if_not_found=raise_if_not_found
         )

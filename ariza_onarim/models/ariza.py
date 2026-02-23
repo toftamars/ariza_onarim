@@ -440,9 +440,13 @@ class ArizaKayit(models.Model):
             # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
             if vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') in TeknikServis.DTL_SERVISLER:
                 if not vals.get('hedef_konum_id'):
+                    company_id = vals.get('company_id') or self.env.company.id
                     dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
+                        self.env, company_id
+                    ) or self.env['stock.location'].sudo().search([
+                        ('complete_name', 'ilike', 'DTL/Stok'),
+                        ('company_id', 'in', [company_id, False])
+                    ], limit=1)
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_ARIZA_DEPO:
@@ -808,7 +812,10 @@ class ArizaKayit(models.Model):
                 company_id = self.company_id.id or self.env.company.id
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
                     self.env, company_id
-                )
+                ) or self.env['stock.location'].sudo().search([
+                    ('complete_name', 'ilike', 'DTL/Stok'),
+                    ('company_id', 'in', [company_id, False])
+                ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
                     _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
