@@ -121,14 +121,9 @@ class LocationHelper:
         Raises:
             UserError: If not found and raise_if_not_found=True
         """
-        fallback_patterns = [
-            ('name', 'ilike', 'DTL'),
-            ('complete_name', 'ilike', 'DTL/Stok'),
-        ]
         return LocationHelper._find_location_flexible(
             env,
             LocationNames.DTL_STOK,
-            fallback_patterns=fallback_patterns,
             company_id=company_id,
             raise_if_not_found=raise_if_not_found
         )
@@ -297,14 +292,13 @@ class LocationHelper:
 
     @staticmethod
     def get_prohan_elk_location(env, company_id=None, raise_if_not_found=False):
-        """Get ANTL/Teknik Servis location."""
+        """Get ANTL/Antalya Teknik Servis location."""
         fallback_patterns = [
-            ('complete_name', 'ilike', 'ANTL/Teknik Servis'),
-            ('name', '=', 'Teknik Servis'),
+            ('complete_name', 'ilike', 'ANTL/Antalya Teknik Servis'),
         ]
         return LocationHelper._find_location_flexible(
             env,
-            'Teknik Servis',
+            'Antalya Teknik Servis',
             fallback_patterns=fallback_patterns,
             company_id=company_id,
             raise_if_not_found=raise_if_not_found

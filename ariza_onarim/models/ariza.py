@@ -443,16 +443,6 @@ class ArizaKayit(models.Model):
                     dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
                         self.env, vals.get('company_id') or self.env.company.id
                     )
-                    if not dtl_konum:
-                        # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
-                        dtl_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'DTL/Stok')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('name', 'ilike', 'DTL'),
-                            ('name', 'ilike', 'Stok'),
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'DTL')
-                        ], limit=1)
                     if dtl_konum:
                         vals['hedef_konum_id'] = dtl_konum.id
             elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_ARIZA_DEPO:
@@ -532,10 +522,7 @@ class ArizaKayit(models.Model):
                         _logger.warning("Prohan Elk. konum helper'dan bulunamadı, fallback arama yapılıyor")
                         # Fallback: Manuel arama
                         prohan_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ANTL/Teknik Servis')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ANTL'),
-                            ('name', 'ilike', 'Teknik')
+                            ('complete_name', 'ilike', 'ANTL/Antalya Teknik Servis')
                         ], limit=1)
                     if prohan_konum:
                         _logger.info(f"Prohan Elk. konum bulundu: {prohan_konum.complete_name} (ID: {prohan_konum.id})")
@@ -822,16 +809,6 @@ class ArizaKayit(models.Model):
                 dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
                     self.env, company_id
                 )
-                if not dtl_konum:
-                    # Şirket filtresi olmadan da ara (manuel girilmiş konum isimleri için)
-                    dtl_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'DTL/Stok')
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('name', 'ilike', 'DTL'),
-                        ('name', 'ilike', 'Stok'),
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'DTL')
-                    ], limit=1)
                 if dtl_konum:
                     self.hedef_konum_id = dtl_konum
                     _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
@@ -966,16 +943,13 @@ class ArizaKayit(models.Model):
                     except:
                         pass
             elif self.teknik_servis == TeknikServis.PROHAN_ELK:
-                # PROHAN ELK → ANTL/Teknik Servis
+                # PROHAN ELK → ANTL/Antalya Teknik Servis
                 prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
                     self.env, self.company_id.id or self.env.company.id
                 )
                 if not prohan_konum:
                     prohan_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ANTL/Teknik Servis')
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ANTL'),
-                        ('name', 'ilike', 'Teknik')
+                        ('complete_name', 'ilike', 'ANTL/Antalya Teknik Servis')
                     ], limit=1)
                 if prohan_konum:
                     self.hedef_konum_id = prohan_konum
@@ -988,10 +962,10 @@ class ArizaKayit(models.Model):
                     except:
                         pass
                 else:
-                    _logger.warning("ANTL/Teknik Servis konumu bulunamadı")
+                    _logger.warning("ANTL/Antalya Teknik Servis konumu bulunamadı")
                     try:
                         self.message_post(
-                            body=f"⚠️ ANTL/Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
+                            body=f"⚠️ ANTL/Antalya Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
                             message_type='notification'
                         )
                     except:
@@ -1064,13 +1038,10 @@ class ArizaKayit(models.Model):
                 # Eğer warehouse'dan yoksa, computed field'dan oku
                 if not konum_kodu:
                     konum_kodu = self.analitik_hesap_id.konum_kodu
-                # Eğer hala yoksa, dosyadan okumayı dene (fallback)
+                # Eğer hala yoksa, sistem parametresi/analitik hesaptan dene (fallback)
                 if not konum_kodu:
-                    dosya_yolu = os.path.join(
-                        os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                    )
-                    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                        self.env, self.analitik_hesap_id.name, dosya_yolu
+                    konum_kodu = location_helper.LocationHelper.get_konum_kodu_from_analytic(
+                        self.env, self.analitik_hesap_id.name
                     )
 
                 if konum_kodu:
@@ -1125,13 +1096,10 @@ class ArizaKayit(models.Model):
             # Eğer warehouse'dan yoksa, computed field'dan oku
             if not konum_kodu:
                 konum_kodu = self.analitik_hesap_id.konum_kodu
-            # Eğer hala yoksa, dosyadan okumayı dene (fallback)
+            # Eğer hala yoksa, sistem parametresi/analitik hesaptan dene (fallback)
             if not konum_kodu:
-                dosya_yolu = os.path.join(
-                    os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                )
-                konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                    self.env, self.analitik_hesap_id.name, dosya_yolu
+                konum_kodu = location_helper.LocationHelper.get_konum_kodu_from_analytic(
+                    self.env, self.analitik_hesap_id.name
                 )
 
             if konum_kodu:
@@ -1195,13 +1163,10 @@ class ArizaKayit(models.Model):
             # Eğer warehouse'dan yoksa, computed field'dan oku
             if not konum_kodu:
                 konum_kodu = self.analitik_hesap_id.konum_kodu
-            # Eğer hala yoksa, dosyadan okumayı dene (fallback)
+            # Eğer hala yoksa, sistem parametresi/analitik hesaptan dene (fallback)
             if not konum_kodu:
-                dosya_yolu = os.path.join(
-                    os.path.dirname(__file__), '..', 'Analitik Bilgileri.txt'
-                )
-                konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(
-                    self.env, self.analitik_hesap_id.name, dosya_yolu
+                konum_kodu = location_helper.LocationHelper.get_konum_kodu_from_analytic(
+                    self.env, self.analitik_hesap_id.name
                 )
 
             if konum_kodu:

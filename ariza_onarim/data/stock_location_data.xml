@@ -33,9 +33,9 @@
             <field name="company_id" ref="base.main_company"/>
         </record>
 
-        <!-- Prohan Elk. - ANTL/Teknik Servis -->
+        <!-- Prohan Elk. - ANTL/Antalya Teknik Servis -->
         <record id="stock_location_antl_teknik_servis" model="stock.location">
-            <field name="name">Teknik Servis</field>
+            <field name="name">Antalya Teknik Servis</field>
             <field name="usage">internal</field>
             <field name="location_id" ref="stock_location_antl"/>
             <field name="company_id" ref="base.main_company"/>
