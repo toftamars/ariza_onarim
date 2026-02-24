@@ -270,8 +270,9 @@
                                 <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
-                                NGaudio<br/>
+                                NGaudio Gökhan Ünsal<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                             </t>
                             <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                 MATT Guitar<br/>
@@ -342,8 +343,9 @@
                                 <t t-esc="o.teknik_servis_adres"/>
                             </t>
                             <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
-                                NGaudio<br/>
+                                NGaudio Gökhan Ünsal<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                             </t>
                             <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                 MATT Guitar<br/>
@@ -908,8 +910,9 @@
                                     <t t-esc="o.teknik_servis_adres"/>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
-                                    NGaudio<br/>
+                                    NGaudio Gökhan Ünsal<br/>
                                     <t t-esc="o.teknik_servis_adres"/>
+                                    <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                                 </t>
                                 <t t-elif="o.teknik_servis == 'MATT Guitar'">
                                     MATT Guitar<br/>

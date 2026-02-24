@@ -2444,6 +2444,8 @@ class ArizaKayit(models.Model):
                 rec.teknik_servis_telefon = '0212 555 55 57'
             elif rec.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
                 rec.teknik_servis_telefon = '0212 555 55 58'
+            elif rec.teknik_servis == TeknikServis.NGAUDIO:
+                rec.teknik_servis_telefon = '0546 786 06 99'
             else:
                 rec.teknik_servis_telefon = ''
 
