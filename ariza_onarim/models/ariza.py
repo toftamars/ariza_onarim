@@ -2067,54 +2067,55 @@ class ArizaKayit(models.Model):
         if not kaynak_konum or not hedef_konum:
             raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
         
-        # Tamir Alımlar transferi oluştur - İlk transferdeki gibi analitik hesap adından warehouse bul
+        # Tamir Alımlar transferi oluştur
         picking_type = False
-        
-        # Analitik hesap adını al ve "Perakende -" önekini temizle
-        magaza_adi = ""
-        if self.analitik_hesap_id and self.analitik_hesap_id.name:
-            magaza_adi = self.analitik_hesap_id.name
-            # "Perakende -" önekini temizle
-            if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]  # "Perakende - " önekini temizle
 
-        # Depo bilgisini al - İlk transferdeki gibi
+        # ÖNCE: Hedef konum Arıza/Stok ise (ilk transfer Arıza/Stok'tan çıktıysa) → Arıza: Tamir Alımlar
+        # Kentpark/Merkezi vb. depo bazlı tip YANLIŞ atanıyordu, sadece Arıza/Stok için bu sorun vardı
+        hedef_complete = (hedef_konum.complete_name or '').strip()
+        if 'Arıza/Stok' in hedef_complete or 'ARIZA/Stok' in hedef_complete.upper():
+            picking_type = self.env['stock.picking.type'].search([
+                ('name', '=', 'Arıza: Tamir Alımlar'),
+                ('company_id', 'in', [self.company_id.id, False])
+            ], limit=1)
+
+        # Arıza/Stok değilse: depo bazlı 'Tamir Alımlar' ara (mevcut mantık)
         warehouse = False
-        if self.analitik_hesap_id and self.analitik_hesap_id.name:
-            # Analitik hesap adından depo adını çıkar
-            magaza_adi = self.analitik_hesap_id.name
-            if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
-            
-            # Özel durum: Temaworld için "Tema World" olarak ara
-            depo_arama_adi = magaza_adi
-            if magaza_adi.lower() in ['temaworld', 'tema world']:
-                depo_arama_adi = 'Tema World'
-            
-            # Mağaza adına göre depo ara
-            warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', depo_arama_adi)
-            ], limit=1)
+        if not picking_type:
+            magaza_adi = ""
+            if self.analitik_hesap_id and self.analitik_hesap_id.name:
+                magaza_adi = self.analitik_hesap_id.name
+                if magaza_adi.startswith("Perakende - "):
+                    magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]
 
-        # Operasyon tipi seçimi - İlk transferdeki gibi depo bazlı 'Tamir Alımlar' ara
-        if warehouse:
-            # Depodan "Tamir Alımlar" ara (Arıza: öneki olmayan)
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Alımlar'),
-                ('name', 'not ilike', 'Arıza:'),
-                ('warehouse_id', '=', warehouse.id)
-            ], limit=1)
-        
-        # Depo bulunamazsa, genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
+            warehouse = False
+            if self.analitik_hesap_id and self.analitik_hesap_id.name:
+                magaza_adi = self.analitik_hesap_id.name
+                if magaza_adi.startswith("Perakende - "):
+                    magaza_adi = magaza_adi[12:]
+                depo_arama_adi = magaza_adi
+                if magaza_adi.lower() in ['temaworld', 'tema world']:
+                    depo_arama_adi = 'Tema World'
+                warehouse = self.env['stock.warehouse'].search([
+                    ('name', 'ilike', depo_arama_adi)
+                ], limit=1)
+
+            if warehouse:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:'),
+                    ('warehouse_id', '=', warehouse.id)
+                ], limit=1)
+
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', '=', 'Tamir Alımlar'),
+                    ('name', 'not ilike', 'Arıza:')
+                ], limit=1)
+
         if not picking_type:
-            picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Tamir Alımlar'),
-                ('name', 'not ilike', 'Arıza:')
-            ], limit=1)
-        
-        if not picking_type:
-            warehouse_name = warehouse.name if warehouse else 'Bilinmeyen'
-            raise UserError(f'"{warehouse_name}: Tamir Alımlar" picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.')
+            err_msg = 'Arıza: Tamir Alımlar' if ('Arıza/Stok' in hedef_complete or 'ARIZA/Stok' in hedef_complete.upper()) else f'"{warehouse.name if warehouse else "Depo"}: Tamir Alımlar"'
+            raise UserError(_('%s picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.') % err_msg)
         
         picking_vals = {
             'picking_type_id': picking_type.id,
