@@ -36,6 +36,7 @@ from .ariza_helpers import (
     sms_helper,
     transfer_helper,
     teknik_servis_helper,
+    hedef_konum_helper,
 )
 
 _logger = logging.getLogger(__name__)
@@ -440,118 +441,18 @@ class ArizaKayit(models.Model):
             if not vals.get('islem_tipi'):
                 vals['islem_tipi'] = IslemTipi.ARIZA_KABUL
             
-            # Mağaza ürünü ve teknik servis DTL BEYOĞLU/DTL OKMEYDANI ise hedef konum DTL/Stok
-            if vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') in TeknikServis.DTL_SERVISLER:
-                if not vals.get('hedef_konum_id'):
-                    dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if dtl_konum:
-                        vals['hedef_konum_id'] = dtl_konum.id
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_ARIZA_DEPO:
-                if not vals.get('hedef_konum_id'):
-                    ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not ariza_konum:
-                        ariza_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'Arıza/Stok')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('name', 'ilike', 'Arıza'),
-                            ('name', 'ilike', 'Stok'),
-                        ], limit=1)
-                    if ariza_konum:
-                        vals['hedef_konum_id'] = ariza_konum.id
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ZUHAL_NEFESLI:
-                if not vals.get('hedef_konum_id'):
-                    nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not nfsl_konum:
-                        nfsl_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'NFSL/Stok')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('name', 'ilike', 'NFSL'),
-                            ('name', 'ilike', 'Stok'),
-                        ], limit=1)
-                    if nfsl_konum:
-                        vals['hedef_konum_id'] = nfsl_konum.id
-            # Yeni teknik servisler için hedef konum ataması
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.NGAUDIO:
-                if not vals.get('hedef_konum_id'):
-                    _logger.info(f"NGaudio konum araması başlatıldı - Arıza Tipi: {vals.get('ariza_tipi')}, Teknik Servis: {vals.get('teknik_servis')}")
-                    ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not ngaudio_konum:
-                        _logger.warning("NGaudio konum helper'dan bulunamadı, fallback arama yapılıyor")
-                        # Fallback: Manuel arama
-                        ngaudio_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ARIZA/NGaudio')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('name', 'ilike', 'NGaudio')
-                        ], limit=1)
-                    if ngaudio_konum:
-                        _logger.info(f"NGaudio konum bulundu: {ngaudio_konum.complete_name} (ID: {ngaudio_konum.id})")
-                        vals['hedef_konum_id'] = ngaudio_konum.id
-                    else:
-                        _logger.error("NGaudio konum bulunamadı! Lütfen konumun varlığını kontrol edin.")
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.MATT_GUITAR:
-                if not vals.get('hedef_konum_id'):
-                    _logger.info(f"MATT Guitar konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
-                    matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not matt_konum:
-                        _logger.warning("MATT Guitar konum helper'dan bulunamadı, fallback arama yapılıyor")
-                        # Fallback: Manuel arama
-                        matt_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ARIZA/MATT')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('name', 'ilike', 'MATT')
-                        ], limit=1)
-                    if matt_konum:
-                        _logger.info(f"MATT Guitar konum bulundu: {matt_konum.complete_name} (ID: {matt_konum.id})")
-                        vals['hedef_konum_id'] = matt_konum.id
-                    else:
-                        _logger.error("MATT Guitar konum bulunamadı!")
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.PROHAN_ELK:
-                if not vals.get('hedef_konum_id'):
-                    _logger.info(f"Prohan Elk. konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
-                    prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not prohan_konum:
-                        _logger.warning("Prohan Elk. konum helper'dan bulunamadı, fallback arama yapılıyor")
-                        # Fallback: Manuel arama
-                        prohan_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ANTL/Antalya Teknik Servis')
-                        ], limit=1)
-                    if prohan_konum:
-                        _logger.info(f"Prohan Elk. konum bulundu: {prohan_konum.complete_name} (ID: {prohan_konum.id})")
-                        vals['hedef_konum_id'] = prohan_konum.id
-                    else:
-                        _logger.error("Prohan Elk. konum bulunamadı!")
-            elif vals.get('ariza_tipi') == ArizaTipi.MAGAZA and vals.get('teknik_servis') == TeknikServis.ERK_ENSTRUMAN:
-                if not vals.get('hedef_konum_id'):
-                    _logger.info(f"ERK ENSTRÜMAN konum araması başlatıldı - Teknik Servis: {vals.get('teknik_servis')}")
-                    erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
-                        self.env, vals.get('company_id') or self.env.company.id
-                    )
-                    if not erk_konum:
-                        _logger.warning("ERK ENSTRÜMAN konum helper'dan bulunamadı, fallback arama yapılıyor")
-                        # Fallback: Manuel arama
-                        erk_konum = self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
-                        ], limit=1) or self.env['stock.location'].search([
-                            ('complete_name', 'ilike', 'ANKDEPO'),
-                            ('name', 'ilike', 'Ankara')
-                        ], limit=1)
-                    if erk_konum:
-                        _logger.info(f"ERK ENSTRÜMAN konum bulundu: {erk_konum.complete_name} (ID: {erk_konum.id})")
-                        vals['hedef_konum_id'] = erk_konum.id
-                    else:
-                        _logger.error("ERK ENSTRÜMAN konum bulunamadı!")
+            # Hedef konum - HedefKonumHelper ile (create ve müşteri/mağaza)
+            if vals.get('ariza_tipi') and vals.get('teknik_servis') and not vals.get('hedef_konum_id'):
+                tedarikci = self.env['res.partner'].browse(vals.get('tedarikci_id')) if vals.get('tedarikci_id') else None
+                konum = hedef_konum_helper.HedefKonumHelper.get_hedef_konum(
+                    self.env,
+                    vals.get('teknik_servis'),
+                    vals.get('ariza_tipi'),
+                    company_id=vals.get('company_id') or self.env.company.id,
+                    tedarikci_id=tedarikci,
+                )
+                if konum:
+                    vals['hedef_konum_id'] = konum.id
             if not vals.get('ariza_tipi'):
                 vals['ariza_tipi'] = ArizaTipi.MUSTERI
             if not vals.get('sorumlu_id'):
@@ -804,254 +705,37 @@ class ArizaKayit(models.Model):
     def _update_hedef_konum(self):
         """
         Arıza tipi ve teknik servis seçimine göre hedef konumu günceller.
-        Bu metod hem @api.onchange('ariza_tipi') hem de @api.onchange('teknik_servis')
-        metodlarından çağrılır.
+        HedefKonumHelper kullanır.
         """
         _logger.info(f"_update_hedef_konum çağrıldı - ariza_tipi: {self.ariza_tipi}, teknik_servis: {self.teknik_servis}")
         if not self.ariza_tipi or not self.teknik_servis:
             _logger.warning(f"_update_hedef_konum: Eksik bilgi - ariza_tipi: {self.ariza_tipi}, teknik_servis: {self.teknik_servis}")
             return
-        
-        # Müşteri ürünü için hedef konum ayarları
-        if self.ariza_tipi == ArizaTipi.MUSTERI:
-            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL seçildiğinde DTL/Stok konumu (sistemde mevcut konum aranır)
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                # Zuhal Arıza Depo seçildiğinde Arıza/Stok konumu
-                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                ) or self.env['stock.location'].search([
-                    ('complete_name', 'ilike', 'Arıza/Stok')
-                ], limit=1) or self.env['stock.location'].search([
-                    ('name', 'ilike', 'Arıza'),
-                    ('name', 'ilike', 'Stok'),
-                ], limit=1)
-                if ariza_konum:
-                    self.hedef_konum_id = ariza_konum
-            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                # Zuhal Nefesli seçildiğinde NFSL/Stok konumu
-                nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                ) or self.env['stock.location'].search([
-                    ('complete_name', 'ilike', 'NFSL/Stok')
-                ], limit=1) or self.env['stock.location'].search([
-                    ('name', 'ilike', 'NFSL'),
-                    ('name', 'ilike', 'Stok'),
-                ], limit=1)
-                if nfsl_konum:
-                    self.hedef_konum_id = nfsl_konum
-            elif self.teknik_servis == TeknikServis.MAGAZA:
-                # Mağaza seçildiğinde hedef konum boş olmalı
-                self.hedef_konum_id = False
-        
-        # Mağaza ürünü için hedef konum ayarları
-        elif self.ariza_tipi == ArizaTipi.MAGAZA:
-            if self.teknik_servis in TeknikServis.DTL_SERVISLER:
-                # DTL BEYOĞLU veya DTL OKMEYDANI → DTL/Stok (sistemde mevcut konum aranır)
-                dtl_konum = location_helper.LocationHelper.get_dtl_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if dtl_konum:
-                    self.hedef_konum_id = dtl_konum
-                    _logger.info(f"Hedef konum belirlendi (DTL): {dtl_konum.name}")
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{dtl_konum.display_name}</b> (Teknik Servis: {self.teknik_servis})",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
+
+        konum = hedef_konum_helper.HedefKonumHelper.get_hedef_konum(
+            self.env,
+            self.teknik_servis,
+            self.ariza_tipi,
+            company_id=self.company_id.id if self.company_id else self.env.company.id,
+            tedarikci_id=self.tedarikci_id,
+        )
+        self.hedef_konum_id = konum
+
+        # Mağaza ürünü için mesaj (MAGAZA teknik servisi hariç)
+        if self.ariza_tipi == ArizaTipi.MAGAZA and self.teknik_servis != TeknikServis.MAGAZA:
+            try:
+                if konum:
+                    self.message_post(
+                        body=f"✅ Hedef Konum otomatik atandı: <b>{konum.display_name}</b> (Teknik Servis: {self.teknik_servis})",
+                        message_type='notification'
+                    )
                 else:
-                    _logger.warning("DTL/Stok konumu bulunamadı")
-                    try:
-                        self.message_post(
-                            body=f"⚠️ DTL/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                # ZUHAL ARIZA DEPO → Arıza/Stok
-                ariza_konum = location_helper.LocationHelper.get_ariza_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                ) or self.env['stock.location'].search([
-                    ('complete_name', 'ilike', 'Arıza/Stok')
-                ], limit=1) or self.env['stock.location'].search([
-                    ('name', 'ilike', 'Arıza'),
-                    ('name', 'ilike', 'Stok'),
-                ], limit=1)
-                if ariza_konum:
-                    self.hedef_konum_id = ariza_konum
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{ariza_konum.display_name}</b> (Teknik Servis: ZUHAL ARIZA DEPO)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    try:
-                        self.message_post(
-                            body=f"⚠️ Arıza/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                # ZUHAL NEFESLİ → NFSL/Stok
-                nfsl_konum = location_helper.LocationHelper.get_nfsl_stok_location(
-                    self.env, self.company_id.id or self.env.company.id
-                ) or self.env['stock.location'].search([
-                    ('complete_name', 'ilike', 'NFSL/Stok')
-                ], limit=1) or self.env['stock.location'].search([
-                    ('name', 'ilike', 'NFSL'),
-                    ('name', 'ilike', 'Stok'),
-                ], limit=1)
-                if nfsl_konum:
-                    self.hedef_konum_id = nfsl_konum
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{nfsl_konum.display_name}</b> (Teknik Servis: ZUHAL NEFESLİ)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    try:
-                        self.message_post(
-                            body=f"⚠️ NFSL/Stok konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.NGAUDIO:
-                # NGAUDIO → ARIZA/NGaudio
-                ngaudio_konum = location_helper.LocationHelper.get_ngaudio_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if not ngaudio_konum:
-                    ngaudio_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ARIZA/NGaudio')
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('name', 'ilike', 'NGaudio')
-                    ], limit=1)
-                if ngaudio_konum:
-                    self.hedef_konum_id = ngaudio_konum
-                    _logger.info(f"Hedef konum belirlendi (NGaudio): {ngaudio_konum.name}")
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{ngaudio_konum.display_name}</b> (Teknik Servis: NGaudio)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    _logger.warning("ARIZA/NGaudio konumu bulunamadı")
-                    try:
-                        self.message_post(
-                            body=f"⚠️ ARIZA/NGaudio konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.MATT_GUITAR:
-                # MATT GUITAR → ARIZA/MATT
-                matt_konum = location_helper.LocationHelper.get_matt_guitar_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if not matt_konum:
-                    matt_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ARIZA/MATT')
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('name', 'ilike', 'MATT')
-                    ], limit=1)
-                if matt_konum:
-                    self.hedef_konum_id = matt_konum
-                    _logger.info(f"Hedef konum belirlendi (MATT Guitar): {matt_konum.name}")
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{matt_konum.display_name}</b> (Teknik Servis: MATT Guitar)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    _logger.warning("ARIZA/MATT konumu bulunamadı")
-                    try:
-                        self.message_post(
-                            body=f"⚠️ ARIZA/MATT konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.PROHAN_ELK:
-                # PROHAN ELK → ANTL/Antalya Teknik Servis
-                prohan_konum = location_helper.LocationHelper.get_prohan_elk_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if not prohan_konum:
-                    prohan_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ANTL/Antalya Teknik Servis')
-                    ], limit=1)
-                if prohan_konum:
-                    self.hedef_konum_id = prohan_konum
-                    _logger.info(f"Hedef konum belirlendi (Prohan Elk.): {prohan_konum.name}")
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{prohan_konum.display_name}</b> (Teknik Servis: Prohan Elk.)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    _logger.warning("ANTL/Antalya Teknik Servis konumu bulunamadı")
-                    try:
-                        self.message_post(
-                            body=f"⚠️ ANTL/Antalya Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.ERK_ENSTRUMAN:
-                # ERK ENSTRÜMAN → ANKDEPO/Ankara Teknik Servis
-                erk_konum = location_helper.LocationHelper.get_erk_enstruman_location(
-                    self.env, self.company_id.id or self.env.company.id
-                )
-                if not erk_konum:
-                    erk_konum = self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ANKDEPO/Ankara Teknik Servis')
-                    ], limit=1) or self.env['stock.location'].search([
-                        ('complete_name', 'ilike', 'ANKDEPO'),
-                        ('name', 'ilike', 'Ankara')
-                    ], limit=1)
-                if erk_konum:
-                    self.hedef_konum_id = erk_konum
-                    _logger.info(f"Hedef konum belirlendi (ERK ENSTRÜMAN): {erk_konum.name}")
-                    try:
-                        self.message_post(
-                            body=f"✅ Hedef Konum otomatik atandı: <b>{erk_konum.display_name}</b> (Teknik Servis: ERK ENSTRÜMAN)",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-                else:
-                    _logger.warning("ANKDEPO/Ankara Teknik Servis konumu bulunamadı")
-                    try:
-                        self.message_post(
-                            body=f"⚠️ ANKDEPO/Ankara Teknik Servis konumu bulunamadı! Lütfen hedef konumu manuel seçin.",
-                            message_type='notification'
-                        )
-                    except:
-                        pass
-            elif self.teknik_servis == TeknikServis.TEDARIKCI and self.tedarikci_id:
-                # TEDARİKÇİ → tedarikçi konumu
-                if self.tedarikci_id.property_stock_supplier:
-                    self.hedef_konum_id = self.tedarikci_id.property_stock_supplier
+                    self.message_post(
+                        body=f"⚠️ Hedef konum bulunamadı! Lütfen hedef konumu manuel seçin.",
+                        message_type='notification'
+                    )
+            except Exception:
+                pass
 
     @api.onchange('ariza_tipi')
     def _onchange_ariza_tipi(self):
@@ -1436,70 +1120,13 @@ class ArizaKayit(models.Model):
         if not self.magaza_urun_id:
             raise UserError(_("Transfer oluşturulamadı: Ürün seçili değil!"))
 
-        # Analitik hesap adını al ve "Perakende -" önekini temizle
-        magaza_adi = ""
-        if self.analitik_hesap_id and self.analitik_hesap_id.name:
-            magaza_adi = self.analitik_hesap_id.name
-            # "Perakende -" önekini temizle
-            if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[MagicNumbers.PERAKENDE_PREFIX_LENGTH:]  # "Perakende - " önekini temizle
-
-        # Depo bilgisini al
-        warehouse = False
-        if self.analitik_hesap_id and self.analitik_hesap_id.name:
-            # Analitik hesap adından depo adını çıkar
-            magaza_adi = self.analitik_hesap_id.name
-            if magaza_adi.startswith("Perakende - "):
-                magaza_adi = magaza_adi[12:]  # "Perakende - " önekini temizle
-            
-            # Özel durum: Temaworld için "Tema World" olarak ara
-            depo_arama_adi = magaza_adi
-            if magaza_adi.lower() in ['temaworld', 'tema world']:
-                depo_arama_adi = 'Tema World'
-            
-            # Mağaza adına göre depo ara
-            warehouse = self.env['stock.warehouse'].search([
-                ('name', 'ilike', depo_arama_adi)
-            ], limit=1)
-
-        # Operasyon tipi seçimi - depo bilgisine göre
-        picking_type = False
-        
-        # 1. transfer için depo bazlı 'Tamir Teslimatları' ara
-        if transfer_tipi == 'ilk':
-            if warehouse:
-                # Depodan "Tamir Teslimatları" ara (Arıza: öneki olmayan)
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Teslimatları'),
-                    ('name', 'not ilike', 'Arıza:'),
-                    ('warehouse_id', '=', warehouse.id)
-                ], limit=1)
-            
-            # Depo bulunamazsa, genel 'Tamir Teslimatları' ara (Arıza: öneki olmayan)
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Teslimatları'),
-                    ('name', 'not ilike', 'Arıza:')
-                ], limit=1)
-        
-        # 2. transfer için depo bazlı 'Tamir Alımlar' ara
-        elif transfer_tipi == 'ikinci':
-            if warehouse:
-                # Depodan "Tamir Alımlar" ara (Arıza: öneki olmayan)
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar'),
-                    ('name', 'not ilike', 'Arıza:'),
-                    ('warehouse_id', '=', warehouse.id)
-                ], limit=1)
-            
-            # Depo bulunamazsa, genel 'Tamir Alımlar' ara (Arıza: öneki olmayan)
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
-                    ('name', '=', 'Tamir Alımlar'),
-                    ('name', 'not ilike', 'Arıza:')
-                ], limit=1)
-        
-        # Operasyon tipi bulunamazsa hata ver
+        # Depo ve operasyon tipi - TransferHelper
+        warehouse = transfer_helper.TransferHelper.get_warehouse_for_magaza(
+            self.env, self.analitik_hesap_id.name if self.analitik_hesap_id else ''
+        )
+        picking_type = transfer_helper.TransferHelper.get_tamir_picking_type(
+            self.env, transfer_tipi, warehouse
+        )
         if not picking_type:
             raise UserError(_("Transfer oluşturulamadı: Uygun operasyon tipi bulunamadı!"))
 

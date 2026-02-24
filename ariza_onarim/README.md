@@ -135,19 +135,6 @@ Odoo'yu yeniden başlatıp modülü güncelleyin.
 
 ---
 
-## Testler
-
-```bash
-# Odoo dizininden (addons path'te ariza_onarim olmalı)
-./odoo-bin -c odoo.conf -i ariza_onarim --test-enable --stop-after-init
-# veya güncelleme sonrası
-./odoo-bin -c odoo.conf -u ariza_onarim --test-enable --stop-after-init
-```
-
-Testler `tests/` klasöründe: `test_ariza_constants.py`, `test_ariza_basic.py`
-
----
-
 ## Dokümantasyon
 
 - **ARCHITECTURE.md** – Modül mimarisi, modeller, helper'lar

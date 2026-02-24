@@ -11,6 +11,7 @@ from . import sequence_helper
 from . import sms_helper
 from . import transfer_helper
 from . import teknik_servis_helper
+from . import hedef_konum_helper
 
 __all__ = [
     'location_helper',
@@ -19,5 +20,6 @@ __all__ = [
     'sms_helper',
     'transfer_helper',
     'teknik_servis_helper',
+    'hedef_konum_helper',
 ]
 

@@ -121,6 +121,18 @@ Teknik servis adres ve telefon bilgileri.
 - `get_telefon()` – Tedarikçi veya sabit telefon
 - ADRES_MAP, TELEFON_MAP – Sabit değerler
 
+### hedef_konum_helper
+
+Teknik servise göre hedef stok konumu.
+
+- `get_hedef_konum()` – Teknik servis + arıza tipi → stock.location
+- DTL, ZUHAL, NGaudio, MATT, Prohan, ERK, Tedarikçi eşlemesi
+
+### transfer_helper (ek metodlar)
+
+- `get_warehouse_for_magaza()` – Analitik hesap adından depo
+- `get_tamir_picking_type()` – Tamir Teslimatları / Tamir Alımlar
+
 ---
 
 ## Genişletilen Odoo Modelleri

@@ -403,3 +403,50 @@ class TransferHelper:
             return False, error_msg
 
         return True, ''
+
+    @staticmethod
+    def get_warehouse_for_magaza(env, analitik_hesap_name):
+        """
+        Analitik hesap adından depo (warehouse) bulur.
+        'Perakende - ' önekini temizler, Temaworld özel durumunu işler.
+
+        Returns:
+            stock.warehouse veya False
+        """
+        if not analitik_hesap_name:
+            return False
+        magaza_adi = analitik_hesap_name
+        if magaza_adi.startswith("Perakende - "):
+            magaza_adi = magaza_adi[12:]
+        depo_arama_adi = magaza_adi
+        if magaza_adi.lower() in ['temaworld', 'tema world']:
+            depo_arama_adi = 'Tema World'
+        return env['stock.warehouse'].search([
+            ('name', 'ilike', depo_arama_adi)
+        ], limit=1) or False
+
+    @staticmethod
+    def get_tamir_picking_type(env, transfer_tipi, warehouse=None):
+        """
+        Tamir Teslimatları veya Tamir Alımlar picking type döner.
+
+        Args:
+            env: Odoo environment
+            transfer_tipi: 'ilk' -> Tamir Teslimatları, 'ikinci' -> Tamir Alımlar
+            warehouse: stock.warehouse (opsiyonel, depo bazlı arama için)
+
+        Returns:
+            stock.picking.type veya False
+        """
+        type_name = 'Tamir Teslimatları' if transfer_tipi == 'ilk' else 'Tamir Alımlar'
+        domain = [
+            ('name', '=', type_name),
+            ('name', 'not ilike', 'Arıza:'),
+        ]
+        if warehouse:
+            pt = env['stock.picking.type'].search(
+                domain + [('warehouse_id', '=', warehouse.id)], limit=1
+            )
+            if pt:
+                return pt
+        return env['stock.picking.type'].search(domain, limit=1) or False
