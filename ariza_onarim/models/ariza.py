@@ -2076,26 +2076,25 @@ class ArizaKayit(models.Model):
         hedef_upper = hedef_complete.upper()
         is_ariza_stok = ('ARIZA/STOK' in hedef_upper or 'Arıza/Stok' in hedef_complete)
         if is_ariza_stok:
-            # Arıza: Tamir Alımlar - önce tam eşleşme, sonra ilike ile esnek arama
+            # 1) Hedef konum (Arıza/Stok) default dest olan picking type
             picking_type = self.env['stock.picking.type'].search([
-                ('name', '=', 'Arıza: Tamir Alımlar'),
-                ('company_id', 'in', [self.company_id.id, False])
+                ('default_location_dest_id', '=', hedef_konum.id),
+                ('name', 'ilike', 'Tamir Alımlar')
             ], limit=1)
-            if not picking_type:
+            # 2) İlk transferin warehouse'ından - Arıza: Tamir Teslimatları ile aynı depo
+            if not picking_type and ilk_transfer.picking_type_id and ilk_transfer.picking_type_id.warehouse_id:
+                wh = ilk_transfer.picking_type_id.warehouse_id
                 picking_type = self.env['stock.picking.type'].search([
                     ('name', 'ilike', 'Arıza'),
                     ('name', 'ilike', 'Tamir Alımlar'),
-                    ('company_id', 'in', [self.company_id.id, False])
+                    ('warehouse_id', '=', wh.id)
                 ], limit=1)
-            # İlk transferin operasyon tipi Arıza: ise aynı warehouse'dan al
-            if not picking_type and ilk_transfer.picking_type_id and 'Arıza' in (ilk_transfer.picking_type_id.name or ''):
-                wh = ilk_transfer.picking_type_id.warehouse_id
-                if wh:
-                    picking_type = self.env['stock.picking.type'].search([
-                        ('name', 'ilike', 'Arıza'),
-                        ('name', 'ilike', 'Tamir Alımlar'),
-                        ('warehouse_id', '=', wh.id)
-                    ], limit=1)
+            # 3) Genel arama - isim ile
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Arıza'),
+                    ('name', 'ilike', 'Tamir Alımlar')
+                ], limit=1)
 
         # Arıza/Stok değilse: depo bazlı 'Tamir Alımlar' ara (mevcut mantık)
         # ÖNEMLİ: is_ariza_stok iken warehouse mantığına GİRME - Kentpark vb. atanmasın
