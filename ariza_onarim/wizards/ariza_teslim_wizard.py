@@ -12,6 +12,7 @@ class ArizaTeslimWizard(models.TransientModel):
     _description = 'Teslim Alan Bilgisi Girme Sihirbazı'
 
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
+    garanti_kapsaminda_mi = fields.Selection(related='ariza_id.garanti_kapsaminda_mi', readonly=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
     teslim_alan = fields.Char(string='Teslim Alan Kişi', required=True)

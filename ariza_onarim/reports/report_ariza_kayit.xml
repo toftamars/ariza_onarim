@@ -138,8 +138,81 @@
                 <div class="col-6">
                     <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; line-height: 1.5; min-height: 120px;">
                         <strong style="display: block; margin-bottom: 8px;">Gönderen:</strong>
-                        <!-- Onarım Dışı durumunda: Sol tarafta teknik servis (ÖNCE KONTROL EDİLMELİ) -->
-                        <t t-if="o.state == 'onarim_disi'">
+                        <!-- Merkezi Satış analitik hesabı: Gönderen = Zuhal Arıza Depo adresi -->
+                        <t t-if="o.analitik_hesap_id and ('Merkezi Satış' in (o.analitik_hesap_id.name or '') or 'Merkezi Satis' in (o.analitik_hesap_id.name or '').upper())">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B
+                        </t>
+                        <!-- Adresime gönderilsin işaretlendiğinde: Gönderen her zaman kaydı açan Analitik hesap adresi -->
+                        <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.analitik_hesap_id">
+                            <!-- Özel durum: Tünel analitik hesabı için sabit adres -->
+                            <t t-if="'Tünel' in o.analitik_hesap_id.name or 'TUNEL' in o.analitik_hesap_id.name.upper()">
+                                Zuhal Müzik Tünel Mağaza<br/>
+                                Galip Dede Cad. No:33 Tünel<br/>
+                                Beyoğlu<br/>
+                                İstanbul (TR) 34000<br/>
+                                Türkiye
+                            </t>
+                            <t t-elif="o.analitik_hesap_id.adres">
+                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                    <t t-esc="o.analitik_hesap_id.adres"/>
+                                </div>
+                            </t>
+                            <t t-elif="o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
+                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                    <t t-esc="o.analitik_hesap_id.partner_id.street or ''"/>
+                                    <t t-if="o.analitik_hesap_id.partner_id.street2"><br/><t t-esc="o.analitik_hesap_id.partner_id.street2"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.city"><br/><t t-esc="o.analitik_hesap_id.partner_id.city"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.state_id"><br/><t t-esc="o.analitik_hesap_id.partner_id.state_id.name"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.zip"><br/><t t-esc="o.analitik_hesap_id.partner_id.zip"/></t>
+                                </div>
+                            </t>
+                            <t t-elif="o.analitik_hesap_id.name">
+                                <t t-set="magaza_adi_temiz" t-value="o.analitik_hesap_id.name.replace('Perakende - ', '').strip()"/>
+                                <t t-if="'Tünel' in magaza_adi_temiz or 'TUNEL' in magaza_adi_temiz.upper()">
+                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                        Zuhal Müzik Tünel Mağaza<br/>
+                                        Galip Dede Cad. No:33 Tünel<br/>
+                                        Beyoğlu<br/>
+                                        İstanbul (TR) 34000<br/>
+                                        Türkiye
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                        Zuhal Müzik <t t-esc="magaza_adi_temiz + ' Mağaza' if 'Mağaza' not in magaza_adi_temiz else magaza_adi_temiz"/>
+                                        <t t-set="zuhal_partner" t-value="env['res.partner'].search([('name', '=', 'Zuhal Dış Ticaret A.Ş.')], limit=1)"/>
+                                        <t t-if="zuhal_partner">
+                                            <t t-if="'Tema' in magaza_adi_temiz or 'Temaworld' in magaza_adi_temiz">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', '=', 'Tema World Mağaza')], limit=1)"/>
+                                                <t t-if="not magaza_kontak">
+                                                    <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', 'Tema World')], limit=1)"/>
+                                                </t>
+                                            </t>
+                                            <t t-if="not magaza_kontak">
+                                                <t t-set="magaza_kontak" t-value="env['res.partner'].search([('parent_id', '=', zuhal_partner.id), ('name', 'ilike', magaza_adi_temiz)], limit=1)"/>
+                                            </t>
+                                            <t t-if="magaza_kontak">
+                                                <br/><t t-esc="magaza_kontak.street or ''"/>
+                                                <t t-if="magaza_kontak.street2"><br/><t t-esc="magaza_kontak.street2"/></t>
+                                                <t t-if="magaza_kontak.city"><br/><t t-esc="magaza_kontak.city"/></t>
+                                                <t t-if="magaza_kontak.state_id"><br/><t t-esc="magaza_kontak.state_id.name"/></t>
+                                                <t t-if="magaza_kontak.zip"><br/><t t-esc="magaza_kontak.zip"/></t>
+                                            </t>
+                                        </t>
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <div t-field="company.name"/><br/>
+                                <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                            </t>
+                        </t>
+                        <!-- Onarım Dışı durumunda: Sol tarafta teknik servis -->
+                        <t t-elif="o.state == 'onarim_disi'">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
@@ -371,8 +444,14 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; min-height: 120px;">
                         <strong style="color: #000; display: block; margin-bottom: 8px;">ALICI ADRESİ:</strong>
-                        <!-- Onarım Dışı durumunda: Sağ tarafta mağaza (ÖNCE KONTROL EDİLMELİ) -->
-                        <t t-if="o.state == 'onarim_disi'">
+                        <!-- Merkezi Satış analitik hesabı: Alıcı = Zuhal Arıza Depo adresi -->
+                        <t t-if="o.analitik_hesap_id and ('Merkezi Satış' in (o.analitik_hesap_id.name or '') or 'Merkezi Satis' in (o.analitik_hesap_id.name or '').upper())">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B
+                        </t>
+                        <!-- Onarım Dışı durumunda: Sağ tarafta mağaza -->
+                        <t t-elif="o.state == 'onarim_disi'">
                             <!-- Özel durum: Tünel analitik hesabı için sabit adres -->
                             <t t-if="o.analitik_hesap_id and ('Tünel' in o.analitik_hesap_id.name or 'TUNEL' in o.analitik_hesap_id.name.upper())">
                                 Zuhal Müzik Tünel Mağaza<br/>

@@ -746,10 +746,12 @@ class ArizaKayit(models.Model):
     def _compute_kalan_sure_gosterimi(self):
         """Kalan süreye göre özel gösterim metni oluştur"""
         for record in self:
-            # Yeşil kayıtlarda (teslim edildi veya tamamlandi+magaza) boş string döndür
+            # Yeşil kayıtlarda (teslim edildi, tamamlandi+magaza veya onarim_disi+magaza) boş string döndür
             if record.state == ArizaStates.TESLIM_EDILDI:
                 record.kalan_sure_gosterimi = ''
             elif record.state == ArizaStates.TAMAMLANDI and record.ariza_tipi == ArizaTipi.MAGAZA:
+                record.kalan_sure_gosterimi = ''
+            elif record.state == ArizaStates.ONARIM_DISI and record.ariza_tipi == ArizaTipi.MAGAZA:
                 record.kalan_sure_gosterimi = ''
             elif record.kalan_is_gunu == 0:
                 record.kalan_sure_gosterimi = "Süre Aşıldı"
@@ -760,12 +762,14 @@ class ArizaKayit(models.Model):
 
     @api.depends('state', 'ariza_tipi')
     def _compute_kalan_sure_gosterimi_visible(self):
-        """Yeşil kayıtlarda (teslim edildi veya tamamlandi+magaza) kalan süre gösterimini gizle"""
+        """Yeşil kayıtlarda (teslim edildi, tamamlandi+magaza veya onarim_disi+magaza) kalan süre gösterimini gizle"""
         for record in self:
             # Yeşil kayıtlarda False döndür (gizle)
             if record.state == ArizaStates.TESLIM_EDILDI:
                 record.kalan_sure_gosterimi_visible = False
             elif record.state == ArizaStates.TAMAMLANDI and record.ariza_tipi == ArizaTipi.MAGAZA:
+                record.kalan_sure_gosterimi_visible = False
+            elif record.state == ArizaStates.ONARIM_DISI and record.ariza_tipi == ArizaTipi.MAGAZA:
                 record.kalan_sure_gosterimi_visible = False
             else:
                 record.kalan_sure_gosterimi_visible = True

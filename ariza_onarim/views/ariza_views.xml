@@ -111,7 +111,7 @@
         <field name="model">ariza.kayit</field>
         <field name="priority" eval="20"/>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları - Teknik Ekip" decoration-info="state == 'draft'" decoration-success="state == 'teslim_edildi' or (state == 'tamamlandi' and ariza_tipi == 'magaza')" decoration-warning="state == 'yonetici_tamamlandi'" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'tamamlandi' and state != 'yonetici_tamamlandi')">
+            <tree string="Arıza Kayıtları - Teknik Ekip" decoration-info="state == 'draft'" decoration-success="state == 'teslim_edildi' or (state == 'tamamlandi' and ariza_tipi == 'magaza') or (state == 'onarim_disi' and ariza_tipi == 'magaza')" decoration-warning="state == 'yonetici_tamamlandi'" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'tamamlandi' and state != 'yonetici_tamamlandi' and state != 'onarim_disi')">
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="ariza_tipi"/>
@@ -303,7 +303,7 @@
         <field name="name">ariza.kayit.tree</field>
         <field name="model">ariza.kayit</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'teslim_edildi' or (state == 'tamamlandi' and ariza_tipi == 'magaza')" decoration-warning="state == 'yonetici_tamamlandi'" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'tamamlandi' and state != 'yonetici_tamamlandi')">
+            <tree string="Arıza Kayıtları" decoration-info="state == 'draft'" decoration-success="state == 'teslim_edildi' or (state == 'tamamlandi' and ariza_tipi == 'magaza') or (state == 'onarim_disi' and ariza_tipi == 'magaza')" decoration-warning="state == 'yonetici_tamamlandi'" decoration-danger="state == 'iptal' or (kalan_is_gunu == 0 and state != 'teslim_edildi' and state != 'tamamlandi' and state != 'yonetici_tamamlandi' and state != 'onarim_disi')">
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="musteri_gosterim" string="Müşteri"/>

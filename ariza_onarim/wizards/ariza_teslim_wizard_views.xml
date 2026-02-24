@@ -5,11 +5,18 @@
         <field name="model">ariza.teslim.wizard</field>
         <field name="arch" type="xml">
             <form string="Teslim Alan Bilgisi">
+                <field name="ariza_id" invisible="1"/>
+                <field name="garanti_kapsaminda_mi" invisible="1"/>
                 <group>
                     <group>
                         <field name="musteri_adi" readonly="1"/>
                         <field name="urun" readonly="1"/>
                     </group>
+                </group>
+                <group attrs="{'invisible': [('garanti_kapsaminda_mi', '!=', 'urun_degisimi')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('garanti_kapsaminda_mi', '!=', 'urun_degisimi')]}">
+                        <strong>📋 HATIRLATMA:</strong> Teslim Et butonu sonrası ürün değişimi için stok çıkış işlemlerini tamamlamayı unutmayınız.
+                    </div>
                 </group>
                 <group attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
                     <div class="alert alert-warning" role="alert" attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
