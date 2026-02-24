@@ -123,13 +123,14 @@ class LocationHelper:
         """
         if company_id is None:
             company_id = env.company.id
-        # Odoo'da zaten var olan DTL/Stok konumunu ara (complete_name veya name ile)
-        loc = env['stock.location'].search([
+        # Odoo'da zaten var olan DTL/Stok konumunu ara - DEPO/Stok/DTL/Stok HARİÇ (modül oluşturduğu tarz)
+        candidates = env['stock.location'].search([
             ('complete_name', 'ilike', 'DTL/Stok'),
+            ('complete_name', 'not ilike', 'DEPO/Stok/DTL'),
             ('company_id', 'in', [company_id, False])
-        ], limit=1)
-        if loc:
-            return loc
+        ])
+        if candidates:
+            return candidates[0]
         loc = env['stock.location'].search([
             ('name', '=', 'DTL/Stok'),
             ('company_id', 'in', [company_id, False])
