@@ -135,6 +135,7 @@
             <t t-set="onarim_disi" t-value="o.state == 'onarim_disi'"/>
             <t t-set="merkezi_satis" t-value="o.analitik_hesap_id and ('Merkezi Satış' in (o.analitik_hesap_id.name or '') or 'Merkezi Satis' in (o.analitik_hesap_id.name or '').upper())"/>
             <t t-set="merkezi_satis_musteri" t-value="merkezi_satis and o.ariza_tipi == 'musteri'"/>
+            <t t-set="merkezi_satis_magaza" t-value="merkezi_satis and o.ariza_tipi == 'magaza'"/>
             
             <div class="row mb-4">
                 <div class="col-6">
@@ -168,6 +169,12 @@
                                 </t>
                                 <t t-else="">Müşteri adresi tanımlı değil</t>
                             </t>
+                        </t>
+                        <!-- Merkezi Satış + Mağaza: Gönderen ve Alıcı her zaman Zuhal Arıza Depo -->
+                        <t t-elif="merkezi_satis_magaza">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B
                         </t>
                         <!-- Adresime gönderilsin işaretlendiğinde: Gönderen her zaman kaydı açan Analitik hesap adresi -->
                         <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.analitik_hesap_id">
@@ -497,6 +504,12 @@
                                 ZUHAL ARIZA DEPO<br/>
                                 Halkalı merkez mh. Dereboyu cd. No:8/B
                             </t>
+                        </t>
+                        <!-- Merkezi Satış + Mağaza: Alıcı her zaman Zuhal Arıza Depo -->
+                        <t t-elif="merkezi_satis_magaza">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B
                         </t>
                         <!-- Onarım Dışı durumunda: Sağ tarafta mağaza -->
                         <t t-elif="o.state == 'onarim_disi'">
