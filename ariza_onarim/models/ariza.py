@@ -2073,15 +2073,34 @@ class ArizaKayit(models.Model):
         # ÖNCE: Hedef konum Arıza/Stok ise (ilk transfer Arıza/Stok'tan çıktıysa) → Arıza: Tamir Alımlar
         # Kentpark/Merkezi vb. depo bazlı tip YANLIŞ atanıyordu, sadece Arıza/Stok için bu sorun vardı
         hedef_complete = (hedef_konum.complete_name or '').strip()
-        if 'Arıza/Stok' in hedef_complete or 'ARIZA/Stok' in hedef_complete.upper():
+        hedef_upper = hedef_complete.upper()
+        is_ariza_stok = ('ARIZA/STOK' in hedef_upper or 'Arıza/Stok' in hedef_complete)
+        if is_ariza_stok:
+            # Arıza: Tamir Alımlar - önce tam eşleşme, sonra ilike ile esnek arama
             picking_type = self.env['stock.picking.type'].search([
                 ('name', '=', 'Arıza: Tamir Alımlar'),
                 ('company_id', 'in', [self.company_id.id, False])
             ], limit=1)
+            if not picking_type:
+                picking_type = self.env['stock.picking.type'].search([
+                    ('name', 'ilike', 'Arıza'),
+                    ('name', 'ilike', 'Tamir Alımlar'),
+                    ('company_id', 'in', [self.company_id.id, False])
+                ], limit=1)
+            # İlk transferin operasyon tipi Arıza: ise aynı warehouse'dan al
+            if not picking_type and ilk_transfer.picking_type_id and 'Arıza' in (ilk_transfer.picking_type_id.name or ''):
+                wh = ilk_transfer.picking_type_id.warehouse_id
+                if wh:
+                    picking_type = self.env['stock.picking.type'].search([
+                        ('name', 'ilike', 'Arıza'),
+                        ('name', 'ilike', 'Tamir Alımlar'),
+                        ('warehouse_id', '=', wh.id)
+                    ], limit=1)
 
         # Arıza/Stok değilse: depo bazlı 'Tamir Alımlar' ara (mevcut mantık)
+        # ÖNEMLİ: is_ariza_stok iken warehouse mantığına GİRME - Kentpark vb. atanmasın
         warehouse = False
-        if not picking_type:
+        if not picking_type and not is_ariza_stok:
             magaza_adi = ""
             if self.analitik_hesap_id and self.analitik_hesap_id.name:
                 magaza_adi = self.analitik_hesap_id.name
@@ -2114,7 +2133,7 @@ class ArizaKayit(models.Model):
                 ], limit=1)
 
         if not picking_type:
-            err_msg = 'Arıza: Tamir Alımlar' if ('Arıza/Stok' in hedef_complete or 'ARIZA/Stok' in hedef_complete.upper()) else f'"{warehouse.name if warehouse else "Depo"}: Tamir Alımlar"'
+            err_msg = 'Arıza: Tamir Alımlar' if is_ariza_stok else f'"{warehouse.name if warehouse else "Depo"}: Tamir Alımlar"'
             raise UserError(_('%s picking type bulunamadı! Lütfen sistem ayarlarını kontrol edin.') % err_msg)
         
         picking_vals = {
