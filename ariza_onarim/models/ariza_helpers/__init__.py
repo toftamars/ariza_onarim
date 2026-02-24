@@ -10,6 +10,7 @@ from . import partner_helper
 from . import sequence_helper
 from . import sms_helper
 from . import transfer_helper
+from . import teknik_servis_helper
 
 __all__ = [
     'location_helper',
@@ -17,5 +18,6 @@ __all__ = [
     'sequence_helper',
     'sms_helper',
     'transfer_helper',
+    'teknik_servis_helper',
 ]
 

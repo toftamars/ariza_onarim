@@ -35,6 +35,7 @@ from .ariza_helpers import (
     sequence_helper,
     sms_helper,
     transfer_helper,
+    teknik_servis_helper,
 )
 
 _logger = logging.getLogger(__name__)
@@ -2387,63 +2388,19 @@ class ArizaKayit(models.Model):
     @api.depends('teknik_servis', 'tedarikci_id', 'tedarikci_adresi')
     def _compute_teknik_servis_adres(self):
         for rec in self:
-            if rec.teknik_servis == 'TEDARİKÇİ' and rec.tedarikci_id:
-                # Önce tedarikci_adresi alanını kontrol et, yoksa partner'ın adres bilgilerini kullan
-                if rec.tedarikci_adresi:
-                    rec.teknik_servis_adres = rec.tedarikci_adresi
-                else:
-                    # Partner'ın adres bilgilerini birleştir
-                    adres_parcalari = []
-                    if rec.tedarikci_id.street:
-                        adres_parcalari.append(rec.tedarikci_id.street)
-                    if rec.tedarikci_id.street2:
-                        adres_parcalari.append(rec.tedarikci_id.street2)
-                    if rec.tedarikci_id.city:
-                        adres_parcalari.append(rec.tedarikci_id.city)
-                    if rec.tedarikci_id.state_id:
-                        adres_parcalari.append(rec.tedarikci_id.state_id.name)
-                    if rec.tedarikci_id.zip:
-                        adres_parcalari.append(rec.tedarikci_id.zip)
-                    if rec.tedarikci_id.country_id:
-                        adres_parcalari.append(rec.tedarikci_id.country_id.name)
-                    
-                    rec.teknik_servis_adres = ', '.join(adres_parcalari) if adres_parcalari else ''
-            elif rec.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                rec.teknik_servis_adres = 'Halkalı merkez mh. Dereboyu cd. No:8/B'
-            elif rec.teknik_servis == TeknikServis.DTL_BEYOGLU:
-                rec.teknik_servis_adres = 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47'
-            elif rec.teknik_servis == TeknikServis.DTL_OKMEYDANI:
-                rec.teknik_servis_adres = 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI'
-            elif rec.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                rec.teknik_servis_adres = 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul'
-            elif rec.teknik_servis == TeknikServis.PROHAN_ELK:
-                rec.teknik_servis_adres = 'ÜÇGEN MAH. 107 SK NO: 7/1, Antalya, 07040'
-            elif rec.teknik_servis == TeknikServis.NGAUDIO:
-                rec.teknik_servis_adres = 'Alata Mah şehit yüksel ulak cad no26/b Erdemli Mersin'
-            elif rec.teknik_servis == TeknikServis.MATT_GUITAR:
-                rec.teknik_servis_adres = 'HASANPASA MAH. ALIBEY SOK. 21/A, KADIKÖY, İstanbul, 34000'
-            elif rec.teknik_servis == TeknikServis.ERK_ENSTRUMAN:
-                rec.teknik_servis_adres = 'KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1, ÇANKAYA, Ankara, 06000'
-            else:
-                rec.teknik_servis_adres = ''
+            rec.teknik_servis_adres = teknik_servis_helper.TeknikServisHelper.get_adres(
+                rec.teknik_servis,
+                tedarikci_id=rec.tedarikci_id,
+                tedarikci_adresi=rec.tedarikci_adresi,
+            )
 
     @api.depends('teknik_servis', 'tedarikci_id')
     def _compute_teknik_servis_telefon(self):
         for rec in self:
-            if rec.teknik_servis == TeknikServis.TEDARIKCI and rec.tedarikci_id:
-                rec.teknik_servis_telefon = rec.tedarikci_id.phone or rec.tedarikci_id.mobile or ''
-            elif rec.teknik_servis == TeknikServis.ZUHAL_ARIZA_DEPO:
-                rec.teknik_servis_telefon = '0212 555 55 55'
-            elif rec.teknik_servis == TeknikServis.DTL_BEYOGLU:
-                rec.teknik_servis_telefon = '0212 555 55 56'
-            elif rec.teknik_servis == TeknikServis.DTL_OKMEYDANI:
-                rec.teknik_servis_telefon = '0212 555 55 57'
-            elif rec.teknik_servis == TeknikServis.ZUHAL_NEFESLI:
-                rec.teknik_servis_telefon = '0212 555 55 58'
-            elif rec.teknik_servis == TeknikServis.NGAUDIO:
-                rec.teknik_servis_telefon = '0546 786 06 99'
-            else:
-                rec.teknik_servis_telefon = ''
+            rec.teknik_servis_telefon = teknik_servis_helper.TeknikServisHelper.get_telefon(
+                rec.teknik_servis,
+                tedarikci_id=rec.tedarikci_id,
+            )
 
     def action_lock(self):
         for rec in self:

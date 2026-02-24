@@ -113,6 +113,14 @@ Transfer oluşturma mantığı.
 - `stock.picking` oluşturma
 - Operasyon tipi seçimi
 
+### teknik_servis_helper
+
+Teknik servis adres ve telefon bilgileri.
+
+- `get_adres()` – Tedarikçi veya sabit adres
+- `get_telefon()` – Tedarikçi veya sabit telefon
+- ADRES_MAP, TELEFON_MAP – Sabit değerler
+
 ---
 
 ## Genişletilen Odoo Modelleri
