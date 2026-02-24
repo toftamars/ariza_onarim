@@ -108,7 +108,7 @@ class LocationHelper:
     @staticmethod
     def get_dtl_stok_location(env, company_id=None, raise_if_not_found=False):
         """
-        Get DTL/Stok location.
+        Odoo'da mevcut DTL/Stok iç konumunu bulur ve döner.
 
         Args:
             env: Odoo environment
@@ -121,17 +121,27 @@ class LocationHelper:
         Raises:
             UserError: If not found and raise_if_not_found=True
         """
-        # complete_name fallback: DTL/Stok hiyerarşik olabilir (parent DTL, child Stok → name sadece "Stok")
-        fallback_patterns = [
+        if company_id is None:
+            company_id = env.company.id
+        # Odoo'da zaten var olan DTL/Stok konumunu ara (complete_name veya name ile)
+        loc = env['stock.location'].search([
             ('complete_name', 'ilike', 'DTL/Stok'),
-        ]
-        return LocationHelper._find_location_flexible(
-            env,
-            LocationNames.DTL_STOK,
-            fallback_patterns=fallback_patterns,
-            company_id=company_id,
-            raise_if_not_found=raise_if_not_found
-        )
+            ('company_id', 'in', [company_id, False])
+        ], limit=1)
+        if loc:
+            return loc
+        loc = env['stock.location'].search([
+            ('name', '=', 'DTL/Stok'),
+            ('company_id', 'in', [company_id, False])
+        ], limit=1)
+        if loc:
+            return loc
+        if raise_if_not_found:
+            raise UserError(_(
+                "DTL/Stok konumu bulunamadı. Odoo Stok Konumları'nda DTL/Stok iç konumunun "
+                "tanımlı olduğundan emin olun."
+            ))
+        return False
 
     @staticmethod
     def get_ariza_stok_location(env, company_id=None, raise_if_not_found=False):
