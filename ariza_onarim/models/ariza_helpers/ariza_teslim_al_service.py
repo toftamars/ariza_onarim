@@ -51,12 +51,6 @@ class ArizaTeslimAlService:
         picking_vals = ArizaTeslimAlService._build_picking_vals(ariza, kaynak_konum, hedef_konum, picking_type)
         tamir_alim_transfer = ariza.env['stock.picking'].sudo().create(picking_vals)
 
-        driver_id = ariza._get_default_driver_id()
-        from . import ariza_transfer_service
-        ariza_transfer_service.ArizaTransferService.assign_driver(
-            tamir_alim_transfer, driver_id, ariza.name
-        )
-
         ArizaTeslimAlService._create_move_and_line(ariza, tamir_alim_transfer, kaynak_konum, hedef_konum)
 
         ariza.state = ArizaStates.TAMAMLANDI

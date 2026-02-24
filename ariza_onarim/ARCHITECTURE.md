@@ -27,7 +27,6 @@ ariza_onarim/
 │   │   ├── ariza_computed_helper.py    # Computed alan hesaplamaları
 │   │   ├── ariza_teslim_al_service.py  # Mağaza ürünü teslim al
 │   │   ├── ariza_cron_service.py       # Cron işlemleri (deadline, kalan süre)
-│   │   ├── ariza_config_helper.py      # Varsayılan sürücü vb.
 │   │   ├── ariza_create_service.py     # create() hazırlık ve sonrası
 │   │   ├── ariza_search_helper.py      # _search domain genişletmesi
 │   │   ├── ariza_onchange_helper.py    # Tüm onchange mantığı
@@ -36,7 +35,6 @@ ariza_onarim/
 │   ├── account_analytic_account.py
 │   ├── stock_picking.py
 │   ├── stock_move_line.py
-│   ├── res_partner.py
 │   ├── hr_employee.py
 │   ├── delivery_carrier.py
 │   └── account_move_line.py
@@ -72,7 +70,6 @@ ariza.py (Ana Model)
             ├── sms_helper              → _send_sms_to_customer
             ├── hedef_konum_helper      → Hedef konum belirleme
             ├── location_helper         → Konum aramaları
-            └── ariza_config_helper     → Varsayılan sürücü
 ```
 
 ### Import Zinciri (Circular Import Önleme)
@@ -111,7 +108,6 @@ Arıza kayıtlarının tutulduğu ana model. Refactor sonrası **~657 satır** (
 | **ariza_search_helper** | _search domain genişletmesi (ürün alanı) |
 | **ariza_write_helper** | write() hedef_konum_id koruması (otomatik konum değiştirilemez) |
 | **ariza_cron_service** | check_onarim_deadlines, update_kalan_sure |
-| **ariza_config_helper** | get_default_driver_id |
 | **sms_helper** | send_sms, send_sms_to_ariza_customer |
 | **hedef_konum_helper** | get_hedef_konum, update_hedef_konum, hedef_konum_otomatik_mi |
 | **location_helper** | DTL/Arıza/NFSL konum aramaları, get_kaynak_konum_for_analitik |
@@ -147,7 +143,6 @@ Tamamlandı (tamamlandi) veya Teslim Edildi (teslim_edildi)
 | account.analytic.account | account_analytic_account.py | partner_id, konum_kodu, warehouse_id |
 | stock.picking | stock_picking.py | Arıza ile ilişki |
 | stock.move.line | stock_move_line.py | Odoo 16 uyumluluğu (location_lot_ids) |
-| res.partner | res_partner.py | Arıza ile ilişkiler |
 | hr.employee | hr_employee.py | Arıza ile ilişki |
 | delivery.carrier | delivery_carrier.py | Kargo entegrasyonu |
 | account.move.line | account_move_line.py | Muhasebe entegrasyonu |

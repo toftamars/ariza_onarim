@@ -78,38 +78,7 @@ class ArizaTransferService:
         delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(ariza.env)
         if delivery_carrier:
             vals['carrier_id'] = delivery_carrier.id
-        if ariza.vehicle_id:
-            vals['vehicle_id'] = ariza.vehicle_id.id
         return vals
-
-    @staticmethod
-    def assign_driver(picking, driver_id, ariza_name):
-        """Picking'e sürücü atar."""
-        env = picking.env
-        driver_partner = env['res.partner'].browse(driver_id)
-        if not driver_partner.exists():
-            _logger.warning(f"Default sürücü (ID {driver_id}) bulunamadı: {ariza_name}")
-            return
-        vehicle_id_val = False
-        if hasattr(picking, 'vehicle_id') and picking.vehicle_id:
-            vehicle_id_val = picking.vehicle_id.id
-        elif hasattr(driver_partner, 'vehicle_id') and driver_partner.vehicle_id:
-            vehicle_id_val = driver_partner.vehicle_id.id
-        else:
-            vehicle_id_val = driver_partner.id
-        if not hasattr(picking, 'driver_ids'):
-            _logger.error(f"driver_ids field'ı bulunamadı: {ariza_name} - Transfer: {picking.name}")
-            return
-        try:
-            picking.sudo().write({
-                'driver_ids': [(0, 0, {'driver_id': driver_partner.id, 'vehicle_id': vehicle_id_val})]
-            })
-        except Exception as e:
-            _logger.error(f"Sürücü ataması başarısız: {ariza_name} - {str(e)}")
-            try:
-                picking.message_post(body=f"⚠️ Sürücü ataması yapılamadı: {str(e)}", message_type='notification')
-            except Exception:
-                pass
 
     @staticmethod
     def create_move(ariza, picking, kaynak, hedef):
@@ -178,7 +147,6 @@ class ArizaTransferService:
         picking_vals = ArizaTransferService.build_picking_vals(
             ariza, kaynak, hedef, picking_type, transfer_tipi
         )
-        driver_id = ariza._get_default_driver_id()
         try:
             picking = ariza.env['stock.picking'].with_context(from_ariza_onarim=True).sudo().create(picking_vals)
         except Exception:
@@ -188,7 +156,6 @@ class ArizaTransferService:
                 ).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
-        ArizaTransferService.assign_driver(picking, driver_id, ariza.name)
         ArizaTransferService.create_move(ariza, picking, kaynak, hedef)
         ArizaTransferService.post_transfer_message(ariza, picking, kaynak, hedef)
         return picking

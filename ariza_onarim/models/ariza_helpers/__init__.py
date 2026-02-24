@@ -17,7 +17,6 @@ from . import ariza_state_service
 from . import ariza_computed_helper
 from . import ariza_teslim_al_service
 from . import ariza_cron_service
-from . import ariza_config_helper
 from . import ariza_create_service
 from . import ariza_search_helper
 from . import ariza_onchange_helper
@@ -37,7 +36,6 @@ __all__ = [
     'ariza_computed_helper',
     'ariza_teslim_al_service',
     'ariza_cron_service',
-    'ariza_config_helper',
     'ariza_create_service',
     'ariza_search_helper',
     'ariza_onchange_helper',

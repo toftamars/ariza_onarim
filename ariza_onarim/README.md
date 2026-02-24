@@ -65,15 +65,6 @@ pip install qrcode
 
 ## Yapılandırma
 
-### Default sürücü ID
-
-Transfer işlemlerinde otomatik atanan sürücü partner ID'si.
-
-- **Parametre:** `ariza_onarim.default_driver_id`
-- **Yol:** Settings > Technical > Parameters
-- **Varsayılan:** 2205
-- **Not:** Test/production ortamlarında farklı değer atayabilirsiniz.
-
 ### Stok konumları
 
 Tüm stok konumları (DTL/Stok, Arıza/Stok, NFSL/Arızalı vb.) Odoo sisteminde mevcuttur. Modül konum oluşturmaz; mevcut konumları kullanır.

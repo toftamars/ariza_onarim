@@ -338,10 +338,6 @@ Sistem **çoğunlukla güvenli** ancak **kritik bağımlılıklar** var:
 - Modül Odoo 15 için yazıldı. Odoo 16/17/18 geçişinde API değişiklikleri sorun çıkarabilir.
 - `stock_move_line.py` Odoo 16+ uyumluluğu için `location_lot_ids` ekliyor.
 
-### Hardcoded Default Driver ID (2205)
-- `ariza_constants.py` ve `system_parameters.xml`'de fallback değer.
-- Farklı ortamlarda Settings > Technical > Parameters ile `ariza_onarim.default_driver_id` güncellenmeli.
-
 ### Teknik Servis Sabitleri
 - NGaudio, MATT Guitar vb. adres/telefon koda gömülü. Yeni servis eklemek için kod değişikliği gerekiyor.
 - Öneri: Config tabanlı yapıya taşınması (ariza.teknik_servis.config veya ir.config_parameter).

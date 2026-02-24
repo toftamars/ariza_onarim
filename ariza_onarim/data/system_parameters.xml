@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Default Sürücü ID - Arıza onarım transferlerinde otomatik atanan sürücü -->
-        <record id="param_default_driver_id" model="ir.config_parameter">
-            <field name="key">ariza_onarim.default_driver_id</field>
-            <field name="value">2205</field>
-        </record>
     </data>
 </odoo>
-

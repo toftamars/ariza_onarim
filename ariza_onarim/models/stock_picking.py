@@ -206,26 +206,5 @@ class StockPicking(models.Model):
 
         return res
 
-    def _ubl_add_shipment_stage(self, shipment, ns, version='2.1'):
-        """
-        Add vehicle information to UBL shipment stage for e-Invoice.
-
-        Extends standard UBL shipment stage generation to include vehicle
-        information (plate number) when available.
-
-        Args:
-            shipment: UBL shipment XML element.
-            ns (dict): XML namespace dictionary.
-            version (str): UBL version (default: '2.1').
-        """
-        super()._ubl_add_shipment_stage(shipment, ns, version=version)
-
-        # Add vehicle information if available
-        if hasattr(self, 'vehicle_id') and self.vehicle_id:
-            vehicle = shipment.find(ns['cac'] + 'TransportMeans')
-            if vehicle is not None:
-                vehicle_id_elem = vehicle.find(ns['cac'] + 'ID')
-                if vehicle_id_elem is not None:
-                    vehicle_id_elem.text = str(self.vehicle_id) if self.vehicle_id else '' 
 
  

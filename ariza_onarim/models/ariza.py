@@ -33,7 +33,6 @@ from .ariza_helpers import (
     ariza_computed_helper,
     ariza_teslim_al_service,
     ariza_cron_service,
-    ariza_config_helper,
     ariza_create_service,
     ariza_search_helper,
     ariza_onchange_helper,
@@ -211,7 +210,6 @@ class ArizaKayit(models.Model):
     teslim_alan_imza = fields.Binary(string='Teslim Alan İmza')
     teslim_notu = fields.Text(string='Teslim Notu', tracking=True)
     contact_id = fields.Many2one('res.partner', string='Kontak (Teslimat Adresi)', tracking=True)
-    vehicle_id = fields.Many2one('res.partner', string='Sürücü', domain="[('is_driver','=',True)]", tracking=True)
     barcode = fields.Char(string='Barkod', tracking=True, copy=False)
     
     # Onarım Süreci Takibi
@@ -461,10 +459,6 @@ class ArizaKayit(models.Model):
     @api.onchange('ariza_kabul_id')
     def _onchange_ariza_kabul_id(self):
         ariza_onchange_helper.ArizaOnchangeHelper.onchange_ariza_kabul_id(self)
-
-    def _get_default_driver_id(self):
-        """Default sürücü ID - ArizaConfigHelper'a delegasyon"""
-        return ariza_config_helper.ArizaConfigHelper.get_default_driver_id(self.env)
 
     def _create_stock_transfer(self, kaynak_konum=None, hedef_konum=None, force_internal=False, delivery_type=None, transfer_tipi=None):
         """Stok transferi oluşturur - ArizaTransferService'e delegasyon"""
