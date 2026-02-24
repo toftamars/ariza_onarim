@@ -1,124 +1,154 @@
 # Arıza ve Onarım Yönetimi Modülü
 
-Bu modül, Odoo 15 için geliştirilmiş bir arıza ve onarım yönetim sistemidir.
+Odoo 15 için geliştirilmiş arıza kaydı ve onarım takip modülü.
+
+**Versiyon:** 1.0.5  
+**Lisans:** LGPL-3
+
+---
 
 ## Özellikler
 
-- Müşteri ürünleri için arıza kaydı
-- Mağaza ürünleri için arıza kaydı
-- Teknik servis yönetimi
+- Müşteri ve mağaza ürünleri için arıza kaydı
+- Teknik servis yönetimi (DTL, NGaudio, MATT Guitar, Tedarikçi vb.)
 - Otomatik stok transfer işlemleri
+- 3 aşamalı SMS bildirimleri (müşteri ürünleri)
 - QR kod desteği
-- Detaylı raporlama
-- Dashboard görünümü
+- Garanti takibi
+- Detaylı raporlama ve dashboard
+- Company bazlı erişim kontrolü
+
+---
+
+## Bağımlılıklar
+
+| Modül | Amaç |
+|-------|------|
+| base, mail | Temel Odoo |
+| stock | Stok transferleri |
+| account | Muhasebe entegrasyonu |
+| product | Ürün yönetimi |
+| product_brand | Marka alanı |
+| delivery | Kargo entegrasyonu |
+| sms | SMS bildirimleri |
+| analytic | Analitik hesap (mağaza/depo) |
+
+**Python:** `qrcode` paketi gerekli.
+
+---
 
 ## Kurulum
 
-### GitHub Üzerinden Kurulum
+### 1. Eklentiler klasörüne gidin
 
-1. Odoo eklentiler klasörüne gidin:
-   ```bash
-   cd /path/to/odoo/addons
-   ```
+```bash
+cd /path/to/odoo/addons
+```
 
-2. Modülü GitHub'dan klonlayın:
-   ```bash
-   git clone https://github.com/your-username/ariza_onarim.git
-   ```
+### 2. Modülü klonlayın
 
-3. Gerekli Python paketini yükleyin:
-   ```bash
-   pip install qrcode
-   ```
+```bash
+git clone https://github.com/toftamars/ariza_onarim.git
+```
 
-4. Odoo'yu yeniden başlatın
+### 3. Python paketini yükleyin
 
-5. Uygulamalar menüsünden modülü yükleyin
+```bash
+pip install qrcode
+```
 
-### Yapılandırma
+### 4. Odoo'yu yeniden başlatın
 
-- **Default sürücü ID:** Transfer işlemlerinde otomatik atanan sürücü. Farklı ortamlarda (test, production) `Settings > Technical > Parameters` üzerinden `ariza_onarim.default_driver_id` değerini güncelleyin. Varsayılan: 2205.
+### 5. Uygulamalar menüsünden modülü yükleyin
 
-### Güncelleme
+---
 
-Modülü güncellemek için:
+## Yapılandırma
+
+### Default sürücü ID
+
+Transfer işlemlerinde otomatik atanan sürücü partner ID'si.
+
+- **Parametre:** `ariza_onarim.default_driver_id`
+- **Yol:** Settings > Technical > Parameters
+- **Varsayılan:** 2205
+- **Not:** Test/production ortamlarında farklı değer atayabilirsiniz.
+
+### Stok konumları
+
+Tüm stok konumları (DTL/Stok, Arıza/Stok, NFSL/Arızalı vb.) Odoo sisteminde mevcuttur. Modül konum oluşturmaz; mevcut konumları kullanır.
+
+Modül yüklendikten sonra `post_init_hook` kritik konumları kontrol eder. Eksik varsa Odoo log'una uyarı yazılır.
+
+### Analitik hesaplar (mağaza ürünleri)
+
+Mağaza ürünleri için analitik hesaba `warehouse_id` atanmalı. `konum_kodu` warehouse'dan otomatik hesaplanır.
+
+Alternatif: `ir.config_parameter` ile `ariza_onarim.location_code.[mağaza_adı]` tanımlanabilir.
+
+---
+
+## İş Akışları
+
+### Müşteri ürünü
+
+1. Arıza kaydı oluştur (Taslak)
+2. Personel Onayı → İlk SMS, transfer oluşturulur
+3. Kabul Edildi
+4. Teknik Onarım → Yönetici "Onarım Başlat"
+5. Onaylandı → 2. SMS
+6. Yönetici Tamamlandı
+7. Teslim Et → 3. SMS, transfer oluşturulur
+8. Teslim Edildi
+
+### Mağaza ürünü
+
+1. Arıza kaydı oluştur (Taslak)
+2. Personel Onayı → Transfer oluşturulur (SMS yok)
+3. Kabul Edildi
+4. Teknik Onarım → Yönetici "Onarım Başlat"
+5. Onaylandı
+6. Yönetici Tamamlandı
+7. Teslim Al → Geri transfer (Teknik servis → Mağaza)
+8. Tamamlandı
+
+---
+
+## Yetkilendirme
+
+| Grup | Yetki |
+|------|-------|
+| Arıza Onarım / Yönetici | Kayıt yönetimi, onaylama, onarım başlatma |
+| Arıza Onarım / Süper Yönetici | Yönetici + kayıt silme |
+| base.group_user | Temel okuma/yazma (silme yok) |
+
+---
+
+## Güncelleme
+
 ```bash
 cd /path/to/odoo/addons/ariza_onarim
 git pull origin main
 ```
 
-## Kullanım
+Odoo'yu yeniden başlatıp modülü güncelleyin.
 
-### Arıza Kaydı Oluşturma
+---
 
-1. "Arıza ve Onarım" menüsüne gidin
-2. "Arıza Kayıtları" alt menüsünü seçin
-3. "Oluştur" butonuna tıklayın
-4. Arıza tipini seçin:
-   - Müşteri Ürünü
-   - Mağaza Ürünü
-   - Teknik Servis
+## Dokümantasyon
 
-### Müşteri Ürünü Arıza Kaydı
+- **ARCHITECTURE.md** – Modül mimarisi, modeller, helper'lar
+- **SISTEM_RISK_ANALIZI.md** – Risk analizi ve öneriler
 
-1. Müşteri bilgilerini seçin
-2. Sipariş varsa seçin, yoksa "Sipariş Yok" seçeneğini işaretleyin
-3. Ürün, marka ve model bilgilerini girin
-4. Arıza tanımını yapın
-5. Garanti durumunu belirleyin
-6. Sorumlu kişiyi seçin
-
-### Mağaza Ürünü Arıza Kaydı
-
-1. Mağaza arıza tipini seçin:
-   - Depo Arıza
-   - Tedarikçiler
-   - Nefesli Arıza
-2. Analitik hesabı seçin
-3. Gerekli diğer bilgileri girin
-
-### Stok Transfer İşlemleri
-
-- Depo arıza: Otomatik olarak arıza/stok konumuna transfer oluşturulur
-- Tedarikçi: Tedarikçiye transfer belgesi oluşturulur
-- Nefesli arıza: Nefesli stok konumuna transfer oluşturulur
-
-### QR Kod Kullanımı
-
-- Her arıza kaydı için otomatik QR kod oluşturulur
-- QR kodlar form görünümünde görüntülenir
-- QR kodları yazdırmak için yazdır butonunu kullanın
-
-### Raporlama
-
-- Pivot tablo görünümü
-- Grafik görünümü
-- Tarih bazlı filtreler
-- Gruplama seçenekleri
-
-## Geliştirme
-
-### Katkıda Bulunma
-
-1. Bu depoyu fork edin
-2. Yeni bir branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+---
 
 ## Gereksinimler
 
 - Odoo 15
-- Python qrcode paketi
+- Python: qrcode
 
-## Lisans
-
-LGPL-3
+---
 
 ## Geliştirici
 
-**Alper Tofta**
-
-## İletişim
-
-GitHub: [@toftamars](https://github.com/toftamars) 
+**Alper Tofta** – [@toftamars](https://github.com/toftamars)

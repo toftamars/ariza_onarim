@@ -12,7 +12,7 @@
 ### 1. EKSİK STOK KONUMLARI (YÜKSEK RİSK)
 
 **Ne Zaman Sorun Çıkarır:**
-- Stok konumları (DTL/Stok, Arıza/Stok, NFSL/Arızalı) Odoo'da oluşturulmamışsa
+- Stok konumları (DTL/Stok, Arıza/Stok, NFSL/Arızalı) Odoo'da tanımlı değilse
 - Konum isimleri yanlış yazılmışsa (büyük/küçük harf, boşluk farkı)
 - Company bazlı konumlar yanlış company'ye atanmışsa
 
@@ -37,9 +37,8 @@ return dtl_konum if dtl_konum else False  # False döner, transfer oluşturulama
 - Arıza kaydı oluşturulur ama transfer oluşmaz
 
 **Çözüm:**
-- post_init_hook ile konum validasyonu eklendi (v1.0.5) - eksik konumlar log'a yazılır
-- Konumlar oluşturulmadan modül yüklenmemeli
-- Konum kontrolü yapılmalı ve hata mesajı gösterilmeli
+- Tüm konumlar Odoo sisteminde mevcuttur; modül konum oluşturmaz.
+- post_init_hook ile konum validasyonu eklendi (v1.0.5) - eksik konum varsa log'a yazılır.
 
 ---
 
@@ -132,9 +131,9 @@ if sequence_number:  # None ise
 
 ---
 
-### 5. EKSİK GRUP: `group_ariza_technician` (ÇÖZÜLDÜ - v1.0.5)
+### 5. EKSİK GRUP: `group_ariza_technician` (KULLANILMIYOR)
 
-**Durum:** `group_ariza_technician` grubu security.xml'e eklendi. Teknisyenler artık onarım başlatabilir.
+**Durum:** Teknisyen grubu kullanılmıyor. Onarım başlatma sadece `group_ariza_manager` ile yapılıyor.
 
 **Etkilenen İşlemler:**
 - `can_start_repair` computed field
@@ -276,7 +275,7 @@ dtl_konum = env['stock.location'].search([
 | Risk | Öncelik | Etki | Olasılık | Çözüm Süresi |
 |------|---------|------|----------|--------------|
 | Eksik Stok Konumları | 🟡 AZALTILDI | Yüksek | Orta | post_init_hook ile log |
-| Eksik Grup (technician) | ✅ ÇÖZÜLDÜ | - | - | - |
+| Eksik Grup (technician) | ✅ KULLANILMIYOR | - | - | Sadece manager |
 | SMS Gönderim Hataları | 🟡 ORTA | Orta | Düşük | 2 saat |
 | Transfer Oluşturma Hataları | 🔴 YÜKSEK | Yüksek | Düşük | 4 saat |
 | Eksik Analitik Hesap Kodu | 🟡 ORTA | Düşük | Orta | 1 saat |
@@ -289,12 +288,12 @@ dtl_konum = env['stock.location'].search([
 ## 🎯 EN KRİTİK 3 SORUN
 
 ### 1. Eksik Stok Konumları (AZALTILDI - post_init_hook)
-**Ne Zaman:** Modül yüklendikten sonra, konumlar oluşturulmadan kullanılmaya başlanırsa  
+**Ne Zaman:** Konumlar Odoo'da tanımlı değilse (nadir)  
 **Etki:** Transfer oluşturulamaz, işlemler yarıda kalır  
-**Çözüm:** post_init_hook eksik konumları log'a yazar; konumları oluşturun
+**Çözüm:** Konumlar Odoo sisteminde mevcuttur; modül konum oluşturmaz. post_init_hook eksik varsa log'a yazar.
 
-### 2. group_ariza_technician (ÇÖZÜLDÜ - v1.0.5)
-**Durum:** Grup security.xml'e eklendi.
+### 2. group_ariza_technician (KULLANILMIYOR)
+**Durum:** Teknisyen grubu kullanılmıyor; sadece yönetici (manager) onarım başlatabilir.
 
 ### 3. Transfer Oluşturma Hataları (YÜKSEK RİSK)
 **Ne Zaman:** Kaynak/hedef konum None ise veya validation kuralları ihlal edilirse  
@@ -306,8 +305,8 @@ dtl_konum = env['stock.location'].search([
 ## ✅ ÖNERİLER
 
 ### Acil (Production Öncesi)
-1. ✅ Stok konumlarını kontrol et ve oluştur (post_init_hook log'u kontrol edin)
-2. ✅ `group_ariza_technician` grubu eklendi (v1.0.5)
+1. Stok konumları Odoo'da mevcuttur; modül konum oluşturmaz. Sorun olursa post_init_hook log'unu kontrol edin.
+2. Teknisyen grubu kullanılmıyor; sadece manager onarım başlatır
 3. Transfer oluşturma validasyonlarını güçlendir
 
 ### Kısa Vadeli (1 Hafta)
@@ -325,11 +324,11 @@ dtl_konum = env['stock.location'].search([
 ## 📝 SONUÇ
 
 Sistem **çoğunlukla güvenli** ancak **kritik bağımlılıklar** var:
-- Stok konumları mutlaka oluşturulmalı
+- Stok konumları Odoo sisteminde mevcuttur (modül oluşturmaz)
 - Grup yapılandırması düzeltilmeli
 - Transfer validasyonları güçlendirilmeli
 
-**En büyük risk:** Eksik stok konumları nedeniyle transfer oluşturulamaması. (post_init_hook ile tespit edilebilir)
+**En büyük risk:** Eksik stok konumları nedeniyle transfer oluşturulamaması. Konumlar Odoo'da mevcuttur; modül konum oluşturmaz.
 
 ---
 
@@ -359,4 +358,11 @@ Sistem **çoğunlukla güvenli** ancak **kritik bağımlılıklar** var:
 **Rapor Hazırlayan:** AI Risk Analyst  
 **Tarih:** Şubat 2025  
 **Versiyon:** 1.1
+
+---
+
+## İlgili Dokümantasyon
+
+- **ariza_onarim/README.md** – Kurulum, yapılandırma, iş akışları
+- **ariza_onarim/ARCHITECTURE.md** – Modül mimarisi, modeller, helper'lar
 

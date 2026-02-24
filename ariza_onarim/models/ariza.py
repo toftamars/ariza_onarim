@@ -399,10 +399,7 @@ class ArizaKayit(models.Model):
                 record.can_approve = True
             else:
                 # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol
-                record.can_start_repair = (
-                    current_user.has_group('ariza_onarim.group_ariza_manager') or
-                    current_user.has_group('ariza_onarim.group_ariza_technician')
-                )
+                record.can_start_repair = current_user.has_group('ariza_onarim.group_ariza_manager')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -635,9 +632,8 @@ class ArizaKayit(models.Model):
         current_user = self.env.user
         
         # Onarımı başlatabilen kullanıcılar - Grup bazlı kontrol
-        if not (current_user.has_group('ariza_onarim.group_ariza_manager') or
-                current_user.has_group('ariza_onarim.group_ariza_technician')):
-            raise UserError(_('Bu işlemi sadece teknik ekip yapabilir.'))
+        if not current_user.has_group('ariza_onarim.group_ariza_manager'):
+            raise UserError(_('Bu işlemi sadece yönetici yapabilir.'))
         
         if self.state != ArizaStates.ONAYLANDI:
             raise UserError(_('Sadece onaylanmış arıza kayıtları için onarım başlatılabilir.'))

@@ -24,7 +24,7 @@ def post_init_hook(cr, registry):
         if not success:
             _logger.warning(
                 "Arıza Onarım: Kritik stok konumları eksik: %s. "
-                "Transfer işlemleri çalışmayabilir. Lütfen bu konumları oluşturun.",
+                "Transfer işlemleri çalışmayabilir. Odoo Envanter konumlarını kontrol edin.",
                 ", ".join(missing),
             )
         else:
