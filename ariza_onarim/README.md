@@ -35,6 +35,10 @@ Bu modül, Odoo 15 için geliştirilmiş bir arıza ve onarım yönetim sistemid
 
 5. Uygulamalar menüsünden modülü yükleyin
 
+### Yapılandırma
+
+- **Default sürücü ID:** Transfer işlemlerinde otomatik atanan sürücü. Farklı ortamlarda (test, production) `Settings > Technical > Parameters` üzerinden `ariza_onarim.default_driver_id` değerini güncelleyin. Varsayılan: 2205.
+
 ### Güncelleme
 
 Modülü güncellemek için:

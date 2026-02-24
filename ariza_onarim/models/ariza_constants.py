@@ -199,7 +199,8 @@ class MagicNumbers:
 
 class DefaultValues:
     """Default değerler ve sabitler"""
-    # Default driver ID (system parameter'a taşınacak)
+    # Default driver ID - Fallback; öncelik ir.config_parameter 'ariza_onarim.default_driver_id'
+    # Farklı ortamlarda Settings > Technical > Parameters ile güncelleyin
     DEFAULT_DRIVER_ID = 2205
     
     # Default transfer metodu

@@ -1,9 +1,9 @@
 # SİSTEM RİSK ANALİZİ
 ## Arıza Onarım Modülü - Ne Zaman Sorun Çıkarır?
 
-**Analiz Tarihi:** 2024  
-**Modül Versiyonu:** 1.0.4  
-**Risk Seviyesi:** Orta-Yüksek
+**Analiz Tarihi:** Şubat 2025  
+**Modül Versiyonu:** 1.0.5  
+**Risk Seviyesi:** Orta
 
 ---
 
@@ -37,6 +37,7 @@ return dtl_konum if dtl_konum else False  # False döner, transfer oluşturulama
 - Arıza kaydı oluşturulur ama transfer oluşmaz
 
 **Çözüm:**
+- post_init_hook ile konum validasyonu eklendi (v1.0.5) - eksik konumlar log'a yazılır
 - Konumlar oluşturulmadan modül yüklenmemeli
 - Konum kontrolü yapılmalı ve hata mesajı gösterilmeli
 
@@ -44,10 +45,11 @@ return dtl_konum if dtl_konum else False  # False döner, transfer oluşturulama
 
 ### 2. EKSİK ANALİTİK HESAP KONUM KODU (ORTA RİSK)
 
+**Durum:** Analitik Bilgileri.txt dosya bağımlılığı kaldırıldı. Artık `ir.config_parameter` ve `account.analytic.account.konum_kodu` (warehouse'dan otomatik) kullanılıyor.
+
 **Ne Zaman Sorun Çıkarır:**
-- `analitik_hesap_id.konum_kodu` field'ı boşsa
-- `Analitik Bilgileri.txt` dosyası yoksa veya erişilemezse
-- Dosya formatı yanlışsa (tab-separated değilse)
+- `analitik_hesap_id.konum_kodu` field'ı boşsa (warehouse atanmamışsa)
+- `ir.config_parameter` ile `ariza_onarim.location_code.[mağaza_adı]` tanımlı değilse
 
 **Etkilenen İşlemler:**
 - ✅ Müşteri ürünü için hedef konum belirleme
@@ -55,14 +57,9 @@ return dtl_konum if dtl_konum else False  # False döner, transfer oluşturulama
 
 **Hata Senaryosu:**
 ```python
-# ariza.py - Satır 633-641
-konum_kodu = self.analitik_hesap_id.konum_kodu
-if not konum_kodu:
-    # Dosyadan okumayı dene
-    dosya_yolu = os.path.join(..., 'Analitik Bilgileri.txt')
-    konum_kodu = location_helper.LocationHelper.parse_konum_kodu_from_file(...)
-if konum_kodu:  # Eğer hala yoksa, bu blok çalışmaz
-    arizali_konum = location_helper.LocationHelper.get_arizali_location(...)
+# location_helper.py - get_konum_kodu_from_analytic
+# ir.config_parameter veya analytic.konum_kodu kullanılır
+# Dosya bağımlılığı yok
 ```
 
 **Sonuç:**
@@ -71,8 +68,8 @@ if konum_kodu:  # Eğer hala yoksa, bu blok çalışmaz
 - İşlem devam eder ama otomasyon çalışmaz
 
 **Çözüm:**
-- Tüm analitik hesaplara `konum_kodu` field'ı doldurulmalı
-- Dosya fallback mekanizması çalışıyor (iyi)
+- Tüm analitik hesaplara `warehouse_id` atanmalı (konum_kodu otomatik hesaplanır)
+- Alternatif: `ir.config_parameter` ile `ariza_onarim.location_code.[mağaza_adı]` tanımlanmalı
 
 ---
 
@@ -135,34 +132,13 @@ if sequence_number:  # None ise
 
 ---
 
-### 5. EKSİK GRUP: `group_ariza_technician` (ORTA RİSK)
+### 5. EKSİK GRUP: `group_ariza_technician` (ÇÖZÜLDÜ - v1.0.5)
 
-**Ne Zaman Sorun Çıkarır:**
-- Kodda `ariza_onarim.group_ariza_technician` kontrolü var
-- Ancak bu grup `security.xml`'de tanımlı değil
+**Durum:** `group_ariza_technician` grubu security.xml'e eklendi. Teknisyenler artık onarım başlatabilir.
 
 **Etkilenen İşlemler:**
-- ✅ `can_start_repair` computed field (her zaman False döner)
-- ✅ `action_onarim_baslat` metodu (her zaman hata verir)
-
-**Hata Senaryosu:**
-```python
-# ariza.py - Satır 373-376
-record.can_start_repair = (
-    current_user.has_group('ariza_onarim.group_ariza_manager') or
-    current_user.has_group('ariza_onarim.group_ariza_technician')  # Grup yok!
-)
-# Grup yoksa her zaman False döner
-```
-
-**Sonuç:**
-- Teknik ekip onarım başlatamaz
-- Sadece manager grubu çalışır
-- Fonksiyonellik kısıtlanır
-
-**Çözüm:**
-- Ya grubu oluştur
-- Ya da referansları kaldır
+- `can_start_repair` computed field
+- `action_onarim_baslat` metodu
 
 ---
 
@@ -258,32 +234,9 @@ def _compute_kalan_is_gunu(self):
 
 ---
 
-### 9. DOSYA OKUMA HATALARI (DÜŞÜK RİSK)
+### 9. DOSYA OKUMA HATALARI (ARTIK GEÇERLİ DEĞİL)
 
-**Ne Zaman Sorun Çıkarır:**
-- `Analitik Bilgileri.txt` dosyası yoksa
-- Dosya formatı yanlışsa
-- Dosya encoding sorunu varsa
-
-**Etkilenen İşlemler:**
-- ✅ Konum kodu parse etme (fallback mekanizması)
-
-**Hata Senaryosu:**
-```python
-# location_helper.py - Satır 175-183
-if os.path.exists(dosya_yolu):
-    with open(dosya_yolu, 'r', encoding='utf-8') as f:
-        # Dosya okunamazsa exception fırlatılır
-```
-
-**Sonuç:**
-- Dosya okunamaz
-- Exception yakalanır, log'a yazılır
-- Konum kodu None kalır (fallback çalışmaz)
-
-**Çözüm:**
-- Dosya fallback mekanizması var (iyi)
-- Ancak dosya yoksa sessizce başarısız olur
+**Durum:** `Analitik Bilgileri.txt` dosya bağımlılığı kaldırıldı. Konum kodu artık `ir.config_parameter` ve `account.analytic.account.konum_kodu` üzerinden alınıyor.
 
 ---
 
@@ -322,28 +275,26 @@ dtl_konum = env['stock.location'].search([
 
 | Risk | Öncelik | Etki | Olasılık | Çözüm Süresi |
 |------|---------|------|----------|--------------|
-| Eksik Stok Konumları | 🔴 YÜKSEK | Yüksek | Orta | 1 saat |
-| Eksik Grup (technician) | 🟡 ORTA | Orta | Yüksek | 30 dakika |
+| Eksik Stok Konumları | 🟡 AZALTILDI | Yüksek | Orta | post_init_hook ile log |
+| Eksik Grup (technician) | ✅ ÇÖZÜLDÜ | - | - | - |
 | SMS Gönderim Hataları | 🟡 ORTA | Orta | Düşük | 2 saat |
 | Transfer Oluşturma Hataları | 🔴 YÜKSEK | Yüksek | Düşük | 4 saat |
 | Eksik Analitik Hesap Kodu | 🟡 ORTA | Düşük | Orta | 1 saat |
 | Multi-Company Sorunları | 🟡 ORTA | Orta | Düşük | 2 saat |
 | Computed Field Dependency | 🟢 DÜŞÜK | Düşük | Düşük | 3 saat |
-| Dosya Okuma Hataları | 🟢 DÜŞÜK | Düşük | Düşük | 1 saat |
+| Dosya Okuma Hataları | ✅ KALDIRILDI | - | - | Dosya bağımlılığı yok |
 
 ---
 
 ## 🎯 EN KRİTİK 3 SORUN
 
-### 1. Eksik Stok Konumları (YÜKSEK RİSK)
+### 1. Eksik Stok Konumları (AZALTILDI - post_init_hook)
 **Ne Zaman:** Modül yüklendikten sonra, konumlar oluşturulmadan kullanılmaya başlanırsa  
 **Etki:** Transfer oluşturulamaz, işlemler yarıda kalır  
-**Çözüm:** Modül yükleme sonrası konum kontrolü yapılmalı
+**Çözüm:** post_init_hook eksik konumları log'a yazar; konumları oluşturun
 
-### 2. Eksik Grup: `group_ariza_technician` (ORTA RİSK)
-**Ne Zaman:** Teknik ekip onarım başlatmaya çalıştığında  
-**Etki:** Onarım başlatılamaz, sadece manager çalışabilir  
-**Çözüm:** Grubu oluştur veya referansları kaldır
+### 2. group_ariza_technician (ÇÖZÜLDÜ - v1.0.5)
+**Durum:** Grup security.xml'e eklendi.
 
 ### 3. Transfer Oluşturma Hataları (YÜKSEK RİSK)
 **Ne Zaman:** Kaynak/hedef konum None ise veya validation kuralları ihlal edilirse  
@@ -355,9 +306,9 @@ dtl_konum = env['stock.location'].search([
 ## ✅ ÖNERİLER
 
 ### Acil (Production Öncesi)
-1. ✅ Stok konumlarını kontrol et ve oluştur
-2. ✅ `group_ariza_technician` grubunu düzelt
-3. ✅ Transfer oluşturma validasyonlarını güçlendir
+1. ✅ Stok konumlarını kontrol et ve oluştur (post_init_hook log'u kontrol edin)
+2. ✅ `group_ariza_technician` grubu eklendi (v1.0.5)
+3. Transfer oluşturma validasyonlarını güçlendir
 
 ### Kısa Vadeli (1 Hafta)
 1. ✅ SMS gateway yapılandırmasını kontrol et
@@ -378,11 +329,34 @@ Sistem **çoğunlukla güvenli** ancak **kritik bağımlılıklar** var:
 - Grup yapılandırması düzeltilmeli
 - Transfer validasyonları güçlendirilmeli
 
-**En büyük risk:** Eksik stok konumları nedeniyle transfer oluşturulamaması.
+**En büyük risk:** Eksik stok konumları nedeniyle transfer oluşturulamaması. (post_init_hook ile tespit edilebilir)
+
+---
+
+## YENİ RİSKLER (v1.0.5 Güncellemesi)
+
+### Odoo Sürüm Bağımlılığı
+- Modül Odoo 15 için yazıldı. Odoo 16/17/18 geçişinde API değişiklikleri sorun çıkarabilir.
+- `stock_move_line.py` Odoo 16+ uyumluluğu için `location_lot_ids` ekliyor.
+
+### Hardcoded Default Driver ID (2205)
+- `ariza_constants.py` ve `system_parameters.xml`'de fallback değer.
+- Farklı ortamlarda Settings > Technical > Parameters ile `ariza_onarim.default_driver_id` güncellenmeli.
+
+### Teknik Servis Sabitleri
+- NGaudio, MATT Guitar vb. adres/telefon koda gömülü. Yeni servis eklemek için kod değişikliği gerekiyor.
+- Öneri: Config tabanlı yapıya taşınması (ariza.teknik_servis.config veya ir.config_parameter).
+
+### Fat Model (ariza.py ~2540 satır)
+- Tek dosyada çok fazla sorumluluk; değişiklikler yan etki riski taşıyor.
+- Öneri: Domain/servis katmanına bölme.
+
+### Test Eksikliği
+- Unit/integration test yok; regression riski yüksek.
 
 ---
 
 **Rapor Hazırlayan:** AI Risk Analyst  
-**Tarih:** 2024  
-**Versiyon:** 1.0
+**Tarih:** Şubat 2025  
+**Versiyon:** 1.1
 

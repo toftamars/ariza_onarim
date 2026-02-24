@@ -10,6 +10,14 @@
             <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_user'))]"/>
         </record>
 
+        <!-- Arıza Onarım Teknisyen Grubu -->
+        <record id="group_ariza_technician" model="res.groups">
+            <field name="name">Arıza Onarım / Teknisyen</field>
+            <field name="category_id" ref="base.module_category_inventory"/>
+            <field name="comment">Onarım başlatma yetkisi. Bu gruba kullanıcı eklemek için: Settings &gt; Users &amp; Companies &gt; Groups &gt; Arıza Onarım / Teknisyen</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('stock.group_stock_user'))]"/>
+        </record>
+
         <!-- Arıza Onarım Süper Yönetici Grubu -->
         <record id="group_ariza_super_manager" model="res.groups">
             <field name="name">Arıza Onarım / Süper Yönetici</field>
