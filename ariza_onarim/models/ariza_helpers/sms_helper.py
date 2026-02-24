@@ -250,3 +250,37 @@ class SMSHelper:
         except Exception as e:
             _logger.error(f"SMS template formatting error: {str(e)}")
             return template
+
+    @staticmethod
+    def send_sms_to_ariza_customer(record, message):
+        """
+        Arıza kaydı müşterisine SMS gönder (sadece müşteri ürünü).
+
+        Args:
+            record: ariza.kayit kaydı
+            message: SMS mesajı
+
+        Returns:
+            bool: True if SMS sent successfully
+        """
+        from ..ariza_constants import ArizaTipi
+
+        if record.ariza_tipi != ArizaTipi.MUSTERI:
+            return False
+        if not record.partner_id:
+            return False
+
+        phone_override = None
+        if record.sms_farkli_noya_gonder and record.sms_farkli_telefon and record.sms_farkli_telefon.strip():
+            phone_override = record.sms_farkli_telefon.strip()
+
+        sms_sent = SMSHelper.send_sms(
+            record.sudo().env, record.partner_id, message, record.name, phone_override=phone_override
+        )
+        if sms_sent[0]:
+            record.sms_gonderildi = True
+            record.message_post(
+                body=f"SMS başarıyla gönderildi: {message}",
+                message_type='notification'
+            )
+        return sms_sent[0]

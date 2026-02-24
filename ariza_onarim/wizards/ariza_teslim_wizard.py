@@ -6,6 +6,8 @@ Teslim Wizard - Ürün teslim işlemi için wizard
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from ..models.ariza_constants import SMSTemplates, TeslimAlan
+from ..models.ariza_helpers import ariza_computed_helper
+
 
 class ArizaTeslimWizard(models.TransientModel):
     _name = 'ariza.teslim.wizard'
@@ -83,7 +85,7 @@ class ArizaTeslimWizard(models.TransientModel):
             else:
                 # Mağazadan teslim - normal SMS template
                 magaza_adi = ariza.teslim_magazasi_id.name if ariza.teslim_magazasi_id else ''
-                temiz_magaza_adi = ariza._clean_magaza_adi(magaza_adi)
+                temiz_magaza_adi = ariza_computed_helper.ArizaComputedHelper.clean_magaza_adi(magaza_adi)
                 
                 # Teslim edilen kişi bilgisini al
                 teslim_edilen_kisi = self.teslim_alan if self.teslim_alan else "müşteriye"

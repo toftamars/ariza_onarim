@@ -129,3 +129,56 @@ class HedefKonumHelper:
             return konum or False
 
         return False
+
+    @staticmethod
+    def update_hedef_konum(record):
+        """Hedef konumu günceller ve mesaj gönderir."""
+        if not record.ariza_tipi or not record.teknik_servis:
+            return
+        konum = HedefKonumHelper.get_hedef_konum(
+            record.env,
+            record.teknik_servis,
+            record.ariza_tipi,
+            company_id=record.company_id.id if record.company_id else record.env.company.id,
+            tedarikci_id=record.tedarikci_id,
+        )
+        record.hedef_konum_id = konum
+        if record.ariza_tipi == ArizaTipi.MAGAZA and record.teknik_servis != TeknikServis.MAGAZA:
+            try:
+                if konum:
+                    record.message_post(
+                        body=f"✅ Hedef Konum otomatik atandı: <b>{konum.display_name}</b> (Teknik Servis: {record.teknik_servis})",
+                        message_type='notification'
+                    )
+                else:
+                    record.message_post(
+                        body="⚠️ Hedef konum bulunamadı! Lütfen hedef konumu manuel seçin.",
+                        message_type='notification'
+                    )
+            except Exception:
+                pass
+
+    @staticmethod
+    def hedef_konum_otomatik_mi(ariza_tipi, teknik_servis, tedarikci_id=None):
+        """Bu kombinasyon hedef konumu otomatik atıyor mu?"""
+        if not ariza_tipi or not teknik_servis:
+            return False
+        if ariza_tipi == ArizaTipi.MUSTERI:
+            return teknik_servis in (
+                TeknikServis.DTL_SERVISLER
+                + [TeknikServis.ZUHAL_ARIZA_DEPO, TeknikServis.ZUHAL_NEFESLI, TeknikServis.MAGAZA]
+            )
+        if ariza_tipi == ArizaTipi.MAGAZA:
+            return teknik_servis in (
+                TeknikServis.DTL_SERVISLER
+                + [
+                    TeknikServis.ZUHAL_ARIZA_DEPO,
+                    TeknikServis.ZUHAL_NEFESLI,
+                    TeknikServis.NGAUDIO,
+                    TeknikServis.MATT_GUITAR,
+                    TeknikServis.PROHAN_ELK,
+                    TeknikServis.ERK_ENSTRUMAN,
+                    TeknikServis.MAGAZA,
+                ]
+            ) or (teknik_servis == TeknikServis.TEDARIKCI and bool(tedarikci_id))
+        return False

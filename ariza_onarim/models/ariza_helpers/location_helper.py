@@ -369,6 +369,34 @@ class LocationHelper:
         )
 
     @staticmethod
+    def get_kaynak_konum_for_analitik(env, analitik_hesap_id):
+        """
+        Analitik hesaba göre kaynak konumunu döner.
+        Önce warehouse.lot_stock_id, sonra konum_kodu, sonra get_konum_kodu_from_analytic kullanır.
+
+        Args:
+            env: Odoo environment
+            analitik_hesap_id: account.analytic.account record veya False
+
+        Returns:
+            stock.location veya False
+        """
+        if not analitik_hesap_id:
+            return False
+        konum_kodu = None
+        if analitik_hesap_id.warehouse_id and analitik_hesap_id.warehouse_id.lot_stock_id:
+            konum_kodu = analitik_hesap_id.warehouse_id.lot_stock_id.name
+        if not konum_kodu and hasattr(analitik_hesap_id, 'konum_kodu') and analitik_hesap_id.konum_kodu:
+            konum_kodu = analitik_hesap_id.konum_kodu
+        if not konum_kodu:
+            konum_kodu = LocationHelper.get_konum_kodu_from_analytic(
+                env, analitik_hesap_id.name or ''
+            )
+        if konum_kodu:
+            return LocationHelper.get_location_by_name(env, konum_kodu)
+        return False
+
+    @staticmethod
     def get_konum_kodu_from_analytic(env, analitik_hesap_name):
         """
         Get location code from analytic account via database parameter.
