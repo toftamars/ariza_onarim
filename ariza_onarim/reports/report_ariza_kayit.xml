@@ -146,7 +146,7 @@
                             <t t-if="onarim_baslatildi">
                                 Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B
+                                Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
                             </t>
                             <t t-else="">
                                 <t t-if="o.contact_id">
@@ -174,7 +174,7 @@
                         <t t-elif="merkezi_satis_magaza">
                             Zuhal Müzik<br/>
                             ZUHAL ARIZA DEPO<br/>
-                            Halkalı merkez mh. Dereboyu cd. No:8/B
+                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
                         </t>
                         <!-- Adresime gönderilsin işaretlendiğinde: Gönderen her zaman kaydı açan Analitik hesap adresi -->
                         <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.analitik_hesap_id">
@@ -504,14 +504,14 @@
                             <t t-else="">
                                 Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B
+                                Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
                             </t>
                         </t>
                         <!-- Merkezi Satış + Mağaza: Alıcı her zaman Zuhal Arıza Depo -->
                         <t t-elif="merkezi_satis_magaza">
                             Zuhal Müzik<br/>
                             ZUHAL ARIZA DEPO<br/>
-                            Halkalı merkez mh. Dereboyu cd. No:8/B
+                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
                         </t>
                         <!-- Onarım Dışı durumunda: Sağ tarafta mağaza -->
                         <t t-elif="o.state == 'onarim_disi'">

@@ -13,7 +13,7 @@ class TeknikServisHelper:
 
     # Sabit adresler (teknik_servis kodu -> adres)
     ADRES_MAP = {
-        TeknikServis.ZUHAL_ARIZA_DEPO: 'Halkalı merkez mh. Dereboyu cd. No:8/B',
+        TeknikServis.ZUHAL_ARIZA_DEPO: 'Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul',
         TeknikServis.DTL_BEYOGLU: 'Şahkulu mh. Nakkas çıkmazı No: 1/1 No:10-46 / 47',
         TeknikServis.DTL_OKMEYDANI: 'MAHMUT ŞEVKET PAŞA MAH. ŞAHİNKAYA SOK NO 31 OKMEYDANI',
         TeknikServis.ZUHAL_NEFESLI: 'Şahkulu, Galip Dede Cd. No:33, 34421 Beyoğlu/İstanbul',
