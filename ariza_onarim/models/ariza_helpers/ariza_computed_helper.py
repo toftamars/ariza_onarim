@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from ..ariza_constants import ArizaStates, ArizaTipi, MagicNumbers, StateManager, TeknikServis
-from . import teknik_servis_helper
 
 
 class ArizaComputedHelper:
@@ -205,7 +204,8 @@ class ArizaComputedHelper:
 
     @staticmethod
     def compute_teknik_servis_adres(record):
-        """Teknik servis adresini döner"""
+        """Teknik servis adresini döner (lazy import - circular önleme)"""
+        from . import teknik_servis_helper
         return teknik_servis_helper.TeknikServisHelper.get_adres(
             record.teknik_servis,
             tedarikci_id=record.tedarikci_id,
@@ -214,7 +214,8 @@ class ArizaComputedHelper:
 
     @staticmethod
     def compute_teknik_servis_telefon(record):
-        """Teknik servis telefonunu döner"""
+        """Teknik servis telefonunu döner (lazy import - circular önleme)"""
+        from . import teknik_servis_helper
         return teknik_servis_helper.TeknikServisHelper.get_telefon(
             record.teknik_servis,
             tedarikci_id=record.tedarikci_id,

@@ -1,6 +1,7 @@
 # Arıza Onarım Modülü – Mimari Dokümantasyonu
 
-**Versiyon:** 1.0.5
+**Versiyon:** 1.0.5  
+**Refactor:** Ana model iş mantığı helper ve service'lere taşınmıştır (~%69 kod azaltma).
 
 ---
 
@@ -11,14 +12,27 @@ ariza_onarim/
 ├── __manifest__.py
 ├── hooks.py                 # post_init_hook: konum validasyonu
 ├── models/
-│   ├── ariza.py             # Ana model (ariza.kayit)
+│   ├── ariza.py             # Ana model (ariza.kayit) – ince delegasyon katmanı
 │   ├── ariza_constants.py   # Sabitler
-│   ├── ariza_helpers/       # Yardımcı servisler
+│   ├── ariza_helpers/       # Yardımcı servisler ve helper'lar
 │   │   ├── location_helper.py
 │   │   ├── partner_helper.py
 │   │   ├── sequence_helper.py
 │   │   ├── sms_helper.py
-│   │   └── transfer_helper.py
+│   │   ├── transfer_helper.py
+│   │   ├── teknik_servis_helper.py
+│   │   ├── hedef_konum_helper.py
+│   │   ├── ariza_transfer_service.py    # Stok transferi oluşturma
+│   │   ├── ariza_state_service.py      # State geçişleri, lock/unlock
+│   │   ├── ariza_computed_helper.py    # Computed alan hesaplamaları
+│   │   ├── ariza_teslim_al_service.py  # Mağaza ürünü teslim al
+│   │   ├── ariza_cron_service.py       # Cron işlemleri (deadline, kalan süre)
+│   │   ├── ariza_config_helper.py      # Varsayılan sürücü vb.
+│   │   ├── ariza_create_service.py     # create() hazırlık ve sonrası
+│   │   ├── ariza_search_helper.py      # _search domain genişletmesi
+│   │   ├── ariza_onchange_helper.py    # Tüm onchange mantığı
+│   │   ├── ariza_print_service.py      # Yazdırma işlemleri
+│   │   └── ariza_write_helper.py       # write() hedef konum koruması
 │   ├── account_analytic_account.py
 │   ├── stock_picking.py
 │   ├── stock_move_line.py
@@ -35,9 +49,42 @@ ariza_onarim/
 
 ---
 
+## Refactor Mimarisi
+
+### Katmanlı Yapı
+
+```
+ariza.py (Ana Model)
+    │
+    ├── Field tanımları, @api.depends, @api.onchange decorator'ları
+    │
+    └── İnce delegasyon → Helper / Service
+            │
+            ├── ariza_onchange_helper   → Onchange mantığı
+            ├── ariza_state_service     → State geçişleri, lock/unlock
+            ├── ariza_print_service     → action_print, action_print_invoice, action_print_delivery
+            ├── ariza_computed_helper   → Tüm _compute_* hesaplamaları
+            ├── ariza_transfer_service  → Stok transferi oluşturma
+            ├── ariza_teslim_al_service → Mağaza ürünü teslim al
+            ├── ariza_create_service    → create() prepare_vals, post_create
+            ├── ariza_search_helper      → _search domain genişletmesi
+            ├── ariza_write_helper      → write() hedef konum koruması
+            ├── sms_helper              → _send_sms_to_customer
+            ├── hedef_konum_helper      → Hedef konum belirleme
+            ├── location_helper         → Konum aramaları
+            └── ariza_config_helper     → Varsayılan sürücü
+```
+
+### Import Zinciri (Circular Import Önleme)
+
+- **ariza_computed_helper**: `teknik_servis_helper` sadece `compute_teknik_servis_adres` ve `compute_teknik_servis_telefon` içinde **lazy import** ile kullanılır.
+- **ariza_write_helper**: Sadece `hedef_konum_helper` import eder; model'e bağımlı değildir.
+
+---
+
 ## Ana Model: ariza.kayit
 
-Arıza kayıtlarının tutulduğu ana model.
+Arıza kayıtlarının tutulduğu ana model. Refactor sonrası **~657 satır** (önceden ~2100).
 
 **Önemli alanlar:**
 - `name` – Arıza numarası (sequence)
@@ -47,6 +94,27 @@ Arıza kayıtlarının tutulduğu ana model.
 - `kaynak_konum_id`, `hedef_konum_id` – Transfer konumları
 - `transfer_id` – İlişkili stock.picking
 - `analitik_hesap_id` – Mağaza/depo (analytic account)
+
+---
+
+## Helper ve Service Özeti
+
+| Modül | Sorumluluk |
+|-------|------------|
+| **ariza_onchange_helper** | Tüm onchange mantığı (invoice_line_id, marka_id, tedarikci, magaza_konumlar vb.) |
+| **ariza_state_service** | personel_onayla, kabul_et, teknik_onarim_baslat, onayla, iptal, lock, unlock |
+| **ariza_print_service** | action_print, action_print_invoice, action_print_delivery |
+| **ariza_computed_helper** | Fatura tarihi, garanti, kalan süre, teknik servis adres/telefon, müşteri faturaları |
+| **ariza_transfer_service** | Stok transferi oluşturma (build_picking_vals, create_stock_transfer) |
+| **ariza_teslim_al_service** | Mağaza ürünü teslim al (Tamir Alımlar transferi) |
+| **ariza_create_service** | create() öncesi prepare_vals, sonrası post_create |
+| **ariza_search_helper** | _search domain genişletmesi (ürün alanı) |
+| **ariza_write_helper** | write() hedef_konum_id koruması (otomatik konum değiştirilemez) |
+| **ariza_cron_service** | check_onarim_deadlines, update_kalan_sure |
+| **ariza_config_helper** | get_default_driver_id |
+| **sms_helper** | send_sms, send_sms_to_ariza_customer |
+| **hedef_konum_helper** | get_hedef_konum, update_hedef_konum, hedef_konum_otomatik_mi |
+| **location_helper** | DTL/Arıza/NFSL konum aramaları, get_kaynak_konum_for_analitik |
 
 ---
 
@@ -72,69 +140,6 @@ Tamamlandı (tamamlandi) veya Teslim Edildi (teslim_edildi)
 
 ---
 
-## Helper Modülleri
-
-### location_helper
-
-Stok konumu aramaları.
-
-- `get_dtl_stok_location()` – DTL/Stok
-- `get_ariza_stok_location()` – Arıza/Stok
-- `get_ngaudio_location()` – ARIZA/NGaudio
-- `get_matt_guitar_location()` – ARIZA/MATT
-- `get_konum_kodu_from_analytic()` – Analitik hesaptan konum kodu
-- `validate_critical_locations()` – Kritik konumları doğrular (post_init_hook)
-
-### partner_helper
-
-Müşteri/partner işlemleri.
-
-- Adres birleştirme
-- Tedarikçi konum araması
-
-### sequence_helper
-
-Arıza numarası üretimi.
-
-- `ir.sequence` kullanır
-- Fallback: manuel numara
-
-### sms_helper
-
-SMS gönderimi.
-
-- Odoo `sms.sms` modeli kullanır
-- 3 aşamalı SMS (müşteri ürünleri)
-
-### transfer_helper
-
-Transfer oluşturma mantığı.
-
-- `stock.picking` oluşturma
-- Operasyon tipi seçimi
-
-### teknik_servis_helper
-
-Teknik servis adres ve telefon bilgileri.
-
-- `get_adres()` – Tedarikçi veya sabit adres
-- `get_telefon()` – Tedarikçi veya sabit telefon
-- ADRES_MAP, TELEFON_MAP – Sabit değerler
-
-### hedef_konum_helper
-
-Teknik servise göre hedef stok konumu.
-
-- `get_hedef_konum()` – Teknik servis + arıza tipi → stock.location
-- DTL, ZUHAL, NGaudio, MATT, Prohan, ERK, Tedarikçi eşlemesi
-
-### transfer_helper (ek metodlar)
-
-- `get_warehouse_for_magaza()` – Analitik hesap adından depo
-- `get_tamir_picking_type()` – Tamir Teslimatları / Tamir Alımlar
-
----
-
 ## Genişletilen Odoo Modelleri
 
 | Model | Dosya | Eklenenler |
@@ -155,8 +160,7 @@ Teknik servise göre hedef stok konumu.
 - **StateManager** – Yönetici görünümü durumları
 - **TeknikServis** – Teknik servis listesi
 - **ArizaTipi** – Müşteri / Mağaza
-- **LocationNames** – Konum isimleri (DTL_STOK, ARIZA_STOK vb.)
-- **DefaultValues** – Varsayılan değerler (DEFAULT_DRIVER_ID vb.)
+- **MagicNumbers** – Garanti ay, iş günü vb.
 - **SMSTemplates** – SMS şablonları
 
 ---

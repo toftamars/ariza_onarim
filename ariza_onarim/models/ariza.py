@@ -38,6 +38,7 @@ from .ariza_helpers import (
     ariza_search_helper,
     ariza_onchange_helper,
     ariza_print_service,
+    ariza_write_helper,
 )
 
 _logger = logging.getLogger(__name__)
@@ -323,13 +324,12 @@ class ArizaKayit(models.Model):
         return records
 
     def write(self, vals):
-        """Otomatik atanan hedef konum değiştirilemez."""
+        """Otomatik atanan hedef konum değiştirilemez - ArizaWriteHelper'a delegasyon"""
         if 'hedef_konum_id' in vals:
-            otomatik = self.filtered(lambda r: r._hedef_konum_otomatik_mi())
-            diger = self - otomatik
+            otomatik, diger = ariza_write_helper.ArizaWriteHelper.filter_hedef_konum_protected(self)
             if otomatik:
                 super(ArizaKayit, otomatik).write(
-                    {k: v for k, v in vals.items() if k != 'hedef_konum_id'}
+                    ariza_write_helper.ArizaWriteHelper.vals_without_hedef_konum(vals)
                 )
             return super(ArizaKayit, diger).write(vals) if diger else True
         return super().write(vals)
