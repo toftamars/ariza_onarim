@@ -270,6 +270,21 @@ class ArizaKayit(models.Model):
         store=False
     )
     
+    # Merkezi Satış analitik hesap kontrolü (yazdır formu Gönderen/Alıcı için)
+    is_merkezi_satis = fields.Boolean(
+        string='Merkezi Satış mı?',
+        compute='_compute_is_merkezi_satis',
+        store=False
+    )
+    
+    # Merkezi Satış müşteri Gönderen: contact_id tedarikçiye atandığı için partner_id kullan
+    gonderen_partner_id = fields.Many2one(
+        'res.partner',
+        string='Gönderen (Rapor)',
+        compute='_compute_gonderen_partner_id',
+        store=False
+    )
+    
     @api.model
     def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None, count=False):
         """Ürün alanı için özel domain genişletmesi"""
@@ -312,6 +327,18 @@ class ArizaKayit(models.Model):
             )
             record.can_approve = can_approve
             record.can_start_repair = can_start_repair
+
+    @api.depends('analitik_hesap_id')
+    def _compute_is_merkezi_satis(self):
+        """Analitik hesap Merkezi Satış mı? (yazdır formu Gönderen/Alıcı için)"""
+        for rec in self:
+            rec.is_merkezi_satis = ariza_computed_helper.ArizaComputedHelper.compute_is_merkezi_satis(rec)
+
+    @api.depends('analitik_hesap_id', 'ariza_tipi', 'partner_id')
+    def _compute_gonderen_partner_id(self):
+        """Merkezi Satış müşteri: Gönderen = partner_id (contact_id tedarikçiye atandığı için kullanılmaz)"""
+        for rec in self:
+            rec.gonderen_partner_id = ariza_computed_helper.ArizaComputedHelper.compute_gonderen_partner_id(rec)
 
     @api.model_create_multi
     def create(self, vals_list):

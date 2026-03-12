@@ -100,6 +100,42 @@ class ArizaComputedHelper:
         return True
 
     @staticmethod
+    def compute_is_merkezi_satis(record):
+        """
+        Analitik hesap 'Analitik Hesap Merkezi - Merkezi Satış' mı?
+        SADECE bu hesap için özel Gönderen/Alıcı mantığı uygulanır.
+        Diğer tüm analitik hesaplar mevcut (doğru çalışan) mantıkla devam eder.
+        """
+        if not record.analitik_hesap_id:
+            return False
+        name = (record.analitik_hesap_id.name or '').lower()
+        # Hierarchical account: complete_name = "Analitik Hesap Merkezi - Merkezi Satış"
+        complete = (
+            getattr(record.analitik_hesap_id, 'complete_name', None)
+            or record.analitik_hesap_id.name
+            or ''
+        ).lower()
+        # "Merkezi Satış" / "Merkezi Satis" (farklı boşluk/encoding varyasyonları)
+        return (
+            'merkezi satış' in name
+            or 'merkezi satis' in name
+            or ('merkezi' in name and ('satış' in name or 'satis' in name))
+            or 'merkezi satış' in complete
+            or 'merkezi satis' in complete
+        )
+
+    @staticmethod
+    def compute_gonderen_partner_id(record):
+        """
+        Merkezi Satış müşteri için Gönderen adresinde kullanılacak partner.
+        contact_id marka seçildiğinde tedarikçiye atandığı için ASLA kullanılmaz.
+        Her zaman partner_id (müşteri) kullanılır.
+        """
+        if not record.is_merkezi_satis or record.ariza_tipi != ArizaTipi.MUSTERI:
+            return False
+        return record.partner_id
+
+    @staticmethod
     def compute_state_manager(record):
         """Yönetici görünümü için state_manager değeri."""
         mapping = {
