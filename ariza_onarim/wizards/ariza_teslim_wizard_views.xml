@@ -7,6 +7,8 @@
             <form string="Teslim Alan Bilgisi">
                 <field name="ariza_id" invisible="1"/>
                 <field name="garanti_kapsaminda_mi" invisible="1"/>
+                <field name="ariza_tipi" invisible="1"/>
+                <field name="partner_id" invisible="1"/>
                 <group>
                     <group>
                         <field name="musteri_adi" readonly="1"/>
@@ -27,8 +29,12 @@
                         <field name="odeme_tamamlandi" attrs="{'required': [('onarim_ucreti', '&gt;', 0)], 'invisible': [('onarim_ucreti', '&lt;=', 0)]}"/>
                     </group>
                 </group>
+                <group attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}">
+                    <field name="adresime_gonderilsin"/>
+                    <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
+                </group>
                 <group>
-                    <field name="teslim_alan" required="1" placeholder="Teslim alan kişinin adını girin"/>
+                    <field name="teslim_alan" attrs="{'invisible': [('adresime_gonderilsin', '=', True)], 'required': [('adresime_gonderilsin', '=', False)]}" placeholder="Teslim alan kişinin adını girin"/>
                 </group>
                 <footer>
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary"/>

@@ -15,9 +15,16 @@ class ArizaTeslimWizard(models.TransientModel):
 
     ariza_id = fields.Many2one('ariza.kayit', string='Arıza Kaydı', required=True)
     garanti_kapsaminda_mi = fields.Selection(related='ariza_id.garanti_kapsaminda_mi', readonly=True)
+    ariza_tipi = fields.Selection(related='ariza_id.ariza_tipi', readonly=True)
+    partner_id = fields.Many2one(related='ariza_id.partner_id', readonly=True)
     musteri_adi = fields.Char(string='Müşteri Adı', readonly=True)
     urun = fields.Char(string='Ürün', readonly=True)
-    teslim_alan = fields.Char(string='Teslim Alan Kişi', required=True)
+    teslim_alan = fields.Char(string='Teslim Alan Kişi', required=False)
+    adresime_gonderilsin = fields.Boolean(string='Adresime Gönderilsin', default=False)
+    musteri_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi',
+                                        domain="[('type', 'in', ['delivery', 'contact'])]",
+                                        attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)]}",
+                                        context="{'default_type': 'delivery'}")
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id', readonly=True, compute='_compute_onarim_ucreti')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', compute='_compute_onarim_ucreti')
     odeme_tamamlandi = fields.Selection([
@@ -50,17 +57,31 @@ class ArizaTeslimWizard(models.TransientModel):
     def action_teslim_et(self):
         """Teslim işlemini gerçekleştir"""
         ariza = self.ariza_id
-        
+
+        # Adresime gönderilsin seçildiyse adres zorunlu, teslim_alan gerekmez
+        if self.adresime_gonderilsin:
+            if not self.musteri_adresi_id:
+                raise UserError(_('Adresime Gönderilsin seçildiğinde Teslimat Adresi zorunludur!'))
+        else:
+            if not self.teslim_alan:
+                raise UserError(_('Teslim Alan Kişi alanı zorunludur!'))
+
         # Onarım ücreti varsa ödeme kontrolü yap
         if ariza.onarim_ucreti and ariza.onarim_ucreti > 0:
             if not self.odeme_tamamlandi:
                 raise UserError(_('Onarım ücreti bulunan kayıtlar için "Ödeme Tamamlandı" alanı zorunludur!'))
             if self.odeme_tamamlandi == 'hayir':
                 raise UserError(_('Ödeme tamamlanmadan teslim işlemi yapılamaz! Lütfen önce ödemeyi tamamlayın.'))
-        
-        # Teslim bilgilerini güncelle
-        ariza.teslim_alan = self.teslim_alan
-        
+
+        # Adresime gönderilsin seçildiyse teslim bilgilerini buna göre ayarla
+        if self.adresime_gonderilsin and self.musteri_adresi_id:
+            ariza.teslim_magazasi_id = False
+            ariza.contact_id = self.musteri_adresi_id.id
+            ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+            ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
+        else:
+            ariza.teslim_alan = self.teslim_alan
+
         # Durumu teslim edildi yap
         ariza.state = 'teslim_edildi'
         
@@ -75,7 +96,7 @@ class ArizaTeslimWizard(models.TransientModel):
             teslim_tarihi = datetime.now().strftime("%d.%m.%Y %H:%M")
             
             # Adrese Gönderim seçildiyse özel SMS template kullan
-            if self.teslim_alan == TeslimAlan.ADRESE_GONDERIM:
+            if self.adresime_gonderilsin and self.musteri_adresi_id:
                 message = SMSTemplates.ADRESE_GONDERIM_SMS.format(
                     musteri_adi=ariza.partner_id.name or '',
                     urun=ariza.urun or '',
@@ -105,10 +126,17 @@ class ArizaTeslimWizard(models.TransientModel):
             ariza.ucuncu_sms_gonderildi = True
         
         # Chatter'a mesaj ekle (mail gönderilmesin)
-        ariza.message_post(
-            body=f"Ürün teslim edildi. Teslim alan: {self.teslim_alan}. SMS gönderildi.",
-            subject="Ürün Teslim Edildi",
-            message_type='notification'
-        )
+        if self.adresime_gonderilsin and self.musteri_adresi_id:
+            ariza.message_post(
+                body=f"Ürün teslim edildi. Adrese gönderim seçildi. Teslimat adresi: {self.musteri_adresi_id.street or ''}. SMS gönderildi.",
+                subject="Ürün Teslim Edildi - Adrese Gönderim",
+                message_type='notification'
+            )
+        else:
+            ariza.message_post(
+                body=f"Ürün teslim edildi. Teslim alan: {self.teslim_alan}. SMS gönderildi.",
+                subject="Ürün Teslim Edildi",
+                message_type='notification'
+            )
         
         return {'type': 'ir.actions.act_window_close'} 
