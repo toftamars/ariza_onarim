@@ -141,40 +141,47 @@
                 <div class="col-6">
                     <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; line-height: 1.5; min-height: 120px;">
                         <strong style="display: block; margin-bottom: 8px;">Gönderen:</strong>
-                        <!-- Merkezi Satış + Müşteri: Kayıt açarken Gönderen=Müşteri, tamamlandığında Gönderen=Zuhal Arıza Depo -->
+                        <!-- Merkezi Satış: Gönderen her zaman müşteri bilgileri (müşteri ürünü) veya analitik hesap (mağaza ürünü) -->
                         <t t-if="merkezi_satis_musteri">
-                            <t t-if="onarim_baslatildi">
-                                Zuhal Müzik<br/>
-                                ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                            <t t-if="o.contact_id">
+                                <t t-esc="o.contact_id.name"/><br/>
+                                <t t-esc="o.contact_id.street or ''"/><br/>
+                                <t t-if="o.contact_id.street2"><br/><t t-esc="o.contact_id.street2"/></t>
+                                <t t-if="o.contact_id.city"><br/><t t-esc="o.contact_id.city"/></t>
+                                <t t-if="o.contact_id.state_id"><br/><t t-esc="o.contact_id.state_id.name"/></t>
+                                <t t-if="o.contact_id.zip"><br/><t t-esc="o.contact_id.zip"/></t>
+                                <t t-if="o.contact_id.country_id"><br/><t t-esc="o.contact_id.country_id.name"/></t>
                             </t>
-                            <t t-else="">
-                                <t t-if="o.contact_id">
-                                    <t t-esc="o.contact_id.name"/><br/>
-                                    <t t-esc="o.contact_id.street or ''"/><br/>
-                                    <t t-if="o.contact_id.street2"><br/><t t-esc="o.contact_id.street2"/></t>
-                                    <t t-if="o.contact_id.city"><br/><t t-esc="o.contact_id.city"/></t>
-                                    <t t-if="o.contact_id.state_id"><br/><t t-esc="o.contact_id.state_id.name"/></t>
-                                    <t t-if="o.contact_id.zip"><br/><t t-esc="o.contact_id.zip"/></t>
-                                    <t t-if="o.contact_id.country_id"><br/><t t-esc="o.contact_id.country_id.name"/></t>
-                                </t>
-                                <t t-elif="o.partner_id">
-                                    <t t-esc="o.partner_id.name"/><br/>
-                                    <t t-esc="o.partner_id.street or ''"/><br/>
-                                    <t t-if="o.partner_id.street2"><br/><t t-esc="o.partner_id.street2"/></t>
-                                    <t t-if="o.partner_id.city"><br/><t t-esc="o.partner_id.city"/></t>
-                                    <t t-if="o.partner_id.state_id"><br/><t t-esc="o.partner_id.state_id.name"/></t>
-                                    <t t-if="o.partner_id.zip"><br/><t t-esc="o.partner_id.zip"/></t>
-                                    <t t-if="o.partner_id.country_id"><br/><t t-esc="o.partner_id.country_id.name"/></t>
-                                </t>
-                                <t t-else="">Müşteri adresi tanımlı değil</t>
+                            <t t-elif="o.partner_id">
+                                <t t-esc="o.partner_id.name"/><br/>
+                                <t t-esc="o.partner_id.street or ''"/><br/>
+                                <t t-if="o.partner_id.street2"><br/><t t-esc="o.partner_id.street2"/></t>
+                                <t t-if="o.partner_id.city"><br/><t t-esc="o.partner_id.city"/></t>
+                                <t t-if="o.partner_id.state_id"><br/><t t-esc="o.partner_id.state_id.name"/></t>
+                                <t t-if="o.partner_id.zip"><br/><t t-esc="o.partner_id.zip"/></t>
+                                <t t-if="o.partner_id.country_id"><br/><t t-esc="o.partner_id.country_id.name"/></t>
                             </t>
+                            <t t-else="">Müşteri adresi tanımlı değil</t>
                         </t>
-                        <!-- Merkezi Satış + Mağaza: Gönderen ve Alıcı her zaman Zuhal Arıza Depo -->
+                        <!-- Merkezi Satış + Mağaza: Gönderen = Merkezi Satış (analitik hesap) adresi -->
                         <t t-elif="merkezi_satis_magaza">
-                            Zuhal Müzik<br/>
-                            ZUHAL ARIZA DEPO<br/>
-                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                            <t t-if="o.analitik_hesap_id and o.analitik_hesap_id.adres">
+                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                    <t t-esc="o.analitik_hesap_id.adres"/>
+                                </div>
+                            </t>
+                            <t t-elif="o.analitik_hesap_id and o.analitik_hesap_id.partner_id and o.analitik_hesap_id.partner_id.street">
+                                <div style="font-size: 12px; font-weight: bold; line-height: 1.2;">
+                                    Zuhal Müzik <t t-esc="(o.analitik_hesap_id.name.replace('Perakende - ', '') + ' Mağaza') if o.analitik_hesap_id.name else ''"/><br/>
+                                    <t t-esc="o.analitik_hesap_id.partner_id.street or ''"/>
+                                    <t t-if="o.analitik_hesap_id.partner_id.street2"><br/><t t-esc="o.analitik_hesap_id.partner_id.street2"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.city"><br/><t t-esc="o.analitik_hesap_id.partner_id.city"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.state_id"><br/><t t-esc="o.analitik_hesap_id.partner_id.state_id.name"/></t>
+                                    <t t-if="o.analitik_hesap_id.partner_id.zip"><br/><t t-esc="o.analitik_hesap_id.partner_id.zip"/></t>
+                                </div>
+                            </t>
+                            <t t-else="">Merkezi Satış adresi tanımlı değil</t>
                         </t>
                         <!-- Adresime gönderilsin işaretlendiğinde: Gönderen her zaman kaydı açan Analitik hesap adresi -->
                         <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.analitik_hesap_id">
@@ -478,40 +485,80 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; min-height: 120px;">
                         <strong style="color: #000; display: block; margin-bottom: 8px;">ALICI ADRESİ:</strong>
-                        <!-- Merkezi Satış + Müşteri: Kayıt açarken Alıcı=Zuhal Arıza Depo, tamamlandığında Alıcı=Müşteri -->
-                        <t t-if="merkezi_satis_musteri">
-                            <t t-if="onarim_baslatildi">
-                                <t t-if="o.contact_id">
-                                    <t t-esc="o.contact_id.name"/><br/>
-                                    <t t-esc="o.contact_id.street or ''"/><br/>
-                                    <t t-if="o.contact_id.street2"><br/><t t-esc="o.contact_id.street2"/></t>
-                                    <t t-if="o.contact_id.city"><br/><t t-esc="o.contact_id.city"/></t>
-                                    <t t-if="o.contact_id.state_id"><br/><t t-esc="o.contact_id.state_id.name"/></t>
-                                    <t t-if="o.contact_id.zip"><br/><t t-esc="o.contact_id.zip"/></t>
-                                    <t t-if="o.contact_id.country_id"><br/><t t-esc="o.contact_id.country_id.name"/></t>
-                                </t>
-                                <t t-elif="o.partner_id">
-                                    <t t-esc="o.partner_id.name"/><br/>
-                                    <t t-esc="o.partner_id.street or ''"/><br/>
-                                    <t t-if="o.partner_id.street2"><br/><t t-esc="o.partner_id.street2"/></t>
-                                    <t t-if="o.partner_id.city"><br/><t t-esc="o.partner_id.city"/></t>
-                                    <t t-if="o.partner_id.state_id"><br/><t t-esc="o.partner_id.state_id.name"/></t>
-                                    <t t-if="o.partner_id.zip"><br/><t t-esc="o.partner_id.zip"/></t>
-                                    <t t-if="o.partner_id.country_id"><br/><t t-esc="o.partner_id.country_id.name"/></t>
-                                </t>
-                                <t t-else="">Müşteri adresi tanımlı değil</t>
+                        <!-- Merkezi Satış: Alıcı her zaman sadece seçilen teknik servis -->
+                        <t t-if="merkezi_satis">
+                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                Dtl Elektronik<br/>
+                                DTL BEYOĞLU<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
-                            <t t-else="">
+                            <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                Dtl Elektronik<br/>
+                                DTL OKMEYDANI<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
                                 Zuhal Müzik<br/>
                                 ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                                <t t-esc="o.teknik_servis_adres"/>
                             </t>
-                        </t>
-                        <!-- Merkezi Satış + Mağaza: Alıcı her zaman Zuhal Arıza Depo -->
-                        <t t-elif="merkezi_satis_magaza">
-                            Zuhal Müzik<br/>
-                            ZUHAL ARIZA DEPO<br/>
-                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                            <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                Zuhal Müzik<br/>
+                                ZUHAL NEFESLİ<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Prohan Elk.'">
+                                Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
+                                NGaudio Gökhan Ünsal<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'MATT Guitar'">
+                                MATT Guitar<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
+                                ERK ENSTRÜMAN<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
+                                <t t-esc="o.contact_id.name"/><br/>
+                                <t t-esc="o.contact_id.street or ''"/><br/>
+                                <t t-if="o.contact_id.street2"><t t-esc="o.contact_id.street2"/><br/></t>
+                                <t t-if="o.contact_id.city"><t t-esc="o.contact_id.city"/></t>
+                                <t t-if="o.contact_id.state_id"><t t-esc="o.contact_id.state_id.name"/></t>
+                                <t t-if="o.contact_id.zip"><t t-esc="o.contact_id.zip"/></t>
+                                <t t-if="o.contact_id.country_id">, <t t-esc="o.contact_id.country_id.name"/></t>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and o.marka_id.partner_id">
+                                <t t-esc="o.marka_id.partner_id.name"/><br/>
+                                <t t-esc="o.marka_id.partner_id.street or ''"/><br/>
+                                <t t-if="o.marka_id.partner_id.street2"><t t-esc="o.marka_id.partner_id.street2"/><br/></t>
+                                <t t-esc="o.marka_id.partner_id.city or ''"/>, <t t-esc="o.marka_id.partner_id.country_id.name or ''"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.marka_id and not o.marka_id.partner_id">
+                                <t t-esc="o.marka_id.name"/> - Tedarikçi Adresi Tanımlı Değil
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.tedarikci_adresi">
+                                <t t-esc="o.tedarikci_adresi"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.tedarikci_id">
+                                <t t-esc="o.tedarikci_id.name"/><br/>
+                                <t t-esc="o.tedarikci_id.street or ''"/><br/>
+                                <t t-esc="o.tedarikci_id.city or ''"/>, <t t-esc="o.tedarikci_id.country_id.name or ''"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.teknik_servis_adres">
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'MAĞAZA'">
+                                <t t-esc="o.teknik_servis"/>
+                            </t>
+                            <t t-else="">
+                                <t t-esc="o.teknik_servis"/>
+                            </t>
                         </t>
                         <!-- Onarım Dışı durumunda: Sağ tarafta mağaza -->
                         <t t-elif="o.state == 'onarim_disi'">
