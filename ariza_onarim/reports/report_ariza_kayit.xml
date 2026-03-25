@@ -1140,6 +1140,13 @@
                             <td><strong>Sorumlu:</strong></td>
                             <td><span t-field="o.sorumlu_id"/></td>
                         </tr>
+                        <tr>
+                            <td><strong>Analitik Hesap:</strong></td>
+                            <td>
+                                <span t-if="o.analitik_hesap_id" t-field="o.analitik_hesap_id"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
                     </table>
                 </div>
                 <div class="col-6">
