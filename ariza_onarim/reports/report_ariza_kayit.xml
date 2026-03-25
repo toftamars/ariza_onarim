@@ -138,13 +138,67 @@
             <t t-set="merkezi_satis_magaza" t-value="o.is_merkezi_satis and o.ariza_tipi == 'magaza'"/>
             <!-- Merkezi Satış + onarım tamamlandı: Gönderen/Alıcı yer değiştir (ürün geri gönderiliyor) -->
             <t t-set="merkezi_satis_geri_gonderim" t-value="merkezi_satis and onarim_baslatildi"/>
+            <!-- DEPO ARIZA: Sadece arıza modülüne özgü sanal analitik hesap -->
+            <t t-set="depo_ariza" t-value="o.analitik_hesap_id and o.analitik_hesap_id.is_ariza_only"/>
             
             <div class="row mb-4">
                 <div class="col-6">
                     <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; line-height: 1.5; min-height: 120px;">
                         <strong style="display: block; margin-bottom: 8px;">Gönderen:</strong>
+                        <!-- DEPO ARIZA: onarım başlamadan = ZUHAL ARIZA DEPO, onarım sonrası = teknik servis (swap) -->
+                        <t t-if="depo_ariza and not onarim_baslatildi">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                        </t>
+                        <t t-elif="depo_ariza and onarim_baslatildi">
+                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                Dtl Elektronik<br/>
+                                DTL BEYOĞLU<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                Dtl Elektronik<br/>
+                                DTL OKMEYDANI<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                Zuhal Müzik<br/>
+                                ZUHAL ARIZA DEPO<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                Zuhal Müzik<br/>
+                                ZUHAL NEFESLİ<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Prohan Elk.'">
+                                Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
+                                NGaudio Gökhan Ünsal<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'MATT Guitar'">
+                                MATT Guitar<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
+                                ERK ENSTRÜMAN<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis_adres">
+                                <t t-esc="o.teknik_servis"/><br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-else="">
+                                <t t-esc="o.teknik_servis"/>
+                            </t>
+                        </t>
                         <!-- Merkezi Satış + onarım tamamlandı: Gönderen = teknik servis (ürün geri gönderiliyor) -->
-                        <t t-if="merkezi_satis_geri_gonderim">
+                        <t t-elif="merkezi_satis_geri_gonderim">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
@@ -553,8 +607,60 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; min-height: 120px;">
                         <strong style="color: #000; display: block; margin-bottom: 8px;">ALICI ADRESİ:</strong>
+                        <!-- DEPO ARIZA: onarım başlamadan = teknik servis, onarım sonrası = ZUHAL ARIZA DEPO (swap) -->
+                        <t t-if="depo_ariza and not onarim_baslatildi">
+                            <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
+                                Dtl Elektronik<br/>
+                                DTL BEYOĞLU<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'DTL OKMEYDANI'">
+                                Dtl Elektronik<br/>
+                                DTL OKMEYDANI<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ZUHAL ARIZA DEPO'">
+                                Zuhal Müzik<br/>
+                                ZUHAL ARIZA DEPO<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ZUHAL NEFESLİ'">
+                                Zuhal Müzik<br/>
+                                ZUHAL NEFESLİ<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Prohan Elk.'">
+                                Prohan Elektronik Elekt.Otel Ekip Ses Ve Işık Sist<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'NGAUDIO' and o.teknik_servis_adres">
+                                NGaudio Gökhan Ünsal<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'MATT Guitar'">
+                                MATT Guitar<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
+                                ERK ENSTRÜMAN<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis_adres">
+                                <t t-esc="o.teknik_servis"/><br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-else="">
+                                <t t-esc="o.teknik_servis"/>
+                            </t>
+                        </t>
+                        <t t-elif="depo_ariza and onarim_baslatildi">
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
+                        </t>
                         <!-- Merkezi Satış + onarım tamamlandı: Swap - Alıcı = müşteri/mağaza (geri gönderim) -->
-                        <t t-if="merkezi_satis_geri_gonderim">
+                        <t t-elif="merkezi_satis_geri_gonderim">
                             <t t-if="merkezi_satis_musteri and o.gonderen_partner_id">
                                 <t t-esc="o.gonderen_partner_id.name"/><br/>
                                 <t t-esc="o.gonderen_partner_id.street or ''"/><br/>

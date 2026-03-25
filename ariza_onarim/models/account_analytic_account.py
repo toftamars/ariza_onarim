@@ -61,6 +61,12 @@ class AccountAnalyticAccount(models.Model):
              'Used to determine source and faulty locations. '
              'Auto-computed from warehouse.'
     )
+    is_ariza_only = fields.Boolean(
+        string='Sadece Arıza Modülü',
+        default=False,
+        help='Bu analitik hesap yalnızca arıza kayıtları için kullanılır. '
+             'Muhasebe ve satış modüllerinde görünmez.'
+    )
 
     @api.depends('warehouse_id', 'warehouse_id.lot_stock_id')
     def _compute_konum_kodu(self):
