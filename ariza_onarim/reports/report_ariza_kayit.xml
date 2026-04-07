@@ -189,6 +189,11 @@
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
                             </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
                             <t t-elif="o.teknik_servis_adres">
                                 <t t-esc="o.teknik_servis"/><br/>
                                 <t t-esc="o.teknik_servis_adres"/>
@@ -235,6 +240,11 @@
                             <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                             </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
                                 <t t-esc="o.contact_id.name"/><br/>
@@ -411,6 +421,11 @@
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
                             </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
                             <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
                                 <t t-esc="o.contact_id.name"/><br/>
@@ -483,6 +498,11 @@
                             <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                             </t>
                             <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
@@ -646,6 +666,11 @@
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
                             </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
+                            </t>
                             <t t-elif="o.teknik_servis_adres">
                                 <t t-esc="o.teknik_servis"/><br/>
                                 <t t-esc="o.teknik_servis_adres"/>
@@ -727,6 +752,11 @@
                             <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                 ERK ENSTRÜMAN<br/>
                                 <t t-esc="o.teknik_servis_adres"/>
+                            </t>
+                            <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                <t t-esc="o.teknik_servis_adres"/>
+                                <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                             </t>
                             <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">
                                 <t t-esc="o.contact_id.name"/><br/>
@@ -1172,6 +1202,11 @@
                                 <t t-elif="o.teknik_servis == 'ERK ENSTRÜMAN'">
                                     ERK ENSTRÜMAN<br/>
                                     <t t-esc="o.teknik_servis_adres"/>
+                                </t>
+                                <t t-elif="o.teknik_servis == 'Evren Amfi Onarım'">
+                                    Evren Şekercioğlu - Evren Amfi Onarım<br/>
+                                    <t t-esc="o.teknik_servis_adres"/>
+                                    <t t-if="o.teknik_servis_telefon"><br/><t t-esc="o.teknik_servis_telefon"/></t>
                                 </t>
                                 <!-- TEDARİKÇİ için öncelikle contact_id kontrol et (Müşteri Ürünü + TEDARİKÇİ) -->
                                 <t t-elif="o.teknik_servis == 'TEDARİKÇİ' and o.ariza_tipi == 'musteri' and o.contact_id">

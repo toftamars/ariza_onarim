@@ -21,6 +21,7 @@ class TeknikServisHelper:
         TeknikServis.NGAUDIO: 'Alata Mah şehit yüksel ulak cad no26/b Erdemli Mersin',
         TeknikServis.MATT_GUITAR: 'HASANPASA MAH. ALIBEY SOK. 21/A, KADIKÖY, İstanbul, 34000',
         TeknikServis.ERK_ENSTRUMAN: 'KOCATEPE MAH İNKLAP SOK ÖZSOY APT NO:31/1, ÇANKAYA, Ankara, 06000',
+        TeknikServis.EVREN_AMFI_ONARIM: 'Konsept İstanbul Sitesi 20.Parsel D1 Blok Daire 22 Yenişehir / Pendik / İstanbul',
     }
 
     # Sabit telefonlar (teknik_servis kodu -> telefon)
@@ -30,6 +31,7 @@ class TeknikServisHelper:
         TeknikServis.DTL_OKMEYDANI: '0212 555 55 57',
         TeknikServis.ZUHAL_NEFESLI: '0212 555 55 58',
         TeknikServis.NGAUDIO: '0546 786 06 99',
+        TeknikServis.EVREN_AMFI_ONARIM: '0535 590 59 63',
     }
 
     @staticmethod

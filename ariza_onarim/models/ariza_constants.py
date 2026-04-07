@@ -73,6 +73,7 @@ class TeknikServis:
     ERK_ENSTRUMAN = 'ERK ENSTRÜMAN'
     MATT_GUITAR = 'MATT Guitar'
     PROHAN_ELK = 'Prohan Elk.'
+    EVREN_AMFI_ONARIM = 'Evren Amfi Onarım'
     
     # Teknik servis selection listesi
     SELECTION = [
@@ -86,6 +87,7 @@ class TeknikServis:
         (ERK_ENSTRUMAN, 'ERK ENSTRÜMAN'),
         (MATT_GUITAR, 'MATT Guitar'),
         (PROHAN_ELK, 'Prohan Elk.'),
+        (EVREN_AMFI_ONARIM, 'Evren Amfi Onarım'),
     ]
     
     # DTL teknik servisleri listesi (karşılaştırma için)
