@@ -10,13 +10,13 @@
                 <field name="name"/>
                 <field name="tarih"/>
                 <field name="partner_id"/>
-                <field name="musteri_telefon" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                <field name="musteri_telefon" invisible="ariza_tipi != 'musteri'"/>
                 <field name="analitik_hesap_id" string="Mağaza"/>
                 <field name="urun_gosterimi" string="Ürün"/>
                 <field name="model"/>
                 <field name="ariza_tipi"/>
                 <field name="teknik_servis"/>
-                <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': [('kalan_sure_gosterimi_visible', '=', False)]}"/>
+                <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" invisible="not kalan_sure_gosterimi_visible"/>
                 <field name="kalan_sure_gosterimi_visible" invisible="1"/>
                 <field name="kalan_is_gunu" invisible="1"/>
                 <field name="state"/>

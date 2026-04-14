@@ -1,6 +1,6 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.5',
+    'version': '19.0.1.0.0',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
@@ -21,7 +21,7 @@
         - Company bazlı kayıt kuralları
         - Güvenli erişim kontrolü
         
-        Odoo 15 uyumlu, production-ready modül.
+        Odoo 19 uyumlu, production-ready modül.
     """,
     'author': 'Alper Tofta',
     'website': 'https://github.com/toftamars',

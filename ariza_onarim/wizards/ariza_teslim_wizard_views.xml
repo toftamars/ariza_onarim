@@ -15,26 +15,26 @@
                         <field name="urun" readonly="1"/>
                     </group>
                 </group>
-                <group attrs="{'invisible': [('garanti_kapsaminda_mi', '!=', 'urun_degisimi')]}">
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('garanti_kapsaminda_mi', '!=', 'urun_degisimi')]}">
+                <group invisible="garanti_kapsaminda_mi != 'urun_degisimi'">
+                    <div class="alert alert-info" role="alert" invisible="garanti_kapsaminda_mi != 'urun_degisimi'">
                         <strong>📋 HATIRLATMA:</strong> Teslim Et butonu sonrası ürün değişimi için stok çıkış işlemlerini tamamlamayı unutmayınız.
                     </div>
                 </group>
-                <group attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}">
+                <group invisible="onarim_ucreti &lt;= 0">
+                    <div class="alert alert-warning" role="alert" invisible="onarim_ucreti &lt;= 0">
                         <strong>⚠️ UYARI:</strong> Bu kayıt için onarım ücreti bulunmaktadır. Teslim işlemi öncesinde Bakım &amp; Onarım siparişinin oluşturulduğundan ve ödemenin tamamlandığından emin olun!
                     </div>
                     <group>
-                        <field name="onarim_ucreti" attrs="{'invisible': [('onarim_ucreti', '&lt;=', 0)]}"/>
-                        <field name="odeme_tamamlandi" attrs="{'required': [('onarim_ucreti', '&gt;', 0)], 'invisible': [('onarim_ucreti', '&lt;=', 0)]}"/>
+                        <field name="onarim_ucreti" invisible="onarim_ucreti &lt;= 0"/>
+                        <field name="odeme_tamamlandi" required="onarim_ucreti > 0" invisible="onarim_ucreti &lt;= 0"/>
                     </group>
                 </group>
-                <group attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}">
+                <group invisible="ariza_tipi == 'magaza'">
                     <field name="adresime_gonderilsin"/>
-                    <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
+                    <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" invisible="not adresime_gonderilsin" required="adresime_gonderilsin" readonly="not adresime_gonderilsin"/>
                 </group>
                 <group>
-                    <field name="teslim_alan" attrs="{'invisible': [('adresime_gonderilsin', '=', True)], 'required': [('adresime_gonderilsin', '=', False)]}" placeholder="Teslim alan kişinin adını girin"/>
+                    <field name="teslim_alan" invisible="adresime_gonderilsin" required="not adresime_gonderilsin" placeholder="Teslim alan kişinin adını girin"/>
                 </group>
                 <footer>
                     <button name="action_teslim_et" string="Teslim Et" type="object" class="btn-primary"/>
@@ -51,4 +51,4 @@
         <field name="target">new</field>
         <field name="binding_model_id" ref="model_ariza_kayit"/>
     </record>
-</odoo> 
+</odoo>

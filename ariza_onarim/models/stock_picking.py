@@ -57,18 +57,20 @@ class StockPicking(models.Model):
         Returns:
             recordset: Created stock.picking records.
         """
+        _has_edespatch = 'edespatch_delivery_type' in self._fields
         for vals in vals_list:
             origin = str(vals.get('origin', ''))
-            if self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
+            if _has_edespatch and (self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper())):
                 vals['edespatch_delivery_type'] = 'printed'
                 _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'Printed' - Origin: {origin}")
 
         records = super().create(vals_list)
 
         # Post-creation validation and notification
+        _has_edespatch = 'edespatch_delivery_type' in self._fields
         for record in records:
             if record._is_repair_transfer():
-                if record.edespatch_delivery_type != 'printed':
+                if _has_edespatch and record.edespatch_delivery_type != 'printed':
                     _logger.warning(
                         f"[POST-CREATE] e-Dispatch type changed! "
                         f"Origin: {record.origin}, Current: {record.edespatch_delivery_type}. "
@@ -104,9 +106,10 @@ class StockPicking(models.Model):
         result = super().write(vals)
 
         # Post-write validation for repair transfers
+        _has_edespatch = 'edespatch_delivery_type' in self._fields
         for record in self:
             if record._is_repair_transfer():
-                if record.edespatch_delivery_type != 'printed':
+                if _has_edespatch and record.edespatch_delivery_type != 'printed':
                     _logger.warning(
                         f"[POST-WRITE] e-Dispatch type was changed manually! "
                         f"Origin: {record.origin}, Current: {record.edespatch_delivery_type}. "
@@ -159,52 +162,48 @@ class StockPicking(models.Model):
 
         return result
 
-    @api.model
-    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+    def get_views(self, views, options=None):
         """
         Customize form view to hide note field and chatter when requested.
 
         Removes note field and chatter elements from the form view when
         'hide_note' is present in context. Useful for simplified popup views.
 
+        Replaces the deprecated fields_view_get() method (removed in Odoo 17).
+
         Args:
-            view_id (int, optional): View ID to render.
-            view_type (str): Type of view (form, tree, etc.).
-            toolbar (bool): Whether to include toolbar.
-            submenu (bool): Whether to include submenu.
+            views (list): List of [view_id, view_type] pairs.
+            options (dict, optional): Additional options.
 
         Returns:
-            dict: View definition with modifications.
+            dict: View definitions with modifications.
         """
-        res = super().fields_view_get(
-            view_id=view_id,
-            view_type=view_type,
-            toolbar=toolbar,
-            submenu=submenu
-        )
+        result = super().get_views(views, options)
 
-        if view_type == 'form' and self.env.context.get('hide_note'):
+        if self.env.context.get('hide_note'):
             try:
                 from lxml import etree
-                arch = etree.fromstring(res.get('arch', ''))
+                form_view = result.get('views', {}).get('form')
+                if form_view:
+                    arch = etree.fromstring(form_view.get('arch', ''))
 
-                # Remove note field
-                for node in arch.xpath("//field[@name='note']"):
-                    parent = node.getparent()
-                    if parent is not None:
-                        parent.remove(node)
+                    # Remove note field
+                    for node in arch.xpath("//field[@name='note']"):
+                        parent = node.getparent()
+                        if parent is not None:
+                            parent.remove(node)
 
-                # Remove chatter
-                for node in arch.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' oe_chatter ')]"):
-                    parent = node.getparent()
-                    if parent is not None:
-                        parent.remove(node)
+                    # Remove chatter
+                    for node in arch.xpath("//*[contains(concat(' ', normalize-space(@class), ' '), ' oe_chatter ')]"):
+                        parent = node.getparent()
+                        if parent is not None:
+                            parent.remove(node)
 
-                res['arch'] = etree.tostring(arch, encoding='unicode')
+                    form_view['arch'] = etree.tostring(arch, encoding='unicode')
             except Exception as e:
                 _logger.warning(f"View processing error (stock.picking): {str(e)}")
 
-        return res
+        return result
 
 
  

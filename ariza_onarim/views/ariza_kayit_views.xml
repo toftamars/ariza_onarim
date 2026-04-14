@@ -8,9 +8,9 @@
             <field name="arch" type="xml">
                 <form string="ARIZA KAYIT FORMU" delete="0">
                     <header>
-                        <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
-                        <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
-                        <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': [('teslim_al_visible', '=', False)]}" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
+                        <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                        <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" invisible="state != 'onaylandi'"/>
+                        <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" invisible="not teslim_al_visible" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi,onarim_disi"/>
                     </header>
                     <sheet>
@@ -25,13 +25,13 @@
                                 <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa; font-size: 12px;">
                                     <strong>Analitik Hesap Adresi:</strong><br/>
                                     <field name="analitik_hesap_id" readonly="1" invisible="1"/>
-                                    <div attrs="{'invisible': [('analitik_hesap_adres', '=', False)]}">
+                                    <div invisible="not analitik_hesap_adres">
                                         <field name="analitik_hesap_adres" readonly="1" nolabel="1" widget="text"/>
                                     </div>
-                                    <div attrs="{'invisible': [('analitik_hesap_telefon', '=', False)]}">
+                                    <div invisible="not analitik_hesap_telefon">
                                         <br/>Tel: <field name="analitik_hesap_telefon" readonly="1" nolabel="1"/>
                                     </div>
-                                    <div attrs="{'invisible': [('analitik_hesap_email', '=', False)]}">
+                                    <div invisible="not analitik_hesap_email">
                                         <br/>Email: <field name="analitik_hesap_email" readonly="1" nolabel="1"/>
                                     </div>
                                 </div>
@@ -40,12 +40,12 @@
                         <group>
                             <group>
                                 <field name="ariza_tipi"/>
-                                <field name="partner_id" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri']]}"/>
-                                <field name="sms_farkli_noya_gonder" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
-                                <field name="sms_farkli_telefon" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('sms_farkli_noya_gonder', '=', False)]}"/>
-                                <field name="siparis_yok" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']]}"/>
-                                <field name="invoice_line_id" widget="many2one" options="{'no_create': True, 'no_open': True}" attrs="{'invisible': [['ariza_tipi', '!=', 'musteri']], 'required': [['ariza_tipi', '=', 'musteri'], ['siparis_yok', '=', False]]}"/>
-                                <button name="action_print_invoice" string="Faturayı Yazdır" type="object" class="btn-secondary" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('invoice_line_id', '=', False)]}" icon="fa-file-pdf-o"/>
+                                <field name="partner_id" invisible="ariza_tipi != 'musteri'" required="ariza_tipi == 'musteri'"/>
+                                <field name="sms_farkli_noya_gonder" invisible="ariza_tipi != 'musteri'"/>
+                                <field name="sms_farkli_telefon" invisible="ariza_tipi != 'musteri' or not sms_farkli_noya_gonder"/>
+                                <field name="siparis_yok" invisible="ariza_tipi != 'musteri'"/>
+                                <field name="invoice_line_id" widget="many2one" options="{'no_create': True, 'no_open': True}" invisible="ariza_tipi != 'musteri'" required="ariza_tipi == 'musteri' and not siparis_yok"/>
+                                <button name="action_print_invoice" string="Faturayı Yazdır" type="object" class="btn-secondary" invisible="ariza_tipi != 'musteri' or not invoice_line_id" icon="fa-file-pdf-o"/>
                                 <field name="urun"/>
                                 <field name="model"/>
                                 <field name="analitik_hesap_id"/>
@@ -54,9 +54,9 @@
                             </group>
                             <group>
                                 <field name="islem_tipi"/>
-                                <field name="ariza_kabul_id" attrs='{"invisible": [["islem_tipi", "!=", "teslim"]]}'/>
-                                <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
-                        <field name="transfer_id" readonly="1" widget="many2one" string="Transfer Metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                                <field name="ariza_kabul_id" invisible="islem_tipi != 'teslim'"/>
+                                <field name="transfer_metodu" invisible="ariza_tipi != 'musteri'"/>
+                        <field name="transfer_id" readonly="1" widget="many2one" string="Transfer Metodu" invisible="ariza_tipi != 'musteri'"/>
                                 <field name="sms_gonderildi" readonly="1"/>
                                 <field name="create_date" readonly="1"/>
                                 <field name="write_date" readonly="1"/>
@@ -70,11 +70,11 @@
                                     <field name="onarim_bilgisi"/>
                                     <field name="garanti_kapsaminda_mi"/>
                                     <field name="ucret_bilgisi"/>
-                                    <field name="onarim_disi_aciklama" attrs="{'invisible': [('state', '!=', 'onarim_disi')]}"/>
+                                    <field name="onarim_disi_aciklama" invisible="state != 'onarim_disi'"/>
                                 </group>
                             </page>
 
-                            <page string="TESLİM BİLGİLERİ" attrs='{"invisible": [["state", "not in", ["tamamlandi"]]]}'>
+                            <page string="TESLİM BİLGİLERİ" invisible="state not in ['tamamlandi']">
                                 <group>
                                     <field name="teslim_alan" readonly="1"/>
                                     <field name="teslim_alan_tc" readonly="1"/>
@@ -108,7 +108,7 @@
                     <field name="ariza_tipi"/>
                     <field name="teknik_servis"/>
                     <field name="state"/>
-                    <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" attrs="{'invisible': [('kalan_sure_gosterimi_visible', '=', False)]}"/>
+                    <field name="kalan_sure_gosterimi" string="Kalan Onarım Süresi" invisible="not kalan_sure_gosterimi_visible"/>
                     <field name="kalan_sure_gosterimi_visible" invisible="1"/>
                 </tree>
             </field>
@@ -198,4 +198,4 @@
             </field>
         </record>
     </data>
-</odoo> 
+</odoo>

@@ -117,6 +117,9 @@ class AccountAnalyticAccount(models.Model):
         created = 0
         updated = 0
 
+        # Odoo 17+: analytic accounts require a plan_id
+        default_plan = self.env['account.analytic.plan'].search([], limit=1)
+
         for address in zuhal_addresses:
             # Check if analytic account exists
             existing_analytic = self.search([
@@ -131,11 +134,14 @@ class AccountAnalyticAccount(models.Model):
 
             if not existing_analytic:
                 # Create new analytic account
-                self.create({
+                create_vals = {
                     'name': f"{address.name} - {address.street or ''}",
                     'partner_id': address.id,
                     **address_data
-                })
+                }
+                if default_plan:
+                    create_vals['plan_id'] = default_plan.id
+                self.create(create_vals)
                 created += 1
                 _logger.info(f"Created analytic account for: {address.name}")
             else:

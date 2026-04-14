@@ -12,47 +12,47 @@
                         <field name="musteri_adi"/>
                         <field name="urun"/>
                         <field name="ariza_tipi"/>
-                        <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}' attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        <field name="adresime_gonderilsin" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
-                        <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" attrs="{'invisible': [('adresime_gonderilsin', '=', False), ('ariza_tipi', '=', 'magaza')], 'required': [('adresime_gonderilsin', '=', True)], 'readonly': [('adresime_gonderilsin', '=', False)]}"/>
+                        <field name="teslim_magazasi_id" options='{"no_create": true, "no_open": true}' invisible="ariza_tipi == 'magaza'"/>
+                        <field name="adresime_gonderilsin" invisible="ariza_tipi == 'magaza'"/>
+                        <field name="musteri_adresi_id" options='{"no_create": false, "no_open": false}' context="{'default_parent_id': partner_id, 'default_type': 'delivery'}" invisible="not adresime_gonderilsin and ariza_tipi == 'magaza'" required="adresime_gonderilsin" readonly="not adresime_gonderilsin"/>
                     </group>
                 </group>
                 <!-- Onarım Dışı Alanları (Sadece Mağaza Ürünü için) -->
-                <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
+                <group invisible="ariza_tipi != 'magaza'">
                     <field name="onarim_mumkun_degil"/>
-                    <field name="onarim_mumkun_degil_aciklama" 
-                           placeholder="Onarımın mümkün olmama nedenini açıklayın..." 
-                           attrs="{'invisible': [('onarim_mumkun_degil', '=', False)], 'required': [('onarim_mumkun_degil', '=', True)]}"/>
+                    <field name="onarim_mumkun_degil_aciklama"
+                           placeholder="Onarımın mümkün olmama nedenini açıklayın..."
+                           invisible="not onarim_mumkun_degil" required="onarim_mumkun_degil"/>
                 </group>
 
                 <!-- Normal Onarım Bilgileri -->
-                <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
-                    <field name="onarim_bilgisi" 
-                           placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..." 
-                           attrs="{'required': [('onarim_mumkun_degil', '=', False)]}"/>
+                <group invisible="onarim_mumkun_degil">
+                    <field name="onarim_bilgisi"
+                           placeholder="Yapılan onarım işlemlerini detaylı olarak açıklayın..."
+                           required="not onarim_mumkun_degil"/>
                 </group>
 
-                <group attrs="{'invisible': [('onarim_mumkun_degil', '=', True)]}">
+                <group invisible="onarim_mumkun_degil">
                     <group>
-                        <field name="garanti_kapsaminda_mi" 
-                               attrs="{'invisible': [('ariza_tipi', '=', 'magaza')], 'required': [('onarim_mumkun_degil', '=', False), ('ariza_tipi', '=', 'musteri')]}"/>
+                        <field name="garanti_kapsaminda_mi"
+                               invisible="ariza_tipi == 'magaza'" required="not onarim_mumkun_degil and ariza_tipi == 'musteri'"/>
                         <field name="currency_id" invisible="1"/>
-                        <field name="onarim_ucreti" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')], 'required': [('garanti_kapsaminda_mi', '=', 'hayir')]}"/>
+                        <field name="onarim_ucreti" invisible="ariza_tipi == 'magaza'" required="garanti_kapsaminda_mi == 'hayir'"/>
                     </group>
                     <group>
-                        <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..." attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
+                        <field name="ucret_bilgisi" placeholder="Ücret ile ilgili açıklama..." invisible="ariza_tipi == 'magaza'"/>
                     </group>
                 </group>
                 <footer>
-                    <button name="action_onarim_bilgilerini_kaydet" 
-                            string="Onarımı Tamamla ve SMS Gönder" 
-                            type="object" 
+                    <button name="action_onarim_bilgilerini_kaydet"
+                            string="Onarımı Tamamla ve SMS Gönder"
+                            type="object"
                             class="btn-primary"/>
-                    <button string="İptal" 
-                            class="btn-secondary" 
+                    <button string="İptal"
+                            class="btn-secondary"
                             special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
-</odoo> 
+</odoo>

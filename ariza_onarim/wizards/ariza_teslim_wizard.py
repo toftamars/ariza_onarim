@@ -23,7 +23,6 @@ class ArizaTeslimWizard(models.TransientModel):
     adresime_gonderilsin = fields.Boolean(string='Adresime Gönderilsin', default=False)
     musteri_adresi_id = fields.Many2one('res.partner', string='Teslimat Adresi',
                                         domain="[('type', 'in', ['delivery', 'contact'])]",
-                                        attrs="{'invisible': [('adresime_gonderilsin', '=', False)], 'required': [('adresime_gonderilsin', '=', True)]}",
                                         context="{'default_type': 'delivery'}")
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id', readonly=True, compute='_compute_onarim_ucreti')
     currency_id = fields.Many2one('res.currency', string='Para Birimi', compute='_compute_onarim_ucreti')
