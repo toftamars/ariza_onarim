@@ -406,7 +406,7 @@
                 <field name="kalan_is_gunu"/>
                 <field name="transfer_sayisi"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="kanban-card">
                         <div class="oe_kanban_global_click">
                             <div class="oe_kanban_content">
                                 <div class="o_kanban_record_top">
@@ -416,7 +416,7 @@
                                         </strong>
                                     </div>
                                     <div class="o_kanban_record_top_right">
-                                        <span class="badge badge-pill" t-attf-class="badge-#{record.state_manager.raw_value == 'draft' ? 'info' : record.state_manager.raw_value == 'onaylandi' ? 'success' : record.state_manager.raw_value == 'onarimda' ? 'primary' : record.state_manager.raw_value == 'onarim_tamamlandi' ? 'warning' : record.state_manager.raw_value == 'tamamlandi' ? 'secondary' : 'danger'}">
+                                        <span t-attf-class="badge rounded-pill text-bg-#{record.data.state_manager == 'draft' ? 'info' : record.data.state_manager == 'onaylandi' ? 'success' : record.data.state_manager == 'onarimda' ? 'primary' : record.data.state_manager == 'onarim_tamamlandi' ? 'warning' : record.data.state_manager == 'tamamlandi' ? 'secondary' : 'danger'}">
                                             <field name="state_manager"/>
                                         </span>
                                     </div>
@@ -438,26 +438,26 @@
                                             <strong>Sorumlu:</strong> <field name="sorumlu_id"/>
                                         </div>
                                     </div>
-                                    <div class="row" t-if="record.partner_id.raw_value">
+                                    <div class="row" t-if="record.data.partner_id">
                                         <div class="col-12">
                                             <strong>Müşteri:</strong> <field name="partner_id"/>
                                         </div>
                                     </div>
-                                    <div class="row" t-if="record.ariza_tanimi.raw_value">
+                                    <div class="row" t-if="record.data.ariza_tanimi">
                                         <div class="col-12">
                                             <strong>Arıza:</strong> <field name="ariza_tanimi"/>
                                         </div>
                                     </div>
-                                    <div class="row" t-if="record.seri_no.raw_value">
+                                    <div class="row" t-if="record.data.seri_no">
                                         <div class="col-12">
                                             <strong>Seri No:</strong> <field name="seri_no"/>
                                         </div>
                                     </div>
-                                    <div class="row" t-if="record.onarim_durumu.raw_value">
+                                    <div class="row" t-if="record.data.onarim_durumu">
                                         <div class="col-6">
                                             <strong>Onarım Durumu:</strong> <field name="onarim_durumu"/>
                                         </div>
-                                        <div class="col-6" t-if="record.kalan_is_gunu.raw_value">
+                                        <div class="col-6" t-if="record.data.kalan_is_gunu">
                                             <strong>Kalan Gün:</strong> <field name="kalan_is_gunu"/>
                                         </div>
                                     </div>
@@ -468,31 +468,31 @@
                                                 string="Onayla"
                                                 type="object"
                                                 class="btn btn-sm btn-warning"
-                                                t-att-invisible="record.state.raw_value != 'draft'"
-                                                t-att-disabled="record.state.raw_value != 'draft'"/>
+                                                t-att-invisible="record.data.state != 'draft'"
+                                                t-att-disabled="record.data.state != 'draft'"/>
                                         <button name="action_teknik_onarim_baslat"
                                                 string="Onarımı Başlat"
                                                 type="object"
                                                 class="btn btn-sm btn-primary"
-                                                t-att-invisible="record.state.raw_value != 'kabul_edildi'"
-                                                t-att-disabled="record.state.raw_value != 'kabul_edildi'"/>
+                                                t-att-invisible="record.data.state != 'kabul_edildi'"
+                                                t-att-disabled="record.data.state != 'kabul_edildi'"/>
                                         <button name="action_onayla"
                                                 string="Onarımı Bitir"
                                                 type="object"
                                                 class="btn btn-sm btn-success"
-                                                t-att-invisible="record.state.raw_value != 'teknik_onarim'"
-                                                t-att-disabled="record.state.raw_value != 'teknik_onarim'"/>
-                                        <button name="action_personel_onayla" 
-                                                string="Tamamla" 
-                                                type="object" 
-                                                class="btn btn-sm btn-secondary" 
-                                                t-att-disabled="record.transfer_sayisi.raw_value != 2"
-                                                t-att-invisible="record.state_manager.raw_value == 'onarim_tamamlandi'"/>
+                                                t-att-invisible="record.data.state != 'teknik_onarim'"
+                                                t-att-disabled="record.data.state != 'teknik_onarim'"/>
+                                        <button name="action_personel_onayla"
+                                                string="Tamamla"
+                                                type="object"
+                                                class="btn btn-sm btn-secondary"
+                                                t-att-disabled="record.data.transfer_sayisi != 2"
+                                                t-att-invisible="record.data.state_manager == 'onarim_tamamlandi'"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
-                                        <button name="action_print" 
-                                                string="Yazdır" 
-                                                type="object" 
+                                        <button name="action_print"
+                                                string="Yazdır"
+                                                type="object"
                                                 class="btn btn-sm btn-info"/>
                                     </div>
                                 </div>
