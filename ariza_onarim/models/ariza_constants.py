@@ -162,6 +162,7 @@ class LocationNames:
     """Konum isimleri (stock.location için)"""
     DTL_STOK = 'DTL/Stok'
     ARIZA_STOK = 'Arıza/Stok'
+    ARIZA_EVREN = 'ARIZA/Evren'
     NFSL_ARIZALI = 'NFSL/Arızalı'
     NFSL_STOK = 'NFSL/Stok'
 

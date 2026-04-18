@@ -6,7 +6,7 @@ Arıza tipi ve teknik servis seçimine göre hedef stok konumunu döner.
 """
 
 import logging
-from ..ariza_constants import ArizaTipi, TeknikServis
+from ..ariza_constants import ArizaTipi, TeknikServis, LocationNames
 from . import location_helper
 
 _logger = logging.getLogger(__name__)
@@ -74,6 +74,19 @@ class HedefKonumHelper:
                 ], limit=1) or env['stock.location'].search([
                     ('name', 'ilike', 'NFSL'),
                     ('name', 'ilike', 'Stok'),
+                ], limit=1)
+            return konum or False
+
+        # Evren Amfi Onarım
+        if teknik_servis == TeknikServis.EVREN_AMFI_ONARIM:
+            konum = location_helper.LocationHelper.get_evren_amfi_location(
+                env, company_id
+            )
+            if not konum:
+                konum = env['stock.location'].search([
+                    ('complete_name', 'ilike', LocationNames.ARIZA_EVREN)
+                ], limit=1) or env['stock.location'].search([
+                    ('name', 'ilike', 'Evren')
                 ], limit=1)
             return konum or False
 
@@ -178,6 +191,7 @@ class HedefKonumHelper:
                     TeknikServis.MATT_GUITAR,
                     TeknikServis.PROHAN_ELK,
                     TeknikServis.ERK_ENSTRUMAN,
+                    TeknikServis.EVREN_AMFI_ONARIM,
                     TeknikServis.MAGAZA,
                 ]
             ) or (teknik_servis == TeknikServis.TEDARIKCI and bool(tedarikci_id))

@@ -277,6 +277,21 @@ class LocationHelper:
             return False
 
     @staticmethod
+    def get_evren_amfi_location(env, company_id=None, raise_if_not_found=False):
+        """Get ARIZA/Evren location (Evren Amfi Onarım)."""
+        fallback_patterns = [
+            ('complete_name', 'ilike', LocationNames.ARIZA_EVREN),
+            ('name', 'ilike', 'Evren'),
+        ]
+        return LocationHelper._find_location_flexible(
+            env,
+            'Evren',
+            fallback_patterns=fallback_patterns,
+            company_id=company_id,
+            raise_if_not_found=raise_if_not_found
+        )
+
+    @staticmethod
     def get_ngaudio_location(env, company_id=None, raise_if_not_found=False):
         """Get ARIZA/NGaudio location."""
         fallback_patterns = [
