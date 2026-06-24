@@ -627,8 +627,27 @@
                 <div class="col-6">
                     <div class="text-right gonderi-adresi" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; min-height: 120px;">
                         <strong style="color: #000; display: block; margin-bottom: 8px;">ALICI ADRESİ:</strong>
+                        <!-- DEPO ARIZA + Adrese Gönderim: seçilen müşteri adresi (sadece alıcı) -->
+                        <t t-if="depo_ariza and o.teslim_alan == 'Adrese Gönderim' and o.contact_id">
+                            <t t-esc="o.contact_id.name"/><br/>
+                            <t t-esc="o.contact_id.street or ''"/><br/>
+                            <t t-if="o.contact_id.street2"><br/><t t-esc="o.contact_id.street2"/></t>
+                            <t t-if="o.contact_id.city"><br/><t t-esc="o.contact_id.city"/></t>
+                            <t t-if="o.contact_id.state_id"><br/><t t-esc="o.contact_id.state_id.name"/></t>
+                            <t t-if="o.contact_id.zip"><br/><t t-esc="o.contact_id.zip"/></t>
+                            <t t-if="o.contact_id.country_id"><br/><t t-esc="o.contact_id.country_id.name"/></t>
+                        </t>
+                        <t t-elif="depo_ariza and o.teslim_alan == 'Adrese Gönderim' and o.partner_id">
+                            <t t-esc="o.partner_id.name"/><br/>
+                            <t t-esc="o.partner_id.street or ''"/><br/>
+                            <t t-if="o.partner_id.street2"><br/><t t-esc="o.partner_id.street2"/></t>
+                            <t t-if="o.partner_id.city"><br/><t t-esc="o.partner_id.city"/></t>
+                            <t t-if="o.partner_id.state_id"><br/><t t-esc="o.partner_id.state_id.name"/></t>
+                            <t t-if="o.partner_id.zip"><br/><t t-esc="o.partner_id.zip"/></t>
+                            <t t-if="o.partner_id.country_id"><br/><t t-esc="o.partner_id.country_id.name"/></t>
+                        </t>
                         <!-- DEPO ARIZA: onarım başlamadan = teknik servis, onarım sonrası = ZUHAL ARIZA DEPO (swap) -->
-                        <t t-if="depo_ariza and not onarim_baslatildi">
+                        <t t-elif="depo_ariza and not onarim_baslatildi">
                             <t t-if="o.teknik_servis == 'DTL BEYOĞLU'">
                                 Dtl Elektronik<br/>
                                 DTL BEYOĞLU<br/>
@@ -680,30 +699,9 @@
                             </t>
                         </t>
                         <t t-elif="depo_ariza and onarim_baslatildi">
-                            <!-- DEPO ARIZA + Adrese Gönderim: seçilen teslimat adresi alıcıya yazılır -->
-                            <t t-if="o.teslim_alan == 'Adrese Gönderim' and o.contact_id">
-                                <t t-esc="o.contact_id.name"/><br/>
-                                <t t-esc="o.contact_id.street or ''"/><br/>
-                                <t t-if="o.contact_id.street2"><br/><t t-esc="o.contact_id.street2"/></t>
-                                <t t-if="o.contact_id.city"><br/><t t-esc="o.contact_id.city"/></t>
-                                <t t-if="o.contact_id.state_id"><br/><t t-esc="o.contact_id.state_id.name"/></t>
-                                <t t-if="o.contact_id.zip"><br/><t t-esc="o.contact_id.zip"/></t>
-                                <t t-if="o.contact_id.country_id"><br/><t t-esc="o.contact_id.country_id.name"/></t>
-                            </t>
-                            <t t-elif="o.teslim_alan == 'Adrese Gönderim' and o.partner_id">
-                                <t t-esc="o.partner_id.name"/><br/>
-                                <t t-esc="o.partner_id.street or ''"/><br/>
-                                <t t-if="o.partner_id.street2"><br/><t t-esc="o.partner_id.street2"/></t>
-                                <t t-if="o.partner_id.city"><br/><t t-esc="o.partner_id.city"/></t>
-                                <t t-if="o.partner_id.state_id"><br/><t t-esc="o.partner_id.state_id.name"/></t>
-                                <t t-if="o.partner_id.zip"><br/><t t-esc="o.partner_id.zip"/></t>
-                                <t t-if="o.partner_id.country_id"><br/><t t-esc="o.partner_id.country_id.name"/></t>
-                            </t>
-                            <t t-else="">
-                                Zuhal Müzik<br/>
-                                ZUHAL ARIZA DEPO<br/>
-                                Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
-                            </t>
+                            Zuhal Müzik<br/>
+                            ZUHAL ARIZA DEPO<br/>
+                            Halkalı merkez mh. Dereboyu cd. No:8/B İstanbul
                         </t>
                         <!-- Merkezi Satış + onarım tamamlandı: Swap - Alıcı = müşteri/mağaza (geri gönderim) -->
                         <t t-elif="merkezi_satis_geri_gonderim">
