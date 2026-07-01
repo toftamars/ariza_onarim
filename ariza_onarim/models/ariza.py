@@ -157,7 +157,10 @@ class ArizaKayit(models.Model):
     )
     ariza_tanimi = fields.Text(string='Arıza Tanımı', tracking=True)
     seri_no = fields.Char(string='Seri No', tracking=True)
-    notlar = fields.Text(string='Notlar', required=True)
+    notlar = fields.Text(
+        string='Notlar (Kozmetik, Aksesuar ve İçerik Durumu)',
+        required=True,
+    )
     transfer_irsaliye = fields.Char(string='Transfer İrsaliye No')
     company_id = fields.Many2one('res.company', string='Şirket', default=lambda self: self.env.company)
     onarim_ucreti = fields.Monetary(string='Onarım Ücreti', currency_field='currency_id', tracking=True)

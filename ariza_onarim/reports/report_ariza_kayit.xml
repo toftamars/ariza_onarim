@@ -1411,7 +1411,7 @@
             <!-- Notlar -->
             <div class="row mb-4" t-if="o.notlar">
                 <div class="col-12">
-                    <h5>Notlar:</h5>
+                    <h5>Notlar (Kozmetik, Aksesuar ve İçerik Durumu):</h5>
                     <div style="border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa;">
                         <span t-field="o.notlar"/>
                     </div>
