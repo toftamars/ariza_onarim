@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
-        <!-- Onarım Dışı seçildiğinde mağaza e-postasına gönderilen otomatik bildirim -->
-        <record id="email_template_ariza_onarim_disi" model="mail.template">
-            <field name="name">Arıza Onarım - Onarım Dışı Bildirimi</field>
+        <!-- Ürün Değişimi seçildiğinde mağaza e-postasına gönderilen otomatik bildirim -->
+        <record id="email_template_ariza_degisim" model="mail.template">
+            <field name="name">Arıza Onarım - Ürün Değişimi Bildirimi</field>
             <field name="model_id" ref="model_ariza_kayit"/>
-            <field name="subject">Onarım Dışı Bildirimi: {{ object.name }}</field>
+            <field name="subject">Ürün Değişimi Bildirimi: {{ object.name }}</field>
             <field name="email_to">{{ object.analitik_hesap_email }}</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif; font-size: 13px; color: #333;">
     <p>Merhaba,</p>
     <p>
-        Aşağıdaki arıza kaydındaki ürün teknik inceleme sonucunda
-        <strong>Onarım Dışı</strong> olarak işaretlenmiştir.
+        Aşağıdaki arıza kaydındaki ürün için teknik inceleme sonucunda
+        <strong>Ürün Değişimi</strong> kararı verilmiştir.
     </p>
     <table style="border-collapse: collapse; margin: 12px 0;">
         <tr>
@@ -25,12 +25,16 @@
             <td style="padding: 4px 0;"><t t-out="object.urun or ''"/></td>
         </tr>
         <tr>
+            <td style="padding: 4px 12px 4px 0; font-weight: bold;">Müşteri:</td>
+            <td style="padding: 4px 0;"><t t-out="object.partner_id.name or ''"/></td>
+        </tr>
+        <tr>
             <td style="padding: 4px 12px 4px 0; font-weight: bold;">Mağaza:</td>
             <td style="padding: 4px 0;"><t t-out="object.analitik_hesap_id.name or ''"/></td>
         </tr>
         <tr>
-            <td style="padding: 4px 12px 4px 0; font-weight: bold; vertical-align: top;">Açıklama:</td>
-            <td style="padding: 4px 0;"><t t-out="object.onarim_disi_aciklama or ''"/></td>
+            <td style="padding: 4px 12px 4px 0; font-weight: bold; vertical-align: top;">Onarım Bilgisi:</td>
+            <td style="padding: 4px 0;"><t t-out="object.onarim_bilgisi or ''"/></td>
         </tr>
     </table>
     <p>Bu e-posta sistem tarafından otomatik olarak gönderilmiştir.</p>

@@ -62,34 +62,34 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
 
         return res
 
-    def _send_onarim_disi_email(self, ariza):
-        """Onarım Dışı bildirimini mağaza e-postasına gönderir.
+    def _send_degisim_email(self, ariza):
+        """Ürün Değişimi bildirimini mağaza e-postasına gönderir.
 
         E-posta gönderimi başarısız olsa bile arıza akışını bloklamaz;
         sonuç her durumda chatter'a not düşülür.
         """
         if not ariza.analitik_hesap_email:
             ariza.message_post(
-                body="Onarım Dışı e-postası gönderilemedi: mağazanın e-posta adresi tanımlı değil.",
+                body="Ürün Değişimi e-postası gönderilemedi: mağazanın e-posta adresi tanımlı değil.",
                 message_type='notification'
             )
             return
 
-        template = self.env.ref('ariza_onarim.email_template_ariza_onarim_disi', raise_if_not_found=False)
+        template = self.env.ref('ariza_onarim.email_template_ariza_degisim', raise_if_not_found=False)
         if not template:
-            _logger.warning("Onarım Dışı e-posta şablonu bulunamadı: ariza_onarim.email_template_ariza_onarim_disi")
+            _logger.warning("Ürün Değişimi e-posta şablonu bulunamadı: ariza_onarim.email_template_ariza_degisim")
             return
 
         try:
             template.send_mail(ariza.id, force_send=True)
             ariza.message_post(
-                body=f"Onarım Dışı bildirimi mağaza e-postasına gönderildi: {ariza.analitik_hesap_email}",
+                body=f"Ürün Değişimi bildirimi mağaza e-postasına gönderildi: {ariza.analitik_hesap_email}",
                 message_type='notification'
             )
         except Exception:
-            _logger.exception("Onarım Dışı e-postası gönderilemedi (kayıt: %s)", ariza.name)
+            _logger.exception("Ürün Değişimi e-postası gönderilemedi (kayıt: %s)", ariza.name)
             ariza.message_post(
-                body="Onarım Dışı e-postası gönderilemedi. Giden e-posta sunucusu ayarlarını kontrol edin.",
+                body="Ürün Değişimi e-postası gönderilemedi. Giden e-posta sunucusu ayarlarını kontrol edin.",
                 message_type='notification'
             )
 
@@ -122,9 +122,6 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 message_type='notification'
             )
 
-            # Mağaza e-postasına otomatik Onarım Dışı bildirimi gönder
-            self._send_onarim_disi_email(ariza)
-
             return {'type': 'ir.actions.act_window_close'}
         
         # Normal onarım akışı - Validasyonlar
@@ -145,6 +142,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.onarim_ucreti = 0.0
         else:
             ariza.onarim_ucreti = self.onarim_ucreti
+
+        # Ürün Değişimi seçildiyse mağaza e-postasına otomatik bildirim gönder
+        if self.garanti_kapsaminda_mi == 'urun_degisimi':
+            self._send_degisim_email(ariza)
         
         # Teslim mağazasını güncelle (müşteri ürünü için)
         if self.ariza_tipi == 'musteri':
