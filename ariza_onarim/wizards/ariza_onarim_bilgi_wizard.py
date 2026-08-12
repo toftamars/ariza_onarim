@@ -3,9 +3,13 @@
 Onarım Bilgi Wizard - Onarım bilgileri girişi için wizard
 """
 
+import logging
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from ..models.ariza_constants import SMSTemplates, TeslimAlan
+
+_logger = logging.getLogger(__name__)
 
 class ArizaOnarimBilgiWizard(models.TransientModel):
     _name = 'ariza.onarim.bilgi.wizard'
@@ -58,6 +62,37 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
 
         return res
 
+    def _send_onarim_disi_email(self, ariza):
+        """Onarım Dışı bildirimini mağaza e-postasına gönderir.
+
+        E-posta gönderimi başarısız olsa bile arıza akışını bloklamaz;
+        sonuç her durumda chatter'a not düşülür.
+        """
+        if not ariza.analitik_hesap_email:
+            ariza.message_post(
+                body="Onarım Dışı e-postası gönderilemedi: mağazanın e-posta adresi tanımlı değil.",
+                message_type='notification'
+            )
+            return
+
+        template = self.env.ref('ariza_onarim.email_template_ariza_onarim_disi', raise_if_not_found=False)
+        if not template:
+            _logger.warning("Onarım Dışı e-posta şablonu bulunamadı: ariza_onarim.email_template_ariza_onarim_disi")
+            return
+
+        try:
+            template.send_mail(ariza.id, force_send=True)
+            ariza.message_post(
+                body=f"Onarım Dışı bildirimi mağaza e-postasına gönderildi: {ariza.analitik_hesap_email}",
+                message_type='notification'
+            )
+        except Exception:
+            _logger.exception("Onarım Dışı e-postası gönderilemedi (kayıt: %s)", ariza.name)
+            ariza.message_post(
+                body="Onarım Dışı e-postası gönderilemedi. Giden e-posta sunucusu ayarlarını kontrol edin.",
+                message_type='notification'
+            )
+
     def _temizle_magaza_adi(self, magaza_adi):
         """Mağaza adından 'Perakende' ifadesini kaldır"""
         if magaza_adi:
@@ -86,7 +121,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 subject="Onarım Dışı",
                 message_type='notification'
             )
-            
+
+            # Mağaza e-postasına otomatik Onarım Dışı bildirimi gönder
+            self._send_onarim_disi_email(ariza)
+
             return {'type': 'ir.actions.act_window_close'}
         
         # Normal onarım akışı - Validasyonlar

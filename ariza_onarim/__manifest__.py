@@ -41,6 +41,7 @@
         'data/system_parameters.xml',
         'data/sequence.xml',
         'data/cron.xml',
+        'data/mail_template.xml',
         'security/ir.model.access.csv',
         'views/menu_views.xml',
         'views/ariza_kayit_views.xml',
