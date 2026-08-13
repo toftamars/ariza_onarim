@@ -6,7 +6,8 @@
             <field name="name">Arıza Onarım - Ürün Değişimi Bildirimi</field>
             <field name="model_id" ref="model_ariza_kayit"/>
             <field name="subject">Ürün Değişimi Bildirimi: {{ object.name }}</field>
-            <field name="email_to">{{ object.analitik_hesap_email }}</field>
+            <!-- Destek birimi her durumda alıcıdır (adres ayrıca ariza_constants.EmailAddresses.DESTEK'te tanımlı) -->
+            <field name="email_to">{{ (object.analitik_hesap_email + ',destek@zuhalmuzik.com') if object.analitik_hesap_email else 'destek@zuhalmuzik.com' }}</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif; font-size: 13px; color: #333;">

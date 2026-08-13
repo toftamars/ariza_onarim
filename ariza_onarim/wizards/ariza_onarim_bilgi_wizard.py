@@ -7,7 +7,7 @@ import logging
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from ..models.ariza_constants import SMSTemplates, TeslimAlan
+from ..models.ariza_constants import SMSTemplates, TeslimAlan, EmailAddresses
 
 _logger = logging.getLogger(__name__)
 
@@ -63,17 +63,15 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         return res
 
     def _send_degisim_email(self, ariza):
-        """Ürün Değişimi bildirimini mağaza e-postasına gönderir.
+        """Ürün Değişimi bildirimini mağaza e-postasına ve destek birimine gönderir.
 
-        E-posta gönderimi başarısız olsa bile arıza akışını bloklamaz;
-        sonuç her durumda chatter'a not düşülür.
+        Destek birimi her durumda alıcıdır; mağaza e-postası boşsa bildirim
+        yalnızca destek birimine gider ve chatter'a uyarı düşülür.
+        E-posta gönderimi başarısız olsa bile arıza akışını bloklamaz.
         """
-        if not ariza.analitik_hesap_email:
-            ariza.message_post(
-                body="Ürün Değişimi e-postası gönderilemedi: mağazanın e-posta adresi tanımlı değil.",
-                message_type='notification'
-            )
-            return
+        recipients = [e.strip() for e in (ariza.analitik_hesap_email or '').split(',') if e.strip()]
+        if EmailAddresses.DESTEK not in recipients:
+            recipients.append(EmailAddresses.DESTEK)
 
         template = self.env.ref('ariza_onarim.email_template_ariza_degisim', raise_if_not_found=False)
         if not template:
@@ -81,11 +79,16 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             return
 
         try:
-            template.send_mail(ariza.id, force_send=True)
+            template.send_mail(ariza.id, force_send=True, email_values={'email_to': ','.join(recipients)})
             ariza.message_post(
-                body=f"Ürün Değişimi bildirimi mağaza e-postasına gönderildi: {ariza.analitik_hesap_email}",
+                body=f"Ürün Değişimi bildirimi gönderildi: {', '.join(recipients)}",
                 message_type='notification'
             )
+            if not ariza.analitik_hesap_email:
+                ariza.message_post(
+                    body="Uyarı: mağazanın e-posta adresi tanımlı olmadığından bildirim yalnızca destek birimine gönderildi.",
+                    message_type='notification'
+                )
         except Exception:
             _logger.exception("Ürün Değişimi e-postası gönderilemedi (kayıt: %s)", ariza.name)
             ariza.message_post(

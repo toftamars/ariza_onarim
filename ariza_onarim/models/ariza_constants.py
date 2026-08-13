@@ -173,6 +173,11 @@ class PartnerNames:
     DTL_ELEKTRONIK = 'Dtl Elektronik Servis Hiz. Tic. Ltd Şti'
 
 
+class EmailAddresses:
+    """Sabit e-posta adresleri"""
+    DESTEK = 'destek@zuhalmuzik.com'  # Ürün Değişimi bildirimlerinin her zaman gittiği destek birimi
+
+
 class MagicNumbers:
     """Magic number'lar - Kod içinde kullanılan sabit sayısal değerler"""
     # Garanti süresi (ay)
