@@ -13,8 +13,9 @@ Müşteri ürünleri için iki yönde Aras kargo picking'i oluşturur:
 Ortak notlar:
 - Kalem stok-dışı üründür ("Müşteri Ürünü (Kargo)", consumable) — envanteri
   bozmaz (müşteri ürünü zaten stokta değildir).
-- Picking otomatik VALIDATE EDİLMEZ; kullanıcı kargoya verirken doğrular,
-  Aras booking ve carrier_tracking_ref (barkod) o anda oluşur.
+- Picking OTOMATİK VALIDATE EDİLİR (2026-08-14 kullanıcı isteği): Aras
+  booking ve carrier_tracking_ref (barkod) oluşturma anında gelir. Booking
+  başarısız olursa akış bloklanmaz, transfer 'Hazır' kalır (chatter uyarısı).
 - Bu picking'ler e-İrsaliye ÜRETMEZ (arıza transferleri Matbu/printed).
 - Mağaza ürünü akışına (ArizaTransferService.create_stock_transfer) dokunmaz.
 """
@@ -178,6 +179,48 @@ class ArizaMusteriIadeService:
         return picking
 
     @staticmethod
+    def _auto_validate_picking(ariza, picking):
+        """
+        Kargo picking'ini otomatik doğrular (validate) — Aras booking ve
+        barkod (carrier_tracking_ref) bu anda oluşur.
+
+        Başarısızlık ONAYLA/teslim akışını BLOKLAMAZ: hata chatter'a yazılır,
+        transfer 'Hazır' durumda kalır ve elle doğrulanabilir.
+        """
+        if picking.state in ('done', 'cancel'):
+            return
+        try:
+            move_lines = picking.sudo().move_line_ids
+            if move_lines:
+                for ml in move_lines:
+                    if not ml.qty_done:
+                        ml.qty_done = ml.product_uom_qty or 1
+            else:
+                for move in picking.sudo().move_lines:
+                    move.quantity_done = move.product_uom_qty or 1
+            picking.sudo().with_context(
+                skip_immediate=True, skip_backorder=True
+            ).button_validate()
+            if picking.carrier_tracking_ref:
+                ariza.message_post(
+                    body=(
+                        f"<b>Aras barkodu oluştu:</b> {picking.carrier_tracking_ref}<br/>"
+                        f"Transfer {picking.name} otomatik doğrulandı."
+                    ),
+                    message_type='notification'
+                )
+        except Exception as e:
+            _logger.warning(f"[ARIZA KARGO] {picking.name} otomatik doğrulanamadı: {e}")
+            ariza.message_post(
+                body=(
+                    f"⚠️ <b>Kargo transferi otomatik doğrulanamadı:</b> {str(e)}<br/>"
+                    f"Transfer {picking.name} 'Hazır' durumda bekliyor — lütfen "
+                    f"transferi açıp elle doğrulayın (Aras barkodu o anda oluşur)."
+                ),
+                message_type='notification'
+            )
+
+    @staticmethod
     def create_gidis_picking(ariza):
         """
         Müşteri ürünü için mağaza → teknik servis Aras GİDİŞ sevkiyatı oluşturur.
@@ -192,6 +235,8 @@ class ArizaMusteriIadeService:
             raise UserError(_('Gidiş kargo transferi sadece müşteri ürünleri için oluşturulabilir.'))
 
         if ariza.transfer_id and ariza.transfer_id.state != 'cancel':
+            # Daha önce oluşmuş ama doğrulanmamışsa şimdi doğrula
+            ArizaMusteriIadeService._auto_validate_picking(ariza, ariza.transfer_id)
             return ariza.transfer_id
 
         alici = ArizaMusteriIadeService.get_teknik_servis_partner(ariza)
@@ -217,12 +262,12 @@ class ArizaMusteriIadeService:
                 f"<b>Teknik servise gidiş kargo transferi oluşturuldu!</b><br/>"
                 f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
                 f"Alıcı: {alici.display_name}<br/>"
-                f"Taşıyıcı: Aras Kargo<br/>"
-                f"Aras barkodu, transfer <b>doğrulandığında (validate)</b> oluşacaktır."
+                f"Taşıyıcı: Aras Kargo"
             ),
             message_type='notification'
         )
         _logger.info(f"[MUSTERI GIDIS] Gidiş picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
+        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
         return picking
 
     @staticmethod
@@ -241,6 +286,8 @@ class ArizaMusteriIadeService:
 
         # Idempotency: geçerli iade transferi varsa tekrar oluşturma
         if ariza.iade_transfer_id and ariza.iade_transfer_id.state != 'cancel':
+            # Daha önce oluşmuş ama doğrulanmamışsa şimdi doğrula
+            ArizaMusteriIadeService._auto_validate_picking(ariza, ariza.iade_transfer_id)
             return ariza.iade_transfer_id
 
         # Alıcı: teslimat adresi (contact_id) öncelikli, yoksa müşteri
@@ -264,10 +311,10 @@ class ArizaMusteriIadeService:
                 f"<b>İade kargo transferi oluşturuldu!</b><br/>"
                 f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
                 f"Alıcı: {alici.display_name}<br/>"
-                f"Taşıyıcı: Aras Kargo<br/>"
-                f"Aras barkodu, transfer <b>doğrulandığında (validate)</b> oluşacaktır."
+                f"Taşıyıcı: Aras Kargo"
             ),
             message_type='notification'
         )
         _logger.info(f"[MUSTERI IADE] İade picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
+        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
         return picking
