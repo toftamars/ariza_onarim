@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Kargo Çıktısı raporları — arıza kaydının standart "Yazdır" menüsünde görünür.
+        İçerik, stock.picking üzerindeki mevcut Kargo Çıktısı QWeb document şablonlarına
+        (Studio kaydı, render zamanında çözülür) t-call ile bağlanır:
+        - A5: stock_picking.x_kargo_ciktisi_listesi_document
+        - A4: stock_picking.x_kargo_ciktisi_listesi_document_A4
+        Basılan picking: müşteri ürününde iade kargosu (iade_transfer_id),
+        mağaza ürününde arıza transferi (transfer_id).
+    -->
+
+    <!-- Paperformat'lar (Studio raporlarıyla birebir aynı değerler) -->
+    <record id="paperformat_kargo_ciktisi_a5" model="report.paperformat">
+        <field name="name">Arıza - Kargo Çıktısı A5 (Üst Boşluksuz)</field>
+        <field name="format">A5</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_spacing">30</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="paperformat_kargo_ciktisi_a4" model="report.paperformat">
+        <field name="name">Arıza - Kargo Çıktısı A4</field>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">32</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- QWeb sarmalayıcı şablonlar -->
+    <template id="report_kargo_ciktisi">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="ariza">
+                <t t-set="doc" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-if="doc">
+                    <t t-call="stock_picking.x_kargo_ciktisi_listesi_document"/>
+                </t>
+                <t t-else="">
+                    <div class="page">
+                        <h3>Kargo transferi bulunamadı</h3>
+                        <p>Arıza kaydı <strong t-esc="ariza.name"/> için basılacak kargo transferi yok.</p>
+                        <p>Müşteri ürününde iade kargosu, teslim adımında "Adrese Gönderilsin"
+                           seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+    <template id="report_kargo_ciktisi_a4">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="ariza">
+                <t t-set="doc" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-if="doc">
+                    <t t-call="stock_picking.x_kargo_ciktisi_listesi_document_A4"/>
+                </t>
+                <t t-else="">
+                    <div class="page">
+                        <h3>Kargo transferi bulunamadı</h3>
+                        <p>Arıza kaydı <strong t-esc="ariza.name"/> için basılacak kargo transferi yok.</p>
+                        <p>Müşteri ürününde iade kargosu, teslim adımında "Adrese Gönderilsin"
+                           seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Yazdır menüsü aksiyonları -->
+    <record id="action_report_kargo_ciktisi" model="ir.actions.report">
+        <field name="name">Kargo Çıktısı</field>
+        <field name="model">ariza.kayit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ariza_onarim.report_kargo_ciktisi</field>
+        <field name="report_file">ariza_onarim.report_kargo_ciktisi</field>
+        <field name="paperformat_id" ref="paperformat_kargo_ciktisi_a5"/>
+        <field name="print_report_name">'Kargo Ciktisi - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_ariza_kayit"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_kargo_ciktisi_a4" model="ir.actions.report">
+        <field name="name">Kargo Çıktısı - A4</field>
+        <field name="model">ariza.kayit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ariza_onarim.report_kargo_ciktisi_a4</field>
+        <field name="report_file">ariza_onarim.report_kargo_ciktisi_a4</field>
+        <field name="paperformat_id" ref="paperformat_kargo_ciktisi_a4"/>
+        <field name="print_report_name">'Kargo Ciktisi A4 - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_ariza_kayit"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

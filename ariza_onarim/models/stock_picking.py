@@ -55,11 +55,11 @@ class StockPicking(models.Model):
         """
         Arıza transferi için beklenen e-İrsaliye tipini döner.
 
-        - Müşteri iade kargosu → 'printed' (Matbu): satış yok, e-İrsaliye üretilmez.
-        - Mağaza arıza transferleri → 'edespatch' (E-İrsaliye, Foriba akışı).
+        Tüm arıza transferleri 'printed' (Matbu) kalır — e-İrsaliye'ye geçiş
+        denendi ve kullanıcı kararıyla geri alındı (2026-08-14).
         """
         self.ensure_one()
-        return 'printed' if self.is_ariza_musteri_iade else 'edespatch'
+        return 'printed'
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -82,11 +82,9 @@ class StockPicking(models.Model):
             is_iade = iade_context or vals.get('is_ariza_musteri_iade')
             if is_iade:
                 vals['is_ariza_musteri_iade'] = True
+            if is_iade or self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
                 vals['edespatch_delivery_type'] = 'printed'
-                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'Printed' (müşteri iade) - Origin: {origin}")
-            elif self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
-                vals['edespatch_delivery_type'] = 'edespatch'
-                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'E-Despatch' - Origin: {origin}")
+                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'Printed' - Origin: {origin}")
 
         records = super().create(vals_list)
 
@@ -105,11 +103,10 @@ class StockPicking(models.Model):
 
                 # Add message to chatter
                 try:
-                    if record.is_ariza_musteri_iade:
-                        mesaj = "✅ Teslimat Türü: Matbu (Müşteri İade Kargosu - e-İrsaliye üretilmez)"
-                    else:
-                        mesaj = "✅ Teslimat Türü: E-İrsaliye (Arıza Modülü - Otomatik)"
-                    record.message_post(body=mesaj, message_type='notification')
+                    record.message_post(
+                        body="✅ Teslimat Türü: Matbu (Arıza Modülü - Otomatik)",
+                        message_type='notification'
+                    )
                 except Exception as e:
                     _logger.debug(f"Could not post message to chatter: {e}")
 

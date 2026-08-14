@@ -9,9 +9,10 @@ import logging
 from odoo import _, fields
 from odoo.exceptions import UserError
 
-from ..ariza_constants import ArizaTipi, IslemTipi, TeknikServis
+from ..ariza_constants import ArizaTipi, IslemTipi, TeknikServis, TransferMetodu
 from . import partner_helper
 from . import transfer_helper
+from . import ariza_musteri_iade_service
 
 _logger = logging.getLogger(__name__)
 
@@ -75,7 +76,18 @@ class ArizaTransferService:
             vals['partner_id'] = magaza_partner.id
         elif teknik_servis_partner:
             vals['partner_id'] = teknik_servis_partner.id
-        delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(ariza.env)
+        # Kargo ile taşınan transferlerde Aras taşıyıcısı atanır: transfer
+        # doğrulandığında (validate) Aras booking yapılır ve barkod
+        # (carrier_tracking_ref) otomatik oluşur. Diğer metodlarda (araç vb.)
+        # mevcut davranış korunur (sabit/ücretsiz taşıyıcı, booking yok).
+        delivery_carrier = False
+        if ariza.transfer_metodu in (TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO):
+            try:
+                delivery_carrier = ariza_musteri_iade_service.ArizaMusteriIadeService.get_aras_carrier(ariza.env)
+            except UserError:
+                _logger.warning("Aras taşıyıcısı bulunamadı; sabit taşıyıcıya dönülüyor (kayıt: %s)", ariza.name)
+        if not delivery_carrier:
+            delivery_carrier = transfer_helper.TransferHelper.get_delivery_carrier(ariza.env)
         if delivery_carrier:
             vals['carrier_id'] = delivery_carrier.id
         return vals
