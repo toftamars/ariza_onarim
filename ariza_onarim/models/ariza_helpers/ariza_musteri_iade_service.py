@@ -36,16 +36,24 @@ class ArizaMusteriIadeService:
 
     @staticmethod
     def get_aras_carrier(env):
-        """Aktif Aras taşıyıcısını döner (delivery_type='aras')."""
+        """Aras taşıyıcısını döner (delivery_type='aras').
+
+        Taşıyıcı sistemde arşivli olabilir (satış ekranlarında görünmesin diye);
+        arşivli olsa da picking'e atanıp booking yapılabildiği için
+        arşivliler de aranır.
+        """
         carrier = env['delivery.carrier'].sudo().search([
             ('delivery_type', '=', ARAS_DELIVERY_TYPE),
-            ('active', '=', True),
         ], limit=1)
+        if not carrier:
+            carrier = env['delivery.carrier'].sudo().with_context(active_test=False).search([
+                ('delivery_type', '=', ARAS_DELIVERY_TYPE),
+            ], limit=1)
         if not carrier:
             raise UserError(_(
                 'Aras Kargo taşıyıcısı bulunamadı!\n'
                 'Stok > Ayarlar > Kargo Şirketleri menüsünden '
-                "delivery_type='aras' olan aktif bir taşıyıcı tanımlı olmalı."
+                "delivery_type='aras' olan bir taşıyıcı tanımlı olmalı."
             ))
         return carrier
 
