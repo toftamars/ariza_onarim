@@ -99,7 +99,12 @@ class ArizaKayit(models.Model):
     )
     partner_id = fields.Many2one('res.partner', string='Müşteri', tracking=True)
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
-    kaynak_konum_id = fields.Many2one('stock.location', string='Kaynak Konum', tracking=True, domain="[('company_id', '=', company_id)]")
+    kaynak_konum_id = fields.Many2one(
+        'stock.location', string='Kaynak Konum', tracking=True,
+        # Transit (rota) ve view konumları listelenmez; analitik hesap seçilince
+        # onchange domain'i o mağazanın deposuna daraltır (get_kaynak_konum_domain).
+        domain="[('company_id', '=', company_id), ('usage', '=', 'internal')]"
+    )
     hedef_konum_id = fields.Many2one('stock.location', string='Hedef Konum', tracking=True, domain="[('company_id', '=', company_id)]")
     hedef_konum_otomatik = fields.Boolean(
         string='Hedef Konum Otomatik',
@@ -453,7 +458,7 @@ class ArizaKayit(models.Model):
 
     @api.onchange('ariza_tipi', 'analitik_hesap_id', 'teknik_servis')
     def _onchange_magaza_konumlar(self):
-        ariza_onchange_helper.ArizaOnchangeHelper.onchange_magaza_konumlar(self)
+        return ariza_onchange_helper.ArizaOnchangeHelper.onchange_magaza_konumlar(self)
 
     @api.onchange('analitik_hesap_id')
     def _onchange_analitik_hesap_id(self):

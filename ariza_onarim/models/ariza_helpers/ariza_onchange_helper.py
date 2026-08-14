@@ -11,6 +11,7 @@ from ..ariza_constants import ArizaTipi, IslemTipi, TeknikServis
 from . import hedef_konum_helper
 from . import location_helper
 from . import teknik_servis_helper
+from . import transfer_helper
 
 _logger = logging.getLogger(__name__)
 
@@ -114,10 +115,34 @@ class ArizaOnchangeHelper:
             ArizaOnchangeHelper.onchange_magaza_konumlar(record)
 
     @staticmethod
+    def get_kaynak_konum_domain(record):
+        """
+        Kaynak Konum alanı için dinamik domain döner.
+
+        Mağaza (analitik hesap) seçiliyse liste yalnızca o mağazanın deposuna
+        ait internal konumlara daraltılır (örn. AKSY/Stok, AKSY/Arıza).
+        Transit (rota) ve view konumları hiçbir durumda listelenmez.
+        """
+        company_id = record.company_id.id if record.company_id else record.env.company.id
+        domain = [('company_id', '=', company_id), ('usage', '=', 'internal')]
+        if record.analitik_hesap_id:
+            warehouse = record.analitik_hesap_id.warehouse_id
+            if not warehouse:
+                warehouse = transfer_helper.TransferHelper.get_warehouse_for_magaza(
+                    record.env, record.analitik_hesap_id.name
+                )
+            if warehouse and warehouse.view_location_id:
+                domain = [
+                    ('id', 'child_of', warehouse.view_location_id.id),
+                    ('usage', '=', 'internal'),
+                ]
+        return {'domain': {'kaynak_konum_id': domain}}
+
+    @staticmethod
     def onchange_magaza_konumlar(record):
         """Mağaza ürünü için kaynak ve hedef konumları otomatik belirle"""
         if record.ariza_tipi != ArizaTipi.MAGAZA:
-            return
+            return ArizaOnchangeHelper.get_kaynak_konum_domain(record)
         if record.analitik_hesap_id:
             konum = location_helper.LocationHelper.get_kaynak_konum_for_analitik(
                 record.env, record.analitik_hesap_id
@@ -126,6 +151,7 @@ class ArizaOnchangeHelper:
                 record.kaynak_konum_id = konum
         if record.teknik_servis:
             hedef_konum_helper.HedefKonumHelper.update_hedef_konum(record)
+        return ArizaOnchangeHelper.get_kaynak_konum_domain(record)
 
     @staticmethod
     def onchange_invoice_line_id(record):
