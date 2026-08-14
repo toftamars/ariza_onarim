@@ -65,12 +65,13 @@ class ArizaPrintService:
         """
         if record.ariza_tipi != ArizaTipi.MUSTERI:
             raise UserError(_('Kargo Çıktısı yalnızca müşteri ürünleri için basılabilir.'))
-        picking = record.iade_transfer_id
+        # Öncelik: iade kargosu (dönüş ayağı); yoksa teknik servise gidiş kargosu
+        picking = record.iade_transfer_id or record.transfer_id
         if not picking or picking.state == 'cancel':
             raise UserError(_(
-                'Kargo çıktısı basılamaz: Bu kayıt için henüz iade kargo transferi yok.\n\n'
-                'İade kargosu, teslim adımında "Adrese Gönderilsin" seçildiğinde '
-                'otomatik oluşturulur. Önce teslim/gönderim adımını tamamlayın.'
+                'Kargo çıktısı basılamaz: Bu kayıt için henüz kargo transferi yok.\n\n'
+                'Gidiş kargosu ONAYLA adımında (kargo metodu seçiliyse), iade kargosu '
+                'teslim adımında "Adrese Gönderilsin" seçildiğinde otomatik oluşturulur.'
             ))
         if not picking.carrier_tracking_ref:
             raise UserError(_(

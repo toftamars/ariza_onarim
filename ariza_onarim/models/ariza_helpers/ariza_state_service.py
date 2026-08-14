@@ -10,8 +10,9 @@ import logging
 from odoo import _
 from odoo.exceptions import UserError
 
-from ..ariza_constants import ArizaStates, ArizaTipi, IslemTipi, SMSTemplates, TeknikServis, GarantiKapsam
+from ..ariza_constants import ArizaStates, ArizaTipi, IslemTipi, SMSTemplates, TeknikServis, GarantiKapsam, TransferMetodu
 from . import ariza_computed_helper
+from . import ariza_musteri_iade_service
 
 _logger = logging.getLogger(__name__)
 
@@ -70,6 +71,13 @@ class ArizaStateService:
                         'context': {'hide_note': True},
                         'target': 'current',
                     }
+
+        # Müşteri ürünü kargoyla teknik servise gidecekse Aras gidiş sevkiyatı oluştur
+        # (barkod, transfer doğrulanınca oluşur; SMS'ten ÖNCE — hata olursa temiz geri alınır)
+        if (record.ariza_tipi == ArizaTipi.MUSTERI
+                and record.transfer_metodu in (TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO)
+                and not record.transfer_id):
+            ariza_musteri_iade_service.ArizaMusteriIadeService.create_gidis_picking(record)
 
         if record.islem_tipi == IslemTipi.ARIZA_KABUL and record.ariza_tipi == ArizaTipi.MUSTERI and not record.ilk_sms_gonderildi:
             message = SMSTemplates.ILK_SMS.format(

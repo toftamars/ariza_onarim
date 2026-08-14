@@ -46,7 +46,7 @@
         <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
-                <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
                     <t t-set="docs" t-value="kargo_picking"/>
                     <t t-call="stock_picking.x_kargo_ciktisi_listesi_document"/>
@@ -67,7 +67,7 @@
         <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
-                <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
                     <t t-set="docs" t-value="kargo_picking"/>
                     <t t-call="stock_picking.x_kargo_ciktisi_listesi_document_A4"/>
