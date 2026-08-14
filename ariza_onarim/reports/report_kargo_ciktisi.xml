@@ -34,12 +34,16 @@
         <field name="dpi">90</field>
     </record>
 
-    <!-- QWeb sarmalayıcı şablonlar.
-         DİKKAT: Studio document şablonları içlerinde kendi t-foreach="docs"
+    <!-- QWeb sarmalayıcı şablonlar (2026-08-14 staging'de doğrulandı).
+         DİKKAT 1: Studio document şablonları içlerinde kendi t-foreach="docs"
          döngüsünü çalıştırır; bu yüzden t-call öncesi `docs` değişkeni
-         basılacak PICKING kayıt setine çevrilir (2026-08-14 staging'de doğrulandı). -->
+         basılacak PICKING kayıt setine çevrilir.
+         DİKKAT 2: Dış çerçeve Studio ana şablonuyla aynı olmalı
+         (web.basic_layout) — web.html_container kullanılınca PDF'te Türkçe
+         karakterler bozuluyor. Sayfa sonu yalnızca kayıtlar ARASINA konur
+         (boş son sayfa oluşmasın diye). -->
     <template id="report_kargo_ciktisi">
-        <t t-call="web.html_container">
+        <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
                 <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
@@ -55,11 +59,12 @@
                            seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
                     </div>
                 </t>
+                <p t-if="not ariza_last" style="page-break-after: always;"/>
             </t>
         </t>
     </template>
     <template id="report_kargo_ciktisi_a4">
-        <t t-call="web.html_container">
+        <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
                 <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
@@ -75,6 +80,7 @@
                            seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
                     </div>
                 </t>
+                <p t-if="not ariza_last" style="page-break-after: always;"/>
             </t>
         </t>
     </template>
