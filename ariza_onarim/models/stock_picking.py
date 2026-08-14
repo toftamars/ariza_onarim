@@ -151,26 +151,36 @@ class StockPicking(models.Model):
 
     def send_to_shipper(self):
         """
-        Aras booking sırasında TradingWaybillNumber olarak picking adı gönderilir
-        ve Aras 16 karakterden uzun değeri reddeder. Tamir transfer adları bu
-        limiti aşabildiğinden (örn. 'AKSY/OUTTMR/01420' = 17 karakter), arıza
-        transferlerinde booking süresince ad geçici olarak '/'sız kısa forma
-        çevrilir ve işlem bitince orijinal ad geri yüklenir.
-        (2026-08-14 staging'de doğrulandı: kısa adla booking başarılı.)
+        Aras booking'de TradingWaybillNumber, document_number'dan (Müşteri
+        İrsaliye Numarası, boşsa picking adından) alınır ve Aras 16 karakterden
+        uzun değeri reddeder. Tamir transfer adları bu limiti aşabildiğinden
+        (örn. 'UNIQ/OUTTMR/00443' = 17 karakter), arıza transferlerinde booking
+        süresince AD ve İRSALİYE NO birlikte '/'sız kısa forma çevrilir
+        (ayrı bir kontrol ikisinin eşit olmasını şart koşuyor: 'İrsaliye
+        numarası iç referanstan farklı!') ve işlem bitince geri yüklenir.
+        (2026-08-14 staging'de doğrulandı: yalnız adı kısaltmak yetmiyor,
+        ikisi birlikte kısaltılınca booking başarılı — barkod 513947296536010.)
         """
         for picking in self:
             name = picking.name or ''
+            doc_no = picking.document_number or '' if 'document_number' in picking._fields else ''
+            waybill = doc_no or name
             is_aras = picking.carrier_id and picking.carrier_id.delivery_type == 'aras'
-            if is_aras and picking._is_repair_transfer() and len(name) > self.ARAS_WAYBILL_MAX_LEN:
-                short_name = name.replace('/', '')[-self.ARAS_WAYBILL_MAX_LEN:]
+            if is_aras and picking._is_repair_transfer() and len(waybill) > self.ARAS_WAYBILL_MAX_LEN:
+                short = waybill.replace('/', '')[-self.ARAS_WAYBILL_MAX_LEN:]
                 _logger.info(
-                    f"[REPAIR MODULE] Aras booking için ad geçici kısaltıldı: {name} -> {short_name}"
+                    f"[REPAIR MODULE] Aras booking için ad/irsaliye no geçici kısaltıldı: {waybill} -> {short}"
                 )
+                vals = {'name': short}
+                restore = {'name': name}
+                if 'document_number' in picking._fields:
+                    vals['document_number'] = short
+                    restore['document_number'] = doc_no or False
                 try:
-                    picking.name = short_name
+                    picking.write(vals)
                     super(StockPicking, picking).send_to_shipper()
                 finally:
-                    picking.name = name
+                    picking.write(restore)
             else:
                 super(StockPicking, picking).send_to_shipper()
 
