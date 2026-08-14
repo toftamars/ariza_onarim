@@ -32,7 +32,7 @@ _logger = logging.getLogger(__name__)
 
 # Modül data'sındaki stok-dışı kargo ürünü (data/iade_kargo_product.xml)
 IADE_KARGO_URUN_XMLID = 'ariza_onarim.product_musteri_urunu_kargo'
-IADE_KARGO_URUN_KODU = 'ARZ-IADE-KARGO'
+IADE_KARGO_URUN_KODU = 'ARZ-KARGO'  # eski: ARZ-IADE-KARGO (2026-08-14)
 
 # Aras taşıyıcısı delivery_type değeri
 ARAS_DELIVERY_TYPE = 'aras'

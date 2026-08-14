@@ -6,11 +6,7 @@ Arıza Print Service - Yazdırma işlemleri
 from odoo import _
 from odoo.exceptions import UserError
 
-from ..ariza_constants import ArizaTipi, TransferMetodu
-
-# Kargo Çıktısı raporları (Studio kaydı, DB'de tanımlı — repoda değil)
-KARGO_CIKTISI_REPORT = 'stock_picking.x_kargo_ciktisi_listesi'
-KARGO_CIKTISI_A4_REPORT = 'stock_picking.x_kargo_ciktisi_listesi_A4'
+from ..ariza_constants import ArizaTipi
 
 
 class ArizaPrintService:
@@ -18,15 +14,13 @@ class ArizaPrintService:
 
     @staticmethod
     def action_print(record):
-        """Arıza kaydı veya kargo çıktısı yazdır"""
-        if record.transfer_metodu in [TransferMetodu.UCRETSIZ_KARGO, TransferMetodu.UCRETLI_KARGO] and record.transfer_id:
-            kargo_a4_report = record.env['ir.actions.report'].search([
-                ('model', '=', 'stock.picking'),
-                ('report_name', '=', 'stock_picking.x_kargo_ciktisi_listesi_A4')
-            ], limit=1)
-            if kargo_a4_report:
-                return kargo_a4_report.report_action(record.transfer_id)
-            return record.env.ref('stock.action_report_delivery').report_action(record.transfer_id)
+        """
+        Arıza kayıt raporunu yazdırır (TEK BELGE).
+
+        Kargo barkod şeridi rapora gömülüdür (report_ariza_kayit.xml):
+        Aras barkodu oluşmuşsa formun üstünde basılır, ayrıca Kargo Çıktısı
+        almaya gerek kalmaz.
+        """
         teknik_servis_adres = record.teknik_servis_adres
         ctx = dict(record.env.context)
         ctx['teknik_servis_adres'] = teknik_servis_adres
@@ -83,16 +77,9 @@ class ArizaPrintService:
 
     @staticmethod
     def action_print_kargo_ciktisi(record, a4=False):
-        """Müşteri ürünü iade kargosunun Kargo Çıktısı raporunu basar (A5 veya A4)"""
-        picking = ArizaPrintService._get_iade_picking(record)
-        report_name = KARGO_CIKTISI_A4_REPORT if a4 else KARGO_CIKTISI_REPORT
-        report = record.env['ir.actions.report'].sudo().search([
-            ('model', '=', 'stock.picking'),
-            ('report_name', '=', report_name),
-        ], limit=1)
-        if not report:
-            raise UserError(_(
-                'Kargo Çıktısı raporu bu sunucuda tanımlı değil: %s\n'
-                'Bu rapor Studio kaydıdır; staging/canlı veritabanında bulunmalıdır.'
-            ) % report_name)
-        return report.report_action(picking)
+        """Kargo Çıktısı raporunu basar (A5 veya A4, modülün kendi şablonu)"""
+        # Önce picking/barkod kontrolü: yoksa yönlendiren UserError fırlatır
+        ArizaPrintService._get_iade_picking(record)
+        xmlid = ('ariza_onarim.action_report_kargo_ciktisi_a4' if a4
+                 else 'ariza_onarim.action_report_kargo_ciktisi')
+        return record.env.ref(xmlid).report_action(record)

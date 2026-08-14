@@ -2,14 +2,18 @@
 <odoo>
     <data noupdate="1">
         <!--
-            Müşteri ürünü iade kargo sevkiyatlarında kullanılan stok-dışı kalem.
-            Consumable olduğu için envanteri etkilemez; weight=1.0 sayesinde
-            picking'in shipping_weight değeri 0 olmaz (Aras booking için gerekli).
-            Gerçek ağırlık farklıysa kullanıcı picking üzerinde düzeltebilir.
+            Müşteri ürünü kargo sevkiyatlarında (gidiş + iade) kullanılan
+            stok-dışı kalem. Consumable olduğu için envanteri etkilemez;
+            weight=1.0 sayesinde picking'in shipping_weight değeri 0 olmaz
+            (Aras booking için gerekli). Gerçek ağırlık farklıysa kullanıcı
+            picking üzerinde düzeltebilir.
+            NOT: Kod 2026-08-14'te ARZ-IADE-KARGO -> ARZ-KARGO yapıldı (gidiş
+            kargosunda "İADE" ibaresi yanıltıcıydı); mevcut DB'lerde noupdate
+            nedeniyle kayıt elle/RPC ile güncellenir.
         -->
         <record id="product_musteri_urunu_kargo" model="product.product">
             <field name="name">Müşteri Ürünü (Kargo)</field>
-            <field name="default_code">ARZ-IADE-KARGO</field>
+            <field name="default_code">ARZ-KARGO</field>
             <field name="type">consu</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="sale_ok" eval="False"/>

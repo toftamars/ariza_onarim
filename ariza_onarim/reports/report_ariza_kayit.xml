@@ -140,7 +140,36 @@
             <t t-set="merkezi_satis_geri_gonderim" t-value="merkezi_satis and onarim_baslatildi"/>
             <!-- DEPO ARIZA: Sadece arıza modülüne özgü sanal analitik hesap -->
             <t t-set="depo_ariza" t-value="o.analitik_hesap_id and o.analitik_hesap_id.is_ariza_only"/>
-            
+
+            <!-- KARGO BARKOD ŞERİDİ (tek belge): Aras kargo transferi doğrulanıp
+                 barkod oluştuğunda arıza formunun üstünde basılır - ayrıca
+                 Kargo Çıktısı almaya gerek kalmaz. -->
+            <t t-set="kargo_picking" t-value="(o.iade_transfer_id or o.transfer_id) if o.ariza_tipi == 'musteri' else o.transfer_id"/>
+            <t t-if="kargo_picking and kargo_picking.state != 'cancel' and kargo_picking.carrier_tracking_ref">
+                <table style="width:100%; text-align:center; border:2px solid #000; margin-bottom:12px;">
+                    <tr>
+                        <td align="center" style="width:35%; padding:6px;">
+                            <span t-field="kargo_picking.name"
+                                  t-options="{'widget': 'barcode', 'width': 750, 'height': 125, 'img_style': 'width:260px;height:55px;'}"/>
+                            <br/>
+                            <b><span t-field="kargo_picking.name"/></b>
+                        </td>
+                        <td align="center" style="width:30%; padding:6px;">
+                            <b>KARGO BARKODU</b><br/>
+                            <t t-if="kargo_picking.carrier_id.delivery_type == 'aras'">
+                                <t t-call="ariza_onarim.aras_kargo_logo"/>
+                            </t>
+                        </td>
+                        <td align="center" style="width:35%; padding:6px;">
+                            <span t-field="kargo_picking.carrier_tracking_ref"
+                                  t-options="{'widget': 'barcode', 'width': 750, 'height': 125, 'img_style': 'width:260px;height:55px;'}"/>
+                            <br/>
+                            <b><span t-field="kargo_picking.carrier_tracking_ref"/></b>
+                        </td>
+                    </tr>
+                </table>
+            </t>
+
             <div class="row mb-4">
                 <div class="col-6">
                     <div class="text-left" style="border: 2px solid #000; background-color: #f0f0f0; font-weight: bold; padding: 10px; line-height: 1.5; min-height: 120px;">

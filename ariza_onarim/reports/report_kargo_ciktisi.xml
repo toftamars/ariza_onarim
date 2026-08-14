@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!--
-        Kargo Çıktısı raporları — arıza kaydının standart "Yazdır" menüsünde görünür.
-        İçerik, stock.picking üzerindeki mevcut Kargo Çıktısı QWeb document şablonlarına
-        (Studio kaydı, render zamanında çözülür) t-call ile bağlanır:
-        - A5: stock_picking.x_kargo_ciktisi_listesi_document
-        - A4: stock_picking.x_kargo_ciktisi_listesi_document_A4
-        Basılan picking: müşteri ürününde iade kargosu (iade_transfer_id),
-        mağaza ürününde arıza transferi (transfer_id).
+        Kargo Çıktısı raporları - arıza kaydının standart "Yazdır" menüsünde görünür.
+        Şablon modülün KENDİ şablonudur (Studio'ya t-call bağımlılığı 2026-08-14'te
+        kaldırıldı): müşteri ürünlerinde tabloda temsili kalem (ARZ-KARGO) yerine
+        GERÇEK ürün bilgisi (marka + ürün + model + seri no) basılır.
+        Basılan picking: müşteri ürününde iade kargosu (iade_transfer_id) öncelikli,
+        yoksa gidiş kargosu (transfer_id); mağaza ürününde arıza transferi.
     -->
 
     <!-- Paperformat'lar (Studio raporlarıyla birebir aynı değerler) -->
@@ -34,29 +33,162 @@
         <field name="dpi">90</field>
     </record>
 
-    <!-- QWeb sarmalayıcı şablonlar (2026-08-14 staging'de doğrulandı).
-         DİKKAT 1: Studio document şablonları içlerinde kendi t-foreach="docs"
-         döngüsünü çalıştırır; bu yüzden t-call öncesi `docs` değişkeni
-         basılacak PICKING kayıt setine çevrilir.
-         DİKKAT 2: Dış çerçeve Studio ana şablonuyla aynı olmalı
-         (web.basic_layout) — web.html_container kullanılınca PDF'te Türkçe
-         karakterler bozuluyor. Sayfa sonu yalnızca kayıtlar ARASINA konur
-         (boş son sayfa oluşmasın diye). -->
+    <!-- Aras Kargo logosu (tek yerde gömülü; kargo çıktısı + arıza kayıt barkod şeridi kullanır) -->
+    <template id="aras_kargo_logo">
+        <img src="data:image/png;base64,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" style="max-height: 50px;" alt="Aras Kargo"/>
+    </template>
+
+    <!--
+        Kargo Çıktısı belge gövdesi.
+        Çağıran şablon `ariza` (ariza.kayit) ve `kargo_picking` (stock.picking)
+        değişkenlerini set etmiş olmalı.
+    -->
+    <template id="report_kargo_ciktisi_document">
+        <div class="page">
+            <!-- Barkod şeridi: transfer no + firma logosu + Aras barkodu -->
+            <table class="border" style="width:100%;text-align:justify;">
+                <tr>
+                    <td align="center" style="width:35%;">
+                        <span t-field="kargo_picking.name"
+                              t-options="{'widget': 'barcode', 'width': 750, 'height': 125, 'img_style': 'width:300px;height:60px;'}"/>
+                        <br/>
+                        <b><span t-field="kargo_picking.name"/></b>
+                        <br/>
+                        <b>IRS.NO: <span t-esc="kargo_picking.document_number or ''"/></b>
+                    </td>
+                    <td align="center" style="width:30%;">
+                        <img t-if="kargo_picking.company_id.logo"
+                             t-att-src="image_data_uri(kargo_picking.company_id.logo)"
+                             style="max-height: 70px;"
+                             alt="Logo"/>
+                    </td>
+                    <td align="center" style="width:35%;">
+                        <t t-if="kargo_picking.carrier_tracking_ref">
+                            <span t-field="kargo_picking.carrier_tracking_ref"
+                                  t-options="{'widget': 'barcode', 'width': 750, 'height': 125, 'img_style': 'width:300px;height:60px;'}"/>
+                            <br/>
+                            <b><span t-field="kargo_picking.carrier_tracking_ref"/></b>
+                            <br/>
+                            <t t-if="kargo_picking.carrier_id.delivery_type == 'aras'">
+                                <t t-call="ariza_onarim.aras_kargo_logo"/>
+                            </t>
+                        </t>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <!-- Alıcı / Gönderici -->
+            <table style="width:100%;font-size: 13px;">
+                <tr>
+                    <td style="width:50%;">
+                        <b>Alıcı: <span t-field="kargo_picking.partner_id.name"/></b>
+                        <br/>
+                        <span t-field="kargo_picking.partner_id.street"/>
+                        <span t-field="kargo_picking.partner_id.street2"/>
+                        <br/>
+                        <span t-field="kargo_picking.partner_id.city"/> /
+                        <span t-field="kargo_picking.partner_id.state_id.name"/> /
+                        <span t-field="kargo_picking.partner_id.country_id"/>
+                        <br/>
+                        <t t-if="kargo_picking.partner_id.phone">
+                            Tel: <span t-field="kargo_picking.partner_id.phone"/><br/>
+                        </t>
+                        <t t-if="kargo_picking.partner_id.mobile">
+                            Mobil: <span t-field="kargo_picking.partner_id.mobile"/>
+                        </t>
+                    </td>
+                    <td style="width:20%;"></td>
+                    <td style="width:30%;">
+                        <t t-set="gonderici" t-value="kargo_picking.location_id.warehouse_id.partner_id or kargo_picking.company_id"/>
+                        <b>Gönderici: <span t-field="gonderici.name"/></b>
+                        <br/>
+                        <span t-field="gonderici.street"/>
+                        <span t-field="gonderici.street2"/>
+                        <br/>
+                        <span t-field="gonderici.city"/> /
+                        <span t-field="gonderici.state_id.name"/> /
+                        <span t-field="gonderici.country_id"/>
+                        <br/>
+                        Tel: <span t-field="gonderici.phone"/>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <!-- Ürün tablosu -->
+            <table class="table table-sm table-striped" style="width:100%;font-size: 13px;">
+                <thead>
+                    <tr>
+                        <th style="width:5%;" align="center"><strong>Sıra</strong></th>
+                        <th style="width:20%;" align="left"><strong>Ürün Kodu</strong></th>
+                        <th style="width:65%;" align="left"><strong>Ürün</strong></th>
+                        <th style="width:5%;" align="right"><strong>Miktar</strong></th>
+                        <th style="width:5%;" align="right"><strong>Birim</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Müşteri ürünü: kalem temsili olduğundan GERÇEK ürün arıza kaydından yazılır -->
+                    <t t-if="ariza.ariza_tipi == 'musteri'">
+                        <tr>
+                            <td style="text-align:center;">1</td>
+                            <td style="vertical-align: middle;">
+                                <span t-esc="(ariza.invoice_line_id.product_id.default_code if ariza.invoice_line_id and ariza.invoice_line_id.product_id else '') or '-'"/>
+                            </td>
+                            <td>
+                                <span t-esc="' - '.join([p for p in [(ariza.marka_id.name if ariza.marka_id else (ariza.marka_manu or '')), (ariza.urun or ''), (ariza.model or '')] if p])"/>
+                                <t t-if="ariza.seri_no">
+                                    <br/><span style="font-size:11px;">Seri No: <t t-esc="ariza.seri_no"/></span>
+                                </t>
+                            </td>
+                            <td align="right">1</td>
+                            <td align="right">Adet</td>
+                        </tr>
+                    </t>
+                    <!-- Mağaza ürünü: transfer kalemleri zaten gerçek ürünlerdir -->
+                    <t t-else="">
+                        <t t-set="sira" t-value="0"/>
+                        <t t-foreach="kargo_picking.move_line_ids_without_package" t-as="ml">
+                            <t t-set="sira" t-value="sira + 1"/>
+                            <tr>
+                                <td style="text-align:center;"><span t-esc="sira"/></td>
+                                <td style="vertical-align: middle;">
+                                    <span t-field="ml.product_id.default_code"/>
+                                </td>
+                                <td><span t-field="ml.product_id.name"/></td>
+                                <td align="right">
+                                    <t t-if="kargo_picking.state == 'done'">
+                                        <span t-field="ml.qty_done" t-options='{"widget": "float", "precision": 0}'/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-field="ml.product_uom_qty" t-options='{"widget": "float", "precision": 0}'/>
+                                    </t>
+                                </td>
+                                <td align="right"><span t-field="ml.product_uom_id"/></td>
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <!-- QWeb sarmalayıcılar. Dış çerçeve web.basic_layout olmalı
+         (web.html_container PDF'te Türkçe karakterleri bozuyor - 2026-08-14).
+         Sayfa sonu yalnızca kayıtlar ARASINA konur (boş son sayfa oluşmasın). -->
     <template id="report_kargo_ciktisi">
         <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
                 <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
-                    <t t-set="docs" t-value="kargo_picking"/>
-                    <t t-call="stock_picking.x_kargo_ciktisi_listesi_document"/>
+                    <t t-call="ariza_onarim.report_kargo_ciktisi_document"/>
                 </t>
                 <t t-else="">
                     <div class="page">
                         <h3>Kargo transferi bulunamadı</h3>
                         <p>Arıza kaydı <strong t-esc="ariza.name"/> için basılacak kargo transferi yok.</p>
-                        <p>Müşteri ürününde iade kargosu, teslim adımında "Adrese Gönderilsin"
-                           seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
+                        <p>Gidiş kargosu ONAYLA adımında (kargo metodu seçiliyse), iade kargosu
+                           teslim adımında "Adrese Gönderilsin" seçildiğinde otomatik oluşur;
+                           Aras barkodu transfer doğrulanınca gelir.</p>
                     </div>
                 </t>
                 <p t-if="not ariza_last" style="page-break-after: always;"/>
@@ -69,15 +201,15 @@
             <t t-foreach="ariza_docs" t-as="ariza">
                 <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
-                    <t t-set="docs" t-value="kargo_picking"/>
-                    <t t-call="stock_picking.x_kargo_ciktisi_listesi_document_A4"/>
+                    <t t-call="ariza_onarim.report_kargo_ciktisi_document"/>
                 </t>
                 <t t-else="">
                     <div class="page">
                         <h3>Kargo transferi bulunamadı</h3>
                         <p>Arıza kaydı <strong t-esc="ariza.name"/> için basılacak kargo transferi yok.</p>
-                        <p>Müşteri ürününde iade kargosu, teslim adımında "Adrese Gönderilsin"
-                           seçildiğinde otomatik oluşur; Aras barkodu transfer doğrulanınca gelir.</p>
+                        <p>Gidiş kargosu ONAYLA adımında (kargo metodu seçiliyse), iade kargosu
+                           teslim adımında "Adrese Gönderilsin" seçildiğinde otomatik oluşur;
+                           Aras barkodu transfer doğrulanınca gelir.</p>
                     </div>
                 </t>
                 <p t-if="not ariza_last" style="page-break-after: always;"/>
