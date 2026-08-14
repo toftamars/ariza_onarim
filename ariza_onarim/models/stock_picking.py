@@ -146,6 +146,34 @@ class StockPicking(models.Model):
 
         return result
 
+    # Aras API'sinin TradingWaybillNumber (picking adı) için kabul ettiği azami uzunluk
+    ARAS_WAYBILL_MAX_LEN = 16
+
+    def send_to_shipper(self):
+        """
+        Aras booking sırasında TradingWaybillNumber olarak picking adı gönderilir
+        ve Aras 16 karakterden uzun değeri reddeder. Tamir transfer adları bu
+        limiti aşabildiğinden (örn. 'AKSY/OUTTMR/01420' = 17 karakter), arıza
+        transferlerinde booking süresince ad geçici olarak '/'sız kısa forma
+        çevrilir ve işlem bitince orijinal ad geri yüklenir.
+        (2026-08-14 staging'de doğrulandı: kısa adla booking başarılı.)
+        """
+        for picking in self:
+            name = picking.name or ''
+            is_aras = picking.carrier_id and picking.carrier_id.delivery_type == 'aras'
+            if is_aras and picking._is_repair_transfer() and len(name) > self.ARAS_WAYBILL_MAX_LEN:
+                short_name = name.replace('/', '')[-self.ARAS_WAYBILL_MAX_LEN:]
+                _logger.info(
+                    f"[REPAIR MODULE] Aras booking için ad geçici kısaltıldı: {name} -> {short_name}"
+                )
+                try:
+                    picking.name = short_name
+                    super(StockPicking, picking).send_to_shipper()
+                finally:
+                    picking.name = name
+            else:
+                super(StockPicking, picking).send_to_shipper()
+
     def button_validate(self):
         """
         Override transfer validation to integrate with repair workflow.
