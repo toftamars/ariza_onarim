@@ -258,6 +258,27 @@ class PartnerHelper:
         if teknik_servis in partner_map:
             return partner_map[teknik_servis](env, raise_if_not_found)
 
+        # Diğer isimli teknik servisler: rehber kartı DARALTILMIŞ terimle aranır.
+        # Kısa/genel terim kullanılmaz ('Evren' araması müşteri kartları getiriyor);
+        # terimler 2026-08-14'te canlı rehberle doğrulandı (Prohan/ERK mevcut kartlar,
+        # NGaudio/MATT Guitar/Evren Amfi kartları eski sistem adresleriyle açıldı).
+        named_searches = {
+            TeknikServis.PROHAN_ELK: ['Prohan Elektronik'],
+            TeknikServis.NGAUDIO: ['NGaudio Gökhan Ünsal'],
+            TeknikServis.ERK_ENSTRUMAN: ['ERAY KONAK ERK ENSTRÜMAN SERVİSİ', 'Erk Enstrüman'],
+            TeknikServis.MATT_GUITAR: ['MATT Guitar'],
+            TeknikServis.EVREN_AMFI_ONARIM: ['Evren Amfi'],
+        }
+        if teknik_servis in named_searches:
+            terms = named_searches[teknik_servis]
+            return PartnerHelper._find_partner_flexible(
+                env,
+                [('name', 'ilike', terms[0])],
+                fallback_searches=[[('name', 'ilike', t)] for t in terms[1:]],
+                raise_if_not_found=raise_if_not_found,
+                partner_type=teknik_servis,
+            )
+
         if raise_if_not_found:
             raise UserError(
                 _("Teknik servis için partner bulunamadı: %s") % teknik_servis

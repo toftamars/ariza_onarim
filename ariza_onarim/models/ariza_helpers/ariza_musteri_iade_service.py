@@ -241,10 +241,22 @@ class ArizaMusteriIadeService:
 
         alici = ArizaMusteriIadeService.get_teknik_servis_partner(ariza)
         if not alici:
-            raise UserError(_(
-                'Gidiş kargosu için teknik servis partneri bulunamadı!\n'
-                'Teknik servis: %s'
-            ) % (ariza.teknik_servis or '-'))
+            # ONAYLA akışını BLOKLAMA (2026-08-14): rehber kartı eksikse kayıt
+            # yine açılır; kargo transferi kart açıldıktan sonra elle oluşturulur.
+            _logger.warning(
+                f"[MUSTERI GIDIS] Teknik servis rehber kartı yok, gidiş kargosu atlandı: "
+                f"{ariza.teknik_servis} (Arıza: {ariza.name})"
+            )
+            ariza.message_post(
+                body=(
+                    f"⚠️ <b>Gidiş kargo transferi oluşturulamadı:</b> "
+                    f"'{ariza.teknik_servis or '-'}' için rehberde kart bulunamadı.<br/>"
+                    f"Rehber kartı açıldıktan sonra kargo transferini elle oluşturabilirsiniz; "
+                    f"kayıt akışı bu durumdan etkilenmez."
+                ),
+                message_type='notification'
+            )
+            return False
 
         note = (
             f"Arıza Kaydı: {ariza.name}\n"
