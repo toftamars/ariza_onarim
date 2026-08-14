@@ -1,6 +1,6 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.5',
+    'version': '1.0.6',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
@@ -42,6 +42,7 @@
         'data/sequence.xml',
         'data/cron.xml',
         'data/mail_template.xml',
+        'data/iade_kargo_product.xml',
         'security/ir.model.access.csv',
         'views/menu_views.xml',
         'views/ariza_kayit_views.xml',

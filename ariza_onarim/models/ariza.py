@@ -38,6 +38,7 @@ from .ariza_helpers import (
     ariza_onchange_helper,
     ariza_print_service,
     ariza_write_helper,
+    ariza_musteri_iade_service,
 )
 
 _logger = logging.getLogger(__name__)
@@ -61,6 +62,11 @@ class ArizaKayit(models.Model):
         default=lambda self: _('New')
     )
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
+    iade_transfer_id = fields.Many2one(
+        'stock.picking', string='İade Kargo Transferi', readonly=True, copy=False, tracking=True,
+        help='Müşteri ürünü adrese gönderilirken oluşturulan Aras iade kargo transferi. '
+             'Aras barkodu bu transfer doğrulandığında oluşur.'
+    )
     islem_tipi = fields.Selection(
         IslemTipi.SELECTION,
         string='İşlem Tipi',
@@ -548,6 +554,21 @@ class ArizaKayit(models.Model):
 
     def action_print_invoice(self):
         return ariza_print_service.ArizaPrintService.action_print_invoice(self)
+
+    def action_print_kargo_ciktisi(self):
+        """Müşteri ürünü iade kargosunun Kargo Çıktısı (A5) raporunu basar"""
+        self.ensure_one()
+        return ariza_print_service.ArizaPrintService.action_print_kargo_ciktisi(self, a4=False)
+
+    def action_print_kargo_ciktisi_a4(self):
+        """Müşteri ürünü iade kargosunun Kargo Çıktısı - A4 raporunu basar"""
+        self.ensure_one()
+        return ariza_print_service.ArizaPrintService.action_print_kargo_ciktisi(self, a4=True)
+
+    def create_musteri_iade_transfer(self):
+        """Müşteri ürünü için Aras iade kargo transferi oluşturur (Adrese Gönderim)"""
+        self.ensure_one()
+        return ariza_musteri_iade_service.ArizaMusteriIadeService.create_iade_picking(self)
 
     @api.onchange('magaza_urun_id')
     def _onchange_magaza_urun_id(self):

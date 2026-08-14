@@ -11,6 +11,9 @@
                         <button name="action_personel_onayla" string="ONAYLA" type="object" class="oe_highlight" states="draft"/>
                         <button name="action_personel_onayla" string="TAMAMLA" type="object" class="oe_highlight" states="onaylandi" attrs="{'invisible': [('state', '=', 'kilitli')]}"/>
                         <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': [('teslim_al_visible', '=', False)]}" confirm="Ürünü teslim almak istediğinizden emin misiniz?"/>
+                        <!-- Müşteri ürünü iade kargosu çıktıları (her adımda görünür) -->
+                        <button name="action_print_kargo_ciktisi" string="Kargo Çıktısı" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                        <button name="action_print_kargo_ciktisi_a4" string="Kargo Çıktısı - A4" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,onaylandi,tamamlandi,onarim_disi"/>
                     </header>
                     <sheet>

@@ -170,7 +170,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
             ariza.contact_id = self.musteri_adresi_id.id  # Teslimat adresini contact_id'ye kaydet
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
-            
+
+            # Aras iade kargo transferi oluştur (barkod kaynağı; validate'te barkod oluşur)
+            ariza.create_musteri_iade_transfer()
+
             # Adrese gönderim için SMS gönder (Üçüncü SMS)
             has_phone = ariza.partner_id and (
                 (ariza.partner_id.mobile or ariza.partner_id.phone) or

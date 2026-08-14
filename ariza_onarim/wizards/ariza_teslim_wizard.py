@@ -79,6 +79,10 @@ class ArizaTeslimWizard(models.TransientModel):
             ariza.contact_id = self.musteri_adresi_id.id
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
             ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
+
+            # Aras iade kargo transferi oluştur (barkod kaynağı; validate'te barkod oluşur)
+            if ariza.ariza_tipi == 'musteri':
+                ariza.create_musteri_iade_transfer()
         else:
             ariza.teslim_alan = self.teslim_alan
 

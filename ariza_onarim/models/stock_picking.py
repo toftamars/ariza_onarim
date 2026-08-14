@@ -28,6 +28,14 @@ class StockPicking(models.Model):
     """
     _inherit = 'stock.picking'
 
+    is_ariza_musteri_iade = fields.Boolean(
+        string='Arıza Müşteri İade Kargosu',
+        default=False,
+        copy=False,
+        help='Arıza modülünden oluşturulan müşteri iade kargo transferi. '
+             'Bu transferler e-İrsaliye üretmez (Matbu kalır).'
+    )
+
     def _is_repair_transfer(self, origin=None):
         """
         Check if this transfer is related to repair module.
@@ -43,13 +51,24 @@ class StockPicking(models.Model):
             origin = self.origin or ''
         return self.env.context.get('from_ariza_onarim') or ('ARZ' in str(origin).upper())
 
+    def _get_ariza_edespatch_type(self):
+        """
+        Arıza transferi için beklenen e-İrsaliye tipini döner.
+
+        - Müşteri iade kargosu → 'printed' (Matbu): satış yok, e-İrsaliye üretilmez.
+        - Mağaza arıza transferleri → 'edespatch' (E-İrsaliye, Foriba akışı).
+        """
+        self.ensure_one()
+        return 'printed' if self.is_ariza_musteri_iade else 'edespatch'
+
     @api.model_create_multi
     def create(self, vals_list):
         """
         Override create to set e-Dispatch type for repair transfers.
 
-        Automatically sets edespatch_delivery_type to 'printed' (Matbu)
-        for all transfers originating from repair module.
+        - Müşteri iade kargoları (from_ariza_musteri_iade / is_ariza_musteri_iade):
+          'printed' (Matbu) — e-İrsaliye üretilmez.
+        - Diğer arıza transferleri: 'edespatch' (E-İrsaliye).
 
         Args:
             vals_list (list): List of dictionaries containing field values.
@@ -57,32 +76,40 @@ class StockPicking(models.Model):
         Returns:
             recordset: Created stock.picking records.
         """
+        iade_context = self.env.context.get('from_ariza_musteri_iade')
         for vals in vals_list:
             origin = str(vals.get('origin', ''))
-            if self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
+            is_iade = iade_context or vals.get('is_ariza_musteri_iade')
+            if is_iade:
+                vals['is_ariza_musteri_iade'] = True
                 vals['edespatch_delivery_type'] = 'printed'
-                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'Printed' - Origin: {origin}")
+                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'Printed' (müşteri iade) - Origin: {origin}")
+            elif self.env.context.get('from_ariza_onarim') or ('ARZ' in origin.upper()):
+                vals['edespatch_delivery_type'] = 'edespatch'
+                _logger.info(f"[REPAIR MODULE] e-Dispatch set to 'E-Despatch' - Origin: {origin}")
 
         records = super().create(vals_list)
 
         # Post-creation validation and notification
         for record in records:
             if record._is_repair_transfer():
-                if record.edespatch_delivery_type != 'printed':
+                expected = record._get_ariza_edespatch_type()
+                if record.edespatch_delivery_type != expected:
                     _logger.warning(
                         f"[POST-CREATE] e-Dispatch type changed! "
                         f"Origin: {record.origin}, Current: {record.edespatch_delivery_type}. "
-                        f"Correcting to 'printed'..."
+                        f"Correcting to '{expected}'..."
                     )
-                    record.write({'edespatch_delivery_type': 'printed'})
-                    _logger.info(f"[POST-CREATE] Corrected to 'Printed': {record.name}")
+                    record.write({'edespatch_delivery_type': expected})
+                    _logger.info(f"[POST-CREATE] Corrected to '{expected}': {record.name}")
 
                 # Add message to chatter
                 try:
-                    record.message_post(
-                        body="✅ Teslimat Türü: Matbu (Arıza Modülü - Otomatik)",
-                        message_type='notification'
-                    )
+                    if record.is_ariza_musteri_iade:
+                        mesaj = "✅ Teslimat Türü: Matbu (Müşteri İade Kargosu - e-İrsaliye üretilmez)"
+                    else:
+                        mesaj = "✅ Teslimat Türü: E-İrsaliye (Arıza Modülü - Otomatik)"
+                    record.message_post(body=mesaj, message_type='notification')
                 except Exception as e:
                     _logger.debug(f"Could not post message to chatter: {e}")
 
@@ -93,7 +120,9 @@ class StockPicking(models.Model):
         Override write to protect e-Dispatch type for repair transfers.
 
         Prevents manual changes to edespatch_delivery_type for repair module
-        transfers by resetting it to 'printed' after any write operation.
+        transfers by resetting it to the expected value after any write.
+        Tamamlanmış/iptal edilmiş transferlere dokunulmaz (geçmiş yasal
+        belgeler geriye dönük değiştirilmez).
 
         Args:
             vals (dict): Dictionary containing field values to update.
@@ -103,17 +132,20 @@ class StockPicking(models.Model):
         """
         result = super().write(vals)
 
-        # Post-write validation for repair transfers
+        # Post-write validation for repair transfers (yalnızca açık transferler)
         for record in self:
+            if record.state in ('done', 'cancel'):
+                continue
             if record._is_repair_transfer():
-                if record.edespatch_delivery_type != 'printed':
+                expected = record._get_ariza_edespatch_type()
+                if record.edespatch_delivery_type != expected:
                     _logger.warning(
                         f"[POST-WRITE] e-Dispatch type was changed manually! "
                         f"Origin: {record.origin}, Current: {record.edespatch_delivery_type}. "
-                        f"Reverting to 'printed'..."
+                        f"Reverting to '{expected}'..."
                     )
-                    super(StockPicking, record).write({'edespatch_delivery_type': 'printed'})
-                    _logger.info(f"[POST-WRITE] Reverted to 'Printed': {record.name}")
+                    super(StockPicking, record).write({'edespatch_delivery_type': expected})
+                    _logger.info(f"[POST-WRITE] Reverted to '{expected}': {record.name}")
 
         return result
 

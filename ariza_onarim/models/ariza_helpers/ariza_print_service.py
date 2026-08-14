@@ -6,7 +6,11 @@ Arıza Print Service - Yazdırma işlemleri
 from odoo import _
 from odoo.exceptions import UserError
 
-from ..ariza_constants import TransferMetodu
+from ..ariza_constants import ArizaTipi, TransferMetodu
+
+# Kargo Çıktısı raporları (Studio kaydı, DB'de tanımlı — repoda değil)
+KARGO_CIKTISI_REPORT = 'stock_picking.x_kargo_ciktisi_listesi'
+KARGO_CIKTISI_A4_REPORT = 'stock_picking.x_kargo_ciktisi_listesi_A4'
 
 
 class ArizaPrintService:
@@ -50,3 +54,44 @@ class ArizaPrintService:
         """Transfer irsaliyesi yazdır"""
         if record.transfer_id:
             return record.env.ref('stock.action_report_delivery').report_action(record.transfer_id)
+
+    @staticmethod
+    def _get_iade_picking(record):
+        """
+        Müşteri ürününün iade kargo picking'ini döner.
+
+        Picking yoksa veya barkod henüz oluşmadıysa kullanıcıyı yönlendiren
+        UserError fırlatır (yazdırma işlemi yan etkiyle sevkiyat OLUŞTURMAZ).
+        """
+        if record.ariza_tipi != ArizaTipi.MUSTERI:
+            raise UserError(_('Kargo Çıktısı yalnızca müşteri ürünleri için basılabilir.'))
+        picking = record.iade_transfer_id
+        if not picking or picking.state == 'cancel':
+            raise UserError(_(
+                'Kargo çıktısı basılamaz: Bu kayıt için henüz iade kargo transferi yok.\n\n'
+                'İade kargosu, teslim adımında "Adrese Gönderilsin" seçildiğinde '
+                'otomatik oluşturulur. Önce teslim/gönderim adımını tamamlayın.'
+            ))
+        if not picking.carrier_tracking_ref:
+            raise UserError(_(
+                'Kargo çıktısı basılamaz: Aras barkodu henüz oluşmadı.\n\n'
+                'Barkod, iade transferi (%s) doğrulandığında (validate) otomatik oluşur. '
+                'Lütfen önce transferi doğrulayın.'
+            ) % picking.name)
+        return picking
+
+    @staticmethod
+    def action_print_kargo_ciktisi(record, a4=False):
+        """Müşteri ürünü iade kargosunun Kargo Çıktısı raporunu basar (A5 veya A4)"""
+        picking = ArizaPrintService._get_iade_picking(record)
+        report_name = KARGO_CIKTISI_A4_REPORT if a4 else KARGO_CIKTISI_REPORT
+        report = record.env['ir.actions.report'].sudo().search([
+            ('model', '=', 'stock.picking'),
+            ('report_name', '=', report_name),
+        ], limit=1)
+        if not report:
+            raise UserError(_(
+                'Kargo Çıktısı raporu bu sunucuda tanımlı değil: %s\n'
+                'Bu rapor Studio kaydıdır; staging/canlı veritabanında bulunmalıdır.'
+            ) % report_name)
+        return report.report_action(picking)

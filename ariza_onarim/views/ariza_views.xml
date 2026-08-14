@@ -19,6 +19,9 @@
                     <!-- Kullanıcılar için Onayla butonu - mevcut davranışı koruma -->
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}'/>
+                    <!-- Müşteri ürünü iade kargosu çıktıları (her adımda görünür) -->
+                    <button name="action_print_kargo_ciktisi" string="Kargo Çıktısı" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                    <button name="action_print_kargo_ciktisi_a4" string="Kargo Çıktısı - A4" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                     <!-- İptal butonu - teknik ekip için -->
                     <button name="action_iptal" string="İptal" type="object" class="btn-danger" attrs="{'invisible': [('state', 'in', ['iptal', 'teslim_edildi'])]}" confirm="Bu arıza kaydını iptal etmek istediğinizden emin misiniz?"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,personel_onay,kabul_edildi,teknik_onarim,onaylandi,yonetici_tamamlandi,tamamlandi,teslim_edildi,onarim_disi"/>
@@ -200,6 +203,9 @@
                     <!-- Kullanıcılar için Onayla butonu - mevcut davranışı koruma -->
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
+                    <!-- Müşteri ürünü iade kargosu çıktıları (her adımda görünür) -->
+                    <button name="action_print_kargo_ciktisi" string="Kargo Çıktısı" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                    <button name="action_print_kargo_ciktisi_a4" string="Kargo Çıktısı - A4" type="object" class="btn-secondary" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                     <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
                     <!-- Müşteri ürünü için Hazır butonu - 2. SMS gönderir - Yöneticiler ve kullanıcılar için görünür -->
                     <button name="action_teslim_al_musteri" string="Hazır" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" confirm="Hazır butonuna basıldığında müşteriye durum bilgilendirmesi için sms gönderilecektir. Devam etmek istiyor musunuz?"/>
@@ -232,6 +238,7 @@
                             <field name="is_manager" invisible="1"/>
                             <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
+                            <field name="iade_transfer_id" widget="many2one" options='{"no_create": true}' attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('iade_transfer_id', '=', False)]}"/>
                             <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options='{"no_open": true, "no_create": true}'/>
                         </group>
                         <group>
