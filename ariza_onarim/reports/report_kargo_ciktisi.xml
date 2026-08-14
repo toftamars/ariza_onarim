@@ -34,12 +34,17 @@
         <field name="dpi">90</field>
     </record>
 
-    <!-- QWeb sarmalayıcı şablonlar -->
+    <!-- QWeb sarmalayıcı şablonlar.
+         DİKKAT: Studio document şablonları içlerinde kendi t-foreach="docs"
+         döngüsünü çalıştırır; bu yüzden t-call öncesi `docs` değişkeni
+         basılacak PICKING kayıt setine çevrilir (2026-08-14 staging'de doğrulandı). -->
     <template id="report_kargo_ciktisi">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="ariza">
-                <t t-set="doc" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
-                <t t-if="doc">
+            <t t-set="ariza_docs" t-value="docs"/>
+            <t t-foreach="ariza_docs" t-as="ariza">
+                <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-if="kargo_picking">
+                    <t t-set="docs" t-value="kargo_picking"/>
                     <t t-call="stock_picking.x_kargo_ciktisi_listesi_document"/>
                 </t>
                 <t t-else="">
@@ -55,9 +60,11 @@
     </template>
     <template id="report_kargo_ciktisi_a4">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="ariza">
-                <t t-set="doc" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
-                <t t-if="doc">
+            <t t-set="ariza_docs" t-value="docs"/>
+            <t t-foreach="ariza_docs" t-as="ariza">
+                <t t-set="kargo_picking" t-value="ariza.iade_transfer_id if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-if="kargo_picking">
+                    <t t-set="docs" t-value="kargo_picking"/>
                     <t t-call="stock_picking.x_kargo_ciktisi_listesi_document_A4"/>
                 </t>
                 <t t-else="">
