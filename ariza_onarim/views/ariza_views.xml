@@ -231,7 +231,7 @@
                             <field name="teslim_al_visible" invisible="1"/>
                             <field name="is_manager" invisible="1"/>
                             <!-- Mağaza ürününde de görünür: Ücretsiz/Ücretli Kargo seçilirse transfere Aras atanır (barkod) -->
-                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])]}"/>
+                            <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])], 'required': [('ariza_tipi', 'in', ['musteri', 'magaza'])]}"/>
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="iade_transfer_id" widget="many2one" options='{"no_create": true}' attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('iade_transfer_id', '=', False)]}"/>
                             <field name="teslim_magazasi_id" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', 'not in', ['tamamlandi', 'teslim_edildi'])]}" options='{"no_open": true, "no_create": true}'/>

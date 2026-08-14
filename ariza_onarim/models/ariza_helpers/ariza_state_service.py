@@ -32,6 +32,10 @@ class ArizaStateService:
     @staticmethod
     def _personel_onayla_draft(record):
         """DRAFT -> PERSONEL_ONAY: transfer oluştur, SMS gönder"""
+        # Transfer metodu bilinçli olarak varsayılansız: kullanıcı seçmek zorunda
+        if record.ariza_tipi in (ArizaTipi.MUSTERI, ArizaTipi.MAGAZA) and not record.transfer_metodu:
+            raise UserError('Transfer Metodu seçmeniz zorunludur! (Araç / Ücretsiz Kargo / Ücretli Kargo)')
+
         record.state = ArizaStates.PERSONEL_ONAY
 
         if record.ariza_tipi == ArizaTipi.MAGAZA and not record.transfer_id:

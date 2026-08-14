@@ -67,6 +67,12 @@ class ArizaKayit(models.Model):
         help='Müşteri ürünü adrese gönderilirken oluşturulan Aras iade kargo transferi. '
              'Aras barkodu bu transfer doğrulandığında oluşur.'
     )
+    donus_transfer_id = fields.Many2one(
+        'stock.picking', string='Dönüş Kargo Transferi', readonly=True, copy=False, tracking=True,
+        help='Onarım sonrası teknik servisten mağazaya DÖNÜŞ Aras kargo transferi. '
+             'Gidiş transferinin tam tersidir; Aras karışıklığı olmasın diye YENİ barkod '
+             'bu transferle oluşur ve stok hareketi gidişi dengeler.'
+    )
     islem_tipi = fields.Selection(
         IslemTipi.SELECTION,
         string='İşlem Tipi',
@@ -95,7 +101,8 @@ class ArizaKayit(models.Model):
         TransferMetodu.SELECTION,
         string='Transfer Metodu',
         tracking=True,
-        default=TransferMetodu.ARAC
+        # Varsayılan bilinçli YOK (2026-08-14): kullanıcı seçmek zorunda
+        # (yanlışlıkla 'Araç' kalıp kargo barkodu atlanmasın diye)
     )
     partner_id = fields.Many2one('res.partner', string='Müşteri', tracking=True)
     analitik_hesap_id = fields.Many2one('account.analytic.account', string='Analitik Hesap', tracking=True, required=True)
@@ -574,6 +581,11 @@ class ArizaKayit(models.Model):
         """Müşteri ürünü için Aras iade kargo transferi oluşturur (Adrese Gönderim)"""
         self.ensure_one()
         return ariza_musteri_iade_service.ArizaMusteriIadeService.create_iade_picking(self)
+
+    def create_donus_kargo_transfer(self):
+        """Onarım sonrası teknik servis -> mağaza DÖNÜŞ Aras kargo transferi oluşturur"""
+        self.ensure_one()
+        return ariza_musteri_iade_service.ArizaMusteriIadeService.create_donus_picking(self)
 
     @api.onchange('magaza_urun_id')
     def _onchange_magaza_urun_id(self):

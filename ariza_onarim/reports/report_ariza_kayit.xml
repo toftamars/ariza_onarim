@@ -144,7 +144,8 @@
             <!-- KARGO BARKOD ŞERİDİ (tek belge): Aras kargo transferi doğrulanıp
                  barkod oluştuğunda arıza formunun üstünde basılır - ayrıca
                  Kargo Çıktısı almaya gerek kalmaz. -->
-            <t t-set="kargo_picking" t-value="(o.iade_transfer_id or o.transfer_id) if o.ariza_tipi == 'musteri' else o.transfer_id"/>
+            <!-- En güncel kargo ayağı basılır: iade (müşteriye) > dönüş (mağazaya) > gidiş (servise) -->
+            <t t-set="kargo_picking" t-value="(o.iade_transfer_id or o.donus_transfer_id or o.transfer_id) if o.ariza_tipi == 'musteri' else o.transfer_id"/>
             <t t-if="kargo_picking and kargo_picking.state != 'cancel' and kargo_picking.carrier_tracking_ref">
                 <table style="width:100%; text-align:center; border:2px solid #000; margin-bottom:12px;">
                     <tr>

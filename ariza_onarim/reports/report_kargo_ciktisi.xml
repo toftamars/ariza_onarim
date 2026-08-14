@@ -99,17 +99,25 @@
                     </td>
                     <td style="width:20%;"></td>
                     <td style="width:30%;">
-                        <t t-set="gonderici" t-value="kargo_picking.location_id.warehouse_id.partner_id or kargo_picking.company_id"/>
-                        <b>Gönderici: <span t-field="gonderici.name"/></b>
-                        <br/>
-                        <span t-field="gonderici.street"/>
-                        <span t-field="gonderici.street2"/>
-                        <br/>
-                        <span t-field="gonderici.city"/> /
-                        <span t-field="gonderici.state_id.name"/> /
-                        <span t-field="gonderici.country_id"/>
-                        <br/>
-                        Tel: <span t-field="gonderici.phone"/>
+                        <!-- Dönüş (gelen yönlü) transferde gönderici teknik servistir -->
+                        <t t-if="kargo_picking.picking_type_id.code == 'incoming'">
+                            <b>Gönderici: <span t-esc="ariza.teknik_servis or ''"/></b>
+                            <br/>
+                            <span t-esc="ariza.teknik_servis_adres or ''"/>
+                        </t>
+                        <t t-else="">
+                            <t t-set="gonderici" t-value="kargo_picking.location_id.warehouse_id.partner_id or kargo_picking.company_id"/>
+                            <b>Gönderici: <span t-field="gonderici.name"/></b>
+                            <br/>
+                            <span t-field="gonderici.street"/>
+                            <span t-field="gonderici.street2"/>
+                            <br/>
+                            <span t-field="gonderici.city"/> /
+                            <span t-field="gonderici.state_id.name"/> /
+                            <span t-field="gonderici.country_id"/>
+                            <br/>
+                            Tel: <span t-field="gonderici.phone"/>
+                        </t>
                     </td>
                 </tr>
             </table>
@@ -178,7 +186,7 @@
         <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
-                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.donus_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
                     <t t-call="ariza_onarim.report_kargo_ciktisi_document"/>
                 </t>
@@ -199,7 +207,7 @@
         <t t-call="web.basic_layout">
             <t t-set="ariza_docs" t-value="docs"/>
             <t t-foreach="ariza_docs" t-as="ariza">
-                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
+                <t t-set="kargo_picking" t-value="(ariza.iade_transfer_id or ariza.donus_transfer_id or ariza.transfer_id) if ariza.ariza_tipi == 'musteri' else ariza.transfer_id"/>
                 <t t-if="kargo_picking">
                     <t t-call="ariza_onarim.report_kargo_ciktisi_document"/>
                 </t>

@@ -271,6 +271,145 @@ class ArizaMusteriIadeService:
         return picking
 
     @staticmethod
+    def create_donus_picking(ariza):
+        """
+        Onarım sonrası TEKNİK SERVİS -> MAĞAZA dönüş Aras sevkiyatı oluşturur.
+
+        Gidiş transferinin TAM TERSİDİR (Müşteriler -> mağaza deposu):
+        - Aras'ta YENİ barkod oluşur (gidiş barkodu tekrar kullanılmaz,
+          kargo karışıklığı önlenir).
+        - Ters yönlü stok hareketi gidişin -1'ini +1 ile dengeler
+          (ARZ-KARGO rapor bakiyesi sıfırlanır).
+
+        Idempotent: geçerli dönüş transferi varsa yenisini oluşturmaz.
+        """
+        if ariza.ariza_tipi != ArizaTipi.MUSTERI:
+            raise UserError(_('Dönüş kargo transferi sadece müşteri ürünleri için oluşturulabilir.'))
+
+        if ariza.donus_transfer_id and ariza.donus_transfer_id.state != 'cancel':
+            ArizaMusteriIadeService._auto_validate_picking(ariza, ariza.donus_transfer_id)
+            ArizaMusteriIadeService._donus_send_to_shipper(ariza, ariza.donus_transfer_id)
+            return ariza.donus_transfer_id
+
+        env = ariza.env
+        # Ürün teslim mağazasına döner; seçilmemişse kaydı açan mağazaya
+        magaza = ariza.teslim_magazasi_id or ariza.analitik_hesap_id
+        warehouse = transfer_helper.TransferHelper.get_warehouse_for_magaza(
+            env, magaza.name if magaza else ''
+        )
+        if not warehouse:
+            raise UserError(_(
+                'Dönüş kargo transferi için depo bulunamadı!\nMağaza: %s'
+            ) % (magaza.name if magaza else '-'))
+
+        picking_type = transfer_helper.TransferHelper.get_picking_type(
+            env, warehouse, 'incoming', raise_if_not_found=True
+        )
+        gonderen = ArizaMusteriIadeService.get_teknik_servis_partner(ariza)
+        # Gidişin tam tersi: kaynak = gidişin hedef konumu, hedef = mağaza deposu
+        kaynak = ArizaMusteriIadeService.get_musteri_konumu(env, gonderen)
+        hedef = picking_type.default_location_dest_id or warehouse.lot_stock_id
+        carrier = ArizaMusteriIadeService.get_aras_carrier(env)
+        urun = ArizaMusteriIadeService.get_iade_urun(env)
+        # Alıcı: mağaza (Aras barkodu bu adrese kesilir)
+        alici = warehouse.partner_id or (magaza.partner_id if magaza else False) or env.company.partner_id
+
+        picking_vals = {
+            'picking_type_id': picking_type.id,
+            'location_id': kaynak.id,
+            'location_dest_id': hedef.id,
+            'partner_id': alici.id,
+            'origin': ariza.name,
+            'carrier_id': carrier.id,
+            'analytic_account_id': ariza.analitik_hesap_id.id if ariza.analitik_hesap_id else False,
+            'note': (
+                f"Arıza Kaydı: {ariza.name}\n"
+                f"Müşteri Ürünü - Onarım Sonrası Mağazaya Dönüş ({ariza.teknik_servis or ''})\n"
+                f"Ürün: {ariza.urun or ''}\n"
+                f"Seri No: {ariza.seri_no or ''}"
+            ),
+        }
+
+        try:
+            picking = env['stock.picking'].with_context(from_ariza_onarim=True).sudo().create(picking_vals)
+        except Exception as e:
+            raise UserError(_('Dönüş kargo transferi oluşturulamadı: %s') % str(e))
+
+        marka = ariza.marka_id.name if ariza.marka_id else (ariza.marka_manu or '')
+        move_name = ' - '.join(p for p in [marka, ariza.urun or ''] if p) or urun.name
+        move_vals = {
+            'name': f"{move_name} (Arıza Dönüş: {ariza.name})",
+            'product_id': urun.id,
+            'product_uom_qty': 1,
+            'product_uom': urun.uom_id.id,
+            'picking_id': picking.id,
+            'location_id': kaynak.id,
+            'location_dest_id': hedef.id,
+            'company_id': env.company.id,
+        }
+        if ariza.analitik_hesap_id:
+            move_vals['analytic_account_id'] = ariza.analitik_hesap_id.id
+        try:
+            env['stock.move'].sudo().create(move_vals)
+            picking.sudo().action_confirm()
+            picking.sudo().action_assign()
+        except Exception as e:
+            try:
+                picking.sudo().unlink()
+            except Exception:
+                pass
+            raise UserError(_('Dönüş kargo transferi oluşturulamadı: %s') % str(e))
+
+        ariza.donus_transfer_id = picking.id
+
+        picking_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
+        ariza.message_post(
+            body=(
+                f"<b>Mağazaya dönüş kargo transferi oluşturuldu!</b><br/>"
+                f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
+                f"Gönderen: {ariza.teknik_servis or ''}<br/>"
+                f"Alıcı: {alici.display_name}<br/>"
+                f"Taşıyıcı: Aras Kargo (YENİ barkod)"
+            ),
+            message_type='notification'
+        )
+        _logger.info(f"[MUSTERI DONUS] Dönüş picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
+        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
+        ArizaMusteriIadeService._donus_send_to_shipper(ariza, picking)
+        return picking
+
+    @staticmethod
+    def _donus_send_to_shipper(ariza, picking):
+        """
+        Dönüş (gelen yönlü) transferde Aras booking'i elle tetikler.
+
+        Odoo, send_to_shipper'ı yalnızca GİDEN transferlerde otomatik çağırır;
+        dönüş transferi 'incoming' olduğundan booking burada yapılır.
+        """
+        if picking.state != 'done' or picking.carrier_tracking_ref:
+            return
+        try:
+            picking.sudo().send_to_shipper()
+            if picking.carrier_tracking_ref:
+                ariza.message_post(
+                    body=(
+                        f"<b>Dönüş için YENİ Aras barkodu oluştu:</b> "
+                        f"{picking.carrier_tracking_ref}<br/>"
+                        f"Transfer: {picking.name}"
+                    ),
+                    message_type='notification'
+                )
+        except Exception as e:
+            _logger.warning(f"[MUSTERI DONUS] {picking.name} Aras booking hatası: {e}")
+            ariza.message_post(
+                body=(
+                    f"⚠️ <b>Dönüş kargosu için Aras barkodu alınamadı:</b> {str(e)}<br/>"
+                    f"Transfer {picking.name} üzerinden 'Send to Shipper' ile tekrar deneyebilirsiniz."
+                ),
+                message_type='notification'
+            )
+
+    @staticmethod
     def create_iade_picking(ariza):
         """
         Müşteri ürünü için müşteri adresine Aras İADE sevkiyatı oluşturur.

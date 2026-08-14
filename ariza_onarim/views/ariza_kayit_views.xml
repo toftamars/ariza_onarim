@@ -56,7 +56,7 @@
                                 <field name="islem_tipi"/>
                                 <field name="ariza_kabul_id" attrs='{"invisible": [["islem_tipi", "!=", "teslim"]]}'/>
                                 <!-- Mağaza ürününde de görünür: Ücretsiz/Ücretli Kargo seçilirse transfere Aras atanır (barkod) -->
-                                <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])]}"/>
+                                <field name="transfer_metodu" attrs="{'invisible': [('ariza_tipi', 'not in', ['musteri', 'magaza'])], 'required': [('ariza_tipi', 'in', ['musteri', 'magaza'])]}"/>
                         <field name="transfer_id" readonly="1" widget="many2one" string="Transfer Metodu" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                                 <field name="sms_gonderildi" readonly="1"/>
                                 <field name="create_date" readonly="1"/>

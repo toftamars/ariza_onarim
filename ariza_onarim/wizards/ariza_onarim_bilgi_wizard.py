@@ -197,7 +197,22 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 ariza.ucuncu_sms_gonderildi = True
         else:
             ariza.state = 'tamamlandi'
-        
+            # Mağazadan teslim + kargo metodu: teknik servisten mağazaya DÖNÜŞ
+            # kargosu (gidişin tam tersi transfer, YENİ Aras barkodu — gidiş
+            # barkodu tekrar kullanılırsa kargoda karışıklık olur)
+            if (ariza.ariza_tipi == 'musteri'
+                    and ariza.transfer_metodu in ('ucretsiz_kargo', 'ucretli_kargo')):
+                try:
+                    ariza.create_donus_kargo_transfer()
+                except Exception as e:
+                    ariza.message_post(
+                        body=(
+                            f"⚠️ Dönüş kargo transferi oluşturulamadı: {str(e)}<br/>"
+                            f"Kayıt üzerinden tekrar deneyebilir veya transferi elle oluşturabilirsiniz."
+                        ),
+                        message_type='notification'
+                    )
+
         # SMS gönderimi - Müşteri ürünü için 2. SMS kaldırıldı (Yönetici Onarımı Tamamla ve SMS Gönder butonu için)
         # Diğer SMS akışları (ilk SMS, üçüncü SMS) korunuyor
         
