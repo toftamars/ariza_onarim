@@ -1367,6 +1367,13 @@
                             <td><span t-field="o.model"/></td>
                         </tr>
                         <tr>
+                            <td><strong>Seri No:</strong></td>
+                            <td>
+                                <span t-if="o.seri_no" t-field="o.seri_no"/>
+                                <span t-else="">-</span>
+                            </td>
+                        </tr>
+                        <tr>
                             <td><strong>Marka:</strong></td>
                             <td>
                                 <span t-if="o.marka_id" t-field="o.marka_id"/>
