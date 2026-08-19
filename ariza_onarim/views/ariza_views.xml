@@ -284,7 +284,7 @@
                         <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
-                                <field name="seri_no"/>
+                                <field name="seri_no" required="1"/>
                                 <field name="onarim_disi_aciklama" attrs="{'invisible': [('state', '!=', 'onarim_disi')]}"/>
                                 <field name="notlar" required="1"/>
                             </group>
