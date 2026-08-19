@@ -421,6 +421,12 @@ class TransferHelper:
         depo_arama_adi = magaza_adi
         if magaza_adi.lower() in ['temaworld', 'tema world']:
             depo_arama_adi = 'Tema World'
+        # Merkez arıza deposu: analitik hesap "ARIZA DEPO", depo adı "Arıza"
+        # (kod ARIZA) — isim eşleşmediği için kod ile kesin arama yapılır.
+        if magaza_adi.upper().startswith('ARIZA'):
+            depo = env['stock.warehouse'].search([('code', '=', 'ARIZA')], limit=1)
+            if depo:
+                return depo
         return env['stock.warehouse'].search([
             ('name', 'ilike', depo_arama_adi)
         ], limit=1) or False
