@@ -270,24 +270,24 @@
                                 <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             </group>
                         </page>
-                        <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
+                        <!-- Tüm arıza tiplerinde görünür; müşteri-fatura akışına özgü alanlar
+                             (serbest metin Ürün, marka, garanti) mağaza/teknikte gizli kalır —
+                             onlarda ürün/marka üst grupta gösteriliyor, garanti fatura bazlı. -->
+                        <page string="Ürün Bilgileri">
                             <group>
-                                <field name="urun" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                                <field name="urun" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_id" attrs="{'invisible': ['|', ('siparis_yok', '=', True), ('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_manu" attrs="{'invisible': ['|', ('siparis_yok', '=', False), ('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
                                 <field name="model" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="seri_no" attrs="{'required': [('ariza_tipi', 'not in', ['magaza', 'teknik'])]}"/>
-                                <field name="garanti_suresi" readonly="1"/>
-                                <field name="garanti_bitis_tarihi" readonly="1"/>
-                                <field name="kalan_garanti" readonly="1"/>
+                                <field name="seri_no" required="1"/>
+                                <field name="garanti_suresi" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                                <field name="garanti_bitis_tarihi" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                                <field name="kalan_garanti" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                             </group>
                         </page>
                         <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
-                                <!-- Müşteri kaydında Seri No "Ürün Bilgileri" sekmesinde; bu sekme
-                                     mağaza/teknik tipinde gizli olduğundan onlarda burada gösterilir. -->
-                                <field name="seri_no" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
                                 <field name="onarim_disi_aciklama" attrs="{'invisible': [('state', '!=', 'onarim_disi')]}"/>
                                 <field name="notlar" required="1"/>
                             </group>
