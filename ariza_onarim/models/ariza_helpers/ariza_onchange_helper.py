@@ -254,7 +254,9 @@ class ArizaOnchangeHelper:
     def onchange_magaza_urun_id(record):
         if record.magaza_urun_id:
             record.urun = record.magaza_urun_id.name or ''
-            record.model = record.magaza_urun_id.default_code or ''
+            # Mağaza ürününde Model = ürün adı (stok kartı adı model bilgisini
+            # zaten içerir; alan mağaza formunda gizli, rapor/listede görünür)
+            record.model = record.magaza_urun_id.name or ''
             if hasattr(record.magaza_urun_id, 'brand_id') and record.magaza_urun_id.brand_id:
                 record.marka_id = record.magaza_urun_id.brand_id.id
                 if record.marka_id:

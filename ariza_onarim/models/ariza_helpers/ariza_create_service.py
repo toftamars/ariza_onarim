@@ -42,6 +42,11 @@ class ArizaCreateService:
             vals['ariza_tipi'] = ArizaTipi.MUSTERI
         if not vals.get('sorumlu_id'):
             vals['sorumlu_id'] = env.user.id
+        # Mağaza ürününde Model = ürün adı; onchange'e güvenme, create'te garanti et
+        if vals.get('magaza_urun_id') and not vals.get('model'):
+            urun = env['product.product'].browse(vals['magaza_urun_id'])
+            if urun.exists():
+                vals['model'] = urun.name or ''
 
     @staticmethod
     def post_create(records):

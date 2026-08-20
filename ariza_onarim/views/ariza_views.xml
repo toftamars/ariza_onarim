@@ -270,26 +270,29 @@
                                 <field name="fatura_tarihi" attrs="{'invisible': [('ariza_tipi', '=', 'magaza')]}"/>
                             </group>
                         </page>
-                        <!-- Tüm arıza tiplerinde görünür; müşteri-fatura akışına özgü alanlar
-                             (serbest metin Ürün, marka, garanti) mağaza/teknikte gizli kalır —
-                             onlarda ürün/marka üst grupta gösteriliyor, garanti fatura bazlı. -->
-                        <page string="Ürün Bilgileri">
+                        <!-- Mağaza/teknikte gizli (tek sekme: Arıza Tanımı; Model ürün adından
+                             otomatik dolar, Seri No Arıza Tanımı'nda). Alanlar arch'ta kaldığı
+                             için onchange/create Model'i arka planda doldurmaya devam eder. -->
+                        <page string="Ürün Bilgileri" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}">
                             <group>
-                                <field name="urun" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_id" attrs="{'invisible': ['|', ('siparis_yok', '=', True), ('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
-                                <field name="marka_manu" attrs="{'invisible': ['|', ('siparis_yok', '=', False), ('ariza_tipi', 'in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
+                                <field name="urun" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_id" attrs="{'invisible': [('siparis_yok', '=', True)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', False)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
+                                <field name="marka_manu" attrs="{'invisible': [('siparis_yok', '=', False)], 'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)]}"/>
                                 <field name="model" attrs="{'required': [('ariza_tipi', '=', 'musteri'), ('siparis_yok', '=', True)], 'readonly': [('ariza_tipi', '!=', 'musteri'), ('siparis_yok', '=', False)]}"/>
                                 <!-- Sadece Taslak'ta zorunlu: zorunluluk öncesi açılmış eski
                                      kayıtlarda Kabul Et vb. butonların kilitlenmemesi için. -->
                                 <field name="seri_no" attrs="{'required': [('state', '=', 'draft')]}"/>
-                                <field name="garanti_suresi" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
-                                <field name="garanti_bitis_tarihi" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
-                                <field name="kalan_garanti" readonly="1" attrs="{'invisible': [('ariza_tipi', 'in', ['magaza', 'teknik'])]}"/>
+                                <field name="garanti_suresi" readonly="1"/>
+                                <field name="garanti_bitis_tarihi" readonly="1"/>
+                                <field name="kalan_garanti" readonly="1"/>
                             </group>
                         </page>
                         <page string="Arıza Tanımı">
                             <group>
                                 <field name="ariza_tanimi" required="1"/>
+                                <!-- Mağaza/teknikte tek sekme: Seri No burada
+                                     (müşteri kaydında Ürün Bilgileri sekmesinde) -->
+                                <field name="seri_no" attrs="{'invisible': [('ariza_tipi', 'not in', ['magaza', 'teknik'])], 'required': [('ariza_tipi', 'in', ['magaza', 'teknik']), ('state', '=', 'draft')]}"/>
                                 <field name="onarim_disi_aciklama" attrs="{'invisible': [('state', '!=', 'onarim_disi')]}"/>
                                 <field name="notlar" required="1"/>
                             </group>
