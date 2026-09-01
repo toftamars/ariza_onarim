@@ -1,6 +1,6 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.20',
+    'version': '1.0.21',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """

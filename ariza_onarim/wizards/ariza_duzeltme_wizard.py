@@ -35,8 +35,14 @@ def _ayni_para(a, b):
 
 
 def _goster(deger, selection):
-    """Değeri chatter'da okunabilir metne çevirir"""
-    if deger in (False, None, ''):
+    """Değeri chatter'da okunabilir metne çevirir
+
+    Sayısal alanlar ayrı ele alınır: Python'da 0 == False olduğu için
+    sıfır ücret aksi hâlde "(boş)" olarak görünürdü.
+    """
+    if isinstance(deger, (int, float)) and not isinstance(deger, bool):
+        return '%.2f' % deger
+    if deger is None or deger is False or deger == '':
         return '(boş)'
     if selection:
         return dict(selection).get(deger, deger)
