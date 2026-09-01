@@ -36,6 +36,16 @@ class ArizaStates:
         (IPTAL, 'İptal'),
     ]
 
+    # Onarım bilgisi dolmuş, geriye dönük düzeltmeye açık durumlar
+    # (ariza.duzeltme.wizard ve action_duzelt bu listeyi kullanır)
+    DUZELTILEBILIR = (
+        ONAYLANDI,
+        YONETICI_TAMAMLANDI,
+        TAMAMLANDI,
+        TESLIM_EDILDI,
+        ONARIM_DISI,
+    )
+
 
 class StateManager:
     """Yönetici görünümü için durum değerleri (state_manager field için)"""

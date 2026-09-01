@@ -547,6 +547,11 @@ class ArizaKayit(models.Model):
         for record in self:
             return ariza_state_service.ArizaStateService.onayla(record)
 
+    def action_duzelt(self):
+        """Onarım/garanti bilgilerini geriye dönük düzeltme wizard'ını açar"""
+        self.ensure_one()
+        return ariza_state_service.ArizaStateService.duzelt(self)
+
     def action_iptal(self):
         """Arıza kaydını iptal et"""
         for record in self:

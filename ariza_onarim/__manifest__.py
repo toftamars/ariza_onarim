@@ -1,6 +1,6 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.19',
+    'version': '1.0.20',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
@@ -51,6 +51,7 @@
         'reports/report_kargo_ciktisi.xml',
         'wizards/ariza_kayit_tamamla_wizard_views.xml',
         'wizards/ariza_onarim_bilgi_wizard_views.xml',
+        'wizards/ariza_duzeltme_wizard_views.xml',
         'wizards/ariza_teslim_wizard_views.xml',
         'wizards/kullanim_talimatlari_views.xml',
     ],

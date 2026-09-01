@@ -179,6 +179,25 @@ class ArizaStateService:
         }
 
     @staticmethod
+    def duzelt(record):
+        """Onarım/garanti bilgilerini geriye dönük düzeltme wizard'ını açar"""
+        if not record.env.user.has_group('ariza_onarim.group_ariza_manager'):
+            raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
+        if record.state not in ArizaStates.DUZELTILEBILIR:
+            raise UserError(_(
+                'Bu aşamadaki kayıtlar için düzeltme yapılamaz. Onarım bilgileri '
+                'henüz doldurulmamış kayıtlarda bilgiler onarım akışı içinde girilir.'
+            ))
+        return {
+            'name': 'Bilgileri Düzelt',
+            'type': 'ir.actions.act_window',
+            'res_model': 'ariza.duzeltme.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_ariza_id': record.id},
+        }
+
+    @staticmethod
     def iptal(record):
         """Herhangi -> IPTAL"""
         if record.transfer_id and record.transfer_id.state == 'done':

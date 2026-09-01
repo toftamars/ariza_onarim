@@ -4,6 +4,7 @@ access_ariza_kayit_manager,ariza.kayit.manager,model_ariza_kayit,ariza_onarim.gr
 access_ariza_kayit_super_manager,ariza.kayit.super.manager,model_ariza_kayit,ariza_onarim.group_ariza_super_manager,1,1,1,1
 access_ariza_onarim_bilgi_wizard_manager,ariza.onarim.bilgi.wizard.manager,model_ariza_onarim_bilgi_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ariza_onarim_bilgi_wizard_all,ariza.onarim.bilgi.wizard.all,model_ariza_onarim_bilgi_wizard,base.group_user,1,1,1,1
+access_ariza_duzeltme_wizard_manager,ariza.duzeltme.wizard.manager,model_ariza_duzeltme_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_ariza_teslim_wizard_all,ariza.teslim.wizard.all,model_ariza_teslim_wizard,base.group_user,1,1,1,1
 access_ariza_teslim_wizard_manager,ariza.teslim.wizard.manager,model_ariza_teslim_wizard,ariza_onarim.group_ariza_manager,1,1,1,1
 access_stock_picking_all,stock.picking.all,stock.model_stock_picking,base.group_user,1,1,1,1
