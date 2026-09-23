@@ -213,9 +213,11 @@ class ArizaStateService:
 
     @staticmethod
     def kullanici_tamamla(record):
-        """TAMAMLANDI -> teslim wizard aç"""
-        if record.ariza_tipi == ArizaTipi.MUSTERI and not record.hazir_basildi:
-            raise UserError(_("Teslim Et işlemi için önce 'Hazır' butonuna basmanız gerekmektedir!"))
+        """TAMAMLANDI -> teslim wizard aç.
+
+        'Hazır' kontrolü wizard'da yapılır: adrese gönderimde Hazır (mağazadan
+        teslim SMS'i) gerekmez, mağazadan teslimde zorunludur.
+        """
         if record.state != ArizaStates.TAMAMLANDI:
             raise UserError('Sadece tamamlanmış kayıtlar teslim edilebilir!')
         return {

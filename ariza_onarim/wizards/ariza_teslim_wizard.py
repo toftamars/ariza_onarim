@@ -63,6 +63,9 @@ class ArizaTeslimWizard(models.TransientModel):
             if not self.musteri_adresi_id:
                 raise UserError(_('Adresime Gönderilsin seçildiğinde Teslimat Adresi zorunludur!'))
         else:
+            # Mağazadan teslimde müşteriye önce "teslim alabilirsiniz" SMS'i gitmeli
+            if ariza.ariza_tipi == 'musteri' and not ariza.hazir_basildi:
+                raise UserError(_("Mağazadan teslim için önce 'Hazır' butonuna basmanız gerekmektedir!"))
             if not self.teslim_alan:
                 raise UserError(_('Teslim Alan Kişi alanı zorunludur!'))
 
