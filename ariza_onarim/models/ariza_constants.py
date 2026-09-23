@@ -277,6 +277,6 @@ class SMSTemplates:
         "Kayıt No: {kayit_no} B021"
     )
     
-    # Garanti/Ürün Değişimi Eklentisi (Üçüncü SMS'e eklenir)
+    # Ürün Değişimi Eklentisi (yalnızca garanti_kapsaminda_mi == 'urun_degisimi' iken eklenir)
     GARANTI_EKLENTISI = " Ürününüzün değişimi sağlanmıştır."
 

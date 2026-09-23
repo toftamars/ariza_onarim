@@ -5,7 +5,7 @@ Teslim Wizard - Ürün teslim işlemi için wizard
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from ..models.ariza_constants import SMSTemplates, TeslimAlan
+from ..models.ariza_constants import SMSTemplates, TeslimAlan, GarantiKapsam
 from ..models.ariza_helpers import ariza_computed_helper
 
 
@@ -124,7 +124,7 @@ class ArizaTeslimWizard(models.TransientModel):
                     kayit_no=ariza.name or ''
                 )
             
-            if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
+            if ariza.garanti_kapsaminda_mi == GarantiKapsam.URUN_DEGISIMI:
                 message += SMSTemplates.GARANTI_EKLENTISI
             ariza._send_sms_to_customer(message)
             ariza.ucuncu_sms_gonderildi = True

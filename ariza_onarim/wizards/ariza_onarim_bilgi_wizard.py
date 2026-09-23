@@ -7,7 +7,7 @@ import logging
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from ..models.ariza_constants import SMSTemplates, TeslimAlan, EmailAddresses
+from ..models.ariza_constants import SMSTemplates, TeslimAlan, EmailAddresses, GarantiKapsam
 
 _logger = logging.getLogger(__name__)
 
@@ -190,7 +190,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                     kayit_no=ariza.name or ''
                 )
                 
-                if ariza.garanti_kapsaminda_mi in ['evet', 'urun_degisimi']:
+                if ariza.garanti_kapsaminda_mi == GarantiKapsam.URUN_DEGISIMI:
                     message += SMSTemplates.GARANTI_EKLENTISI
                 
                 ariza._send_sms_to_customer(message)

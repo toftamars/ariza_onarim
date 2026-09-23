@@ -15,7 +15,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
 
-from ..models.ariza_constants import SMSTemplates
+from ..models.ariza_constants import SMSTemplates, GarantiKapsam
 
 _logger = logging.getLogger(__name__)
 
@@ -172,8 +172,8 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
                     kayit_no=ariza.name or ''
                 )
 
-                # Add warranty note if applicable
-                if ariza.garanti_kapsaminda_mi == 'evet':
+                # Add exchange note only when the product was replaced
+                if ariza.garanti_kapsaminda_mi == GarantiKapsam.URUN_DEGISIMI:
                     sms_mesaji += SMSTemplates.GARANTI_EKLENTISI
             else:
                 # Store product completion SMS
