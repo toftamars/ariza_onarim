@@ -427,9 +427,32 @@ class TransferHelper:
             depo = env['stock.warehouse'].search([('code', '=', 'ARIZA')], limit=1)
             if depo:
                 return depo
-        return env['stock.warehouse'].search([
+        depo = env['stock.warehouse'].search([
             ('name', 'ilike', depo_arama_adi)
-        ], limit=1) or False
+        ], limit=1)
+        if depo:
+            return depo
+        # Yazım farkı yedeği: "Mavibahçe" (analitik) ↔ "Mavi Bahçe" (depo).
+        # Boşluklar ve Türkçe büyük/küçük harf farkı yok sayılarak karşılaştırılır.
+        aranan = TransferHelper._normalize_magaza_adi(depo_arama_adi)
+        if not aranan:
+            return False
+        for depo in env['stock.warehouse'].search([]):
+            if aranan in TransferHelper._normalize_magaza_adi(depo.name):
+                return depo
+        return False
+
+    @staticmethod
+    def _normalize_magaza_adi(ad):
+        """Karşılaştırma için mağaza/depo adını sadeleştirir.
+
+        Türkçe büyük harfleri doğru küçültür (İ→i, I→ı) ve tüm boşlukları siler.
+        Örn. "Mavi Bahçe" ve "Mavibahçe" → "mavibahçe".
+        """
+        if not ad:
+            return ''
+        ad = ad.replace('İ', 'i').replace('I', 'ı').lower()
+        return ''.join(ad.split())
 
     @staticmethod
     def get_tamir_picking_type(env, transfer_tipi, warehouse=None):
