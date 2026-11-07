@@ -421,10 +421,10 @@ class TransferHelper:
         depo_arama_adi = magaza_adi
         if magaza_adi.lower() in ['temaworld', 'tema world']:
             depo_arama_adi = 'Tema World'
-        # Merkez arıza deposu: analitik hesap "ARIZA DEPO", depo adı "Arıza"
-        # (kod ARIZA) — isim eşleşmediği için kod ile kesin arama yapılır.
-        if magaza_adi.upper().startswith('ARIZA'):
-            depo = env['stock.warehouse'].search([('code', '=', 'ARIZA')], limit=1)
+        # Adı depo adıyla eşleşmeyen mağazalar depo koduyla kesin bulunur.
+        depo_kodu = TransferHelper._sabit_depo_kodu(magaza_adi)
+        if depo_kodu:
+            depo = env['stock.warehouse'].search([('code', '=', depo_kodu)], limit=1)
             if depo:
                 return depo
         depo = env['stock.warehouse'].search([
@@ -441,6 +441,24 @@ class TransferHelper:
             if aranan in TransferHelper._normalize_magaza_adi(depo.name):
                 return depo
         return False
+
+    # Analitik hesap adı (önek temizlenmiş, sadeleştirilmiş) → depo kodu.
+    #   ankara: "Ankara" araması ilk sıradaki "Ankara Depo"yu buluyordu;
+    #           mağazanın deposu Kızılay (KZLY).
+    #   outlet: "Outlet" adında depo yok; Vintage (VNTG) deposunu kullanır.
+    _SABIT_DEPO_KODLARI = {
+        'ankara': 'KZLY',
+        'outlet': 'VNTG',
+    }
+
+    @staticmethod
+    def _sabit_depo_kodu(magaza_adi):
+        """Adı depo adından farklı olan mağazalar için depo kodunu döner."""
+        # Merkez arıza deposu: analitik hesap "ARIZA DEPO", depo kodu ARIZA.
+        if magaza_adi.upper().startswith('ARIZA'):
+            return 'ARIZA'
+        anahtar = TransferHelper._normalize_magaza_adi(magaza_adi)
+        return TransferHelper._SABIT_DEPO_KODLARI.get(anahtar)
 
     @staticmethod
     def _normalize_magaza_adi(ad):
