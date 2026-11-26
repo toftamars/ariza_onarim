@@ -111,6 +111,14 @@ class TransferHelper:
         if company_id is None:
             company_id = env.company.id
 
+        # Çıkışta deponun asıl teslimat tipi (Teslimat Emirleri) kullanılır:
+        # aramadaki ilk çıkış tipi bazı mağazalarda "POS Siparişleri" çıkıyor
+        # ve o tiple doğrulanan kargoda Aras barkodu oluşmuyordu.
+        if picking_type_code == 'outgoing':
+            varsayilan = warehouse.sudo().out_type_id
+            if varsayilan and varsayilan.active and varsayilan.company_id.id == company_id:
+                return varsayilan
+
         try:
             picking_type = env['stock.picking.type'].search([
                 ('warehouse_id', '=', warehouse.id),
