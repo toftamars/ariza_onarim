@@ -12,6 +12,7 @@ from odoo.exceptions import UserError
 from ..ariza_constants import ArizaTipi, IslemTipi, TeknikServis, TransferMetodu
 from . import partner_helper
 from . import transfer_helper
+from . import transit_helper
 from . import ariza_musteri_iade_service
 
 _logger = logging.getLogger(__name__)
@@ -93,8 +94,10 @@ class ArizaTransferService:
         return vals
 
     @staticmethod
-    def create_move(ariza, picking, kaynak, hedef):
-        """Picking'e stock.move ekler."""
+    def create_move(ariza, picking, kaynak, hedef, route=None, group=None):
+        """Picking'e stock.move ekler. route verilirse (yolda akışı) harekete
+        rota, kayıt grubu ve ARZ origin'i yazılır: itme kuralıyla doğan varış
+        transferi bunları kopyalar (ayrı picking + Matbu + kayıt eşleşmesi)."""
         move_vals = {
             'name': ariza.urun or ariza.magaza_urun_id.name,
             'product_id': ariza.magaza_urun_id.id,
@@ -107,6 +110,12 @@ class ArizaTransferService:
         }
         if ariza.analitik_hesap_id:
             move_vals['analytic_account_id'] = ariza.analitik_hesap_id.id
+        if route:
+            move_vals.update({
+                'origin': ariza.name,
+                'group_id': group.id if group else False,
+                'route_ids': [(6, 0, route.ids)],
+            })
         try:
             ariza.env['stock.move'].sudo().create(move_vals)
         except Exception as e:
@@ -156,9 +165,21 @@ class ArizaTransferService:
         )
         if not picking_type:
             raise UserError(_("Transfer oluşturulamadı: Uygun operasyon tipi bulunamadı!"))
+        yolda = None
+        route = group = False
+        if transfer_tipi == 'ilk':
+            yolda = transit_helper.TransitHelper.hazirla(ariza, kaynak, hedef)
+        if yolda:
+            route, transit, _nihai_hedef = yolda
+            hedef = transit
         picking_vals = ArizaTransferService.build_picking_vals(
             ariza, kaynak, hedef, picking_type, transfer_tipi
         )
+        if yolda:
+            # Kayda özel grup: varış hareketi başka açık transferlere karışmasın
+            # (Faz 0: grupsuz hareket Ocak'tan beri açık bir IN'e eklenmişti).
+            group = ariza.env['procurement.group'].sudo().create({'name': ariza.name})
+            picking_vals['group_id'] = group.id
         try:
             picking = ariza.env['stock.picking'].with_context(from_ariza_onarim=True).sudo().create(picking_vals)
         except Exception:
@@ -168,6 +189,49 @@ class ArizaTransferService:
                 ).sudo().create(picking_vals)
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
-        ArizaTransferService.create_move(ariza, picking, kaynak, hedef)
+        ArizaTransferService.create_move(ariza, picking, kaynak, hedef, route=route, group=group)
         ArizaTransferService.post_transfer_message(ariza, picking, kaynak, hedef)
+        if yolda:
+            ArizaTransferService._yolda_baglat(ariza, picking, group)
         return picking
+
+    @staticmethod
+    def _yolda_baglat(ariza, picking, group):
+        """Çıkışı onaylar (itme kuralı varış transferini doğurur) ve varışı kayda bağlar."""
+        picking.sudo().action_confirm()
+        varis = picking.move_ids_without_package.move_dest_ids.picking_id[:1]
+        if not varis:
+            # Odoo bazı durumlarda hareket bağını kurmayabilir: grupla ara
+            varis = ariza.env['stock.picking'].sudo().search([
+                ('group_id', '=', group.id),
+                ('location_id', '=', picking.location_dest_id.id),
+                ('id', '!=', picking.id),
+            ], limit=1)
+        if not varis:
+            raise UserError(_(
+                "Yolda transferi kurulamadı: varış transferi oluşmadı. "
+                "Rota kurallarını kontrol edin (%s)."
+            ) % picking.name)
+        if len(varis.move_lines) != 1 or varis.group_id != group:
+            # Varış başka kayıtların hareketleriyle karışmışsa doğrulama/iptal
+            # onları da etkiler: kurmayı reddet.
+            raise UserError(_(
+                "Yolda transferi kurulamadı: varış transferi (%s) başka "
+                "hareketler içeriyor. Lütfen yöneticinize bildirin."
+            ) % varis.name)
+        ariza.sudo().write({'yolda_akisi': True, 'gidis_in_id': varis.id})
+        hedef_notu = ''
+        if ariza.hedef_konum_id and ariza.hedef_konum_id != varis.location_dest_id:
+            hedef_notu = (
+                f"<br/>Not: Varış hedefi ({varis.location_dest_id.display_name}) kayıttaki "
+                f"hedef konumdan ({ariza.hedef_konum_id.display_name}) farklı."
+            )
+        ariza.message_post(
+            body=(
+                f"<b>Yolda (iki adımlı) transfer kuruldu.</b><br/>"
+                f"Çıkış: {picking.name} — ürün yola çıkınca doğrulanır.<br/>"
+                f"Varış: {varis.name} — teknik servis ürünü teslim alınca "
+                f"\"Kabul Et\" ile doğrulanır.{hedef_notu}"
+            ),
+            message_type='notification',
+        )

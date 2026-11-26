@@ -45,6 +45,8 @@
                             <field name="transfer_id" widget="many2one" options='{"no_open": true, "no_create": true}' readonly="1" string="Transfer" attrs="{'invisible': [('ariza_tipi', '!=', 'musteri')]}"/>
                             <field name="kaynak_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="hedef_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
+                            <field name="yolda_akisi" invisible="1"/>
+                            <field name="gidis_in_id" readonly="1" attrs="{'invisible': [('yolda_akisi', '=', False)]}"/>
                         </group>
                     </group>
                     
@@ -200,7 +202,8 @@
                     <!-- Kullanıcılar için Onayla butonu - mevcut davranışı koruma -->
                     <button name="action_onayla" string="Onayla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'teknik_onarim'), ('teknik_servis', 'not in', ['MAĞAZA', 'TEDARİKÇİ'])]}"/>
                     <button name="action_print" string="Yazdır" type="object" class="oe_highlight" options='{"no_open": true}' invisible="1"/>
-                    <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi')]}" options='{"no_open": true}'/>
+                    <field name="yolda_akisi" invisible="1"/>
+                    <button name="action_personel_onayla" string="Tamamla" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('transfer_id', '=', False), ('state', '!=', 'onaylandi'), ('yolda_akisi', '=', True)]}" options='{"no_open": true}'/>
                     <!-- Müşteri ürünü için Hazır butonu - 2. SMS gönderir - Yöneticiler ve kullanıcılar için görünür -->
                     <button name="action_teslim_al_musteri" string="Hazır" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('ariza_tipi', '!=', 'musteri'), ('state', '!=', 'tamamlandi')]}" confirm="Hazır butonuna basıldığında müşteriye durum bilgilendirmesi için sms gönderilecektir. Devam etmek istiyor musunuz?"/>
                     <!-- Teslim Et butonu - Yöneticiler ve kullanıcılar için görünür -->
@@ -256,6 +259,7 @@
                     <group attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}">
                         <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
                         <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')], 'readonly': [('hedef_konum_otomatik', '=', True)]}" options='{"no_open": true, "no_create": true}'/>
+                        <field name="gidis_in_id" readonly="1" attrs="{'invisible': [('yolda_akisi', '=', False)]}"/>
                         <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}'/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">
@@ -437,6 +441,7 @@
                 <field name="onarim_durumu"/>
                 <field name="kalan_is_gunu"/>
                 <field name="transfer_sayisi"/>
+                <field name="yolda_akisi"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
@@ -519,7 +524,7 @@
                                                 type="object" 
                                                 class="btn btn-sm btn-secondary" 
                                                 t-att-disabled="record.transfer_sayisi.raw_value != 2"
-                                                t-att-invisible="record.state_manager.raw_value == 'onarim_tamamlandi'"/>
+                                                t-att-invisible="record.state_manager.raw_value == 'onarim_tamamlandi' or record.yolda_akisi.raw_value"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
                                         <button name="action_print" 

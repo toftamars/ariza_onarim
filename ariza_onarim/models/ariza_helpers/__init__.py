@@ -10,6 +10,7 @@ from . import partner_helper
 from . import sequence_helper
 from . import sms_helper
 from . import transfer_helper
+from . import transit_helper
 from . import teknik_servis_helper
 from . import hedef_konum_helper
 from . import ariza_transfer_service
@@ -30,6 +31,7 @@ __all__ = [
     'sequence_helper',
     'sms_helper',
     'transfer_helper',
+    'transit_helper',
     'teknik_servis_helper',
     'hedef_konum_helper',
     'ariza_transfer_service',

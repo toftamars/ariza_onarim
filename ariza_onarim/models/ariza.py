@@ -62,6 +62,13 @@ class ArizaKayit(models.Model):
         default=lambda self: _('New')
     )
     transfer_id = fields.Many2one('stock.picking', string='Transfer', readonly=True)
+    # Yolda (iki adımlı) akış: transfer_id = çıkış (mağaza → transit),
+    # gidis_in_id = varış (transit → servis). Eski kayıtlar False kalır.
+    yolda_akisi = fields.Boolean(string='Yolda Akışı', readonly=True, copy=False)
+    gidis_in_id = fields.Many2one(
+        'stock.picking', string='Servise Varış Transferi', readonly=True, copy=False,
+        help='Yolda akışında ürün teknik servise ulaşınca doğrulanan varış transferi.'
+    )
     iade_transfer_id = fields.Many2one(
         'stock.picking', string='İade Kargo Transferi', readonly=True, copy=False, tracking=True,
         help='Müşteri ürünü adrese gönderilirken oluşturulan Aras iade kargo transferi. '

@@ -74,6 +74,14 @@ class ArizaKayitTamamlaWizard(models.TransientModel):
             f"Please use the main workflow instead."
         )
 
+        if ariza.yolda_akisi:
+            # Bu sihirbaz çıkışın hedefini servis sanar; yolda akışında hedef
+            # transit konumdur ve dönüş yanlış yerden çıkar.
+            raise UserError(_(
+                "Bu kayıt yolda (iki adımlı) transfer akışında. Dönüş için "
+                "kayıt üzerindeki \"Teslim Al\" butonunu kullanın."
+            ))
+
         # Validate initial transfer exists
         if not ariza.transfer_id:
             raise UserError(

@@ -16,6 +16,8 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
 
+from .ariza_constants import ArizaStates
+
 _logger = logging.getLogger(__name__)
 
 
@@ -184,6 +186,26 @@ class StockPicking(models.Model):
             else:
                 super(StockPicking, picking).send_to_shipper()
 
+    def _yolda_varis_isle(self, ariza):
+        """Yolda akışı: servise varış transferi doğrulanınca kaydı ilerletir.
+
+        Varış, "Kabul Et" dışında (ör. transfer ekranından) doğrulansa da
+        kayıt "Kabul Edildi"ye geçer.
+        """
+        self.ensure_one()
+        if self != ariza.gidis_in_id or ariza.state != ArizaStates.PERSONEL_ONAY:
+            return
+        ariza.sudo().state = ArizaStates.KABUL_EDILDI
+        ariza.message_post(
+            body=(
+                f"Ürün teknik servise ulaştı: {self.name} doğrulandı. "
+                f"Kayıt kabul edildi. Doğrulayan: {self.env.user.name}"
+            ),
+            subject="Arıza Kaydı Kabul Edildi (Varış)",
+            message_type='notification',
+        )
+        _logger.info("[YOLDA] Varış ile kabul: %s (%s)", ariza.name, self.name)
+
     def button_validate(self):
         """
         Override transfer validation to integrate with repair workflow.
@@ -198,6 +220,20 @@ class StockPicking(models.Model):
             dict or bool: Action dictionary to return to repair form,
                          or standard result from super().
         """
+        # Yolda akışı: ürün yola çıkmadan (çıkış doğrulanmadan) servise
+        # varış doğrulanamaz; aksi halde yolda konumunda eksi stok oluşur.
+        for picking in self:
+            if not picking.origin or 'ARZ' not in picking.origin.upper():
+                continue
+            ariza = self.env['ariza.kayit'].sudo().search([
+                ('gidis_in_id', '=', picking.id), ('yolda_akisi', '=', True)
+            ], limit=1)
+            if ariza and (not ariza.transfer_id or ariza.transfer_id.state != 'done'):
+                raise UserError(_(
+                    "%(varis)s doğrulanamaz: ürün henüz yola çıkmamış. Önce çıkış "
+                    "transferi (%(cikis)s) doğrulanmalı."
+                ) % {'varis': picking.name, 'cikis': ariza.transfer_id.name or '-'})
+
         # Execute standard validation
         result = super().button_validate()
 
@@ -206,7 +242,11 @@ class StockPicking(models.Model):
             if picking.origin and picking.state == 'done':
                 # Search for related repair record
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza:
+                if ariza and ariza.yolda_akisi:
+                    # Yolda akışı: sayaç eski "Tamamla" mantığına ait, artırılmaz.
+                    # Servise varış doğrulandıysa kayıt "Kabul Edildi"ye geçer.
+                    picking._yolda_varis_isle(ariza)
+                elif ariza:
                     # Increment transfer counter
                     ariza.transfer_sayisi += 1
                     _logger.info(

@@ -104,6 +104,11 @@ class ArizaStateService:
     @staticmethod
     def _personel_onayla_onaylandi(record):
         """ONAYLANDI -> 2. transfer oluştur"""
+        if record.yolda_akisi:
+            raise UserError(_(
+                'Bu kayıt yolda (iki adımlı) transfer akışında. Dönüş transferi '
+                '"Teslim Al" ile oluşturulur; 2. transfer burada oluşturulamaz.'
+            ))
         if not record.kaynak_konum_id or not record.hedef_konum_id:
             raise UserError(_('Kaynak ve hedef konumları eksik! Lütfen konumları kontrol edin.'))
         picking = record._create_stock_transfer(
@@ -132,6 +137,11 @@ class ArizaStateService:
                 raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
         if record.state != ArizaStates.PERSONEL_ONAY:
             raise UserError(_('Sadece personel onayı aşamasındaki kayıtlar kabul edilebilir.'))
+        if record.yolda_akisi:
+            ArizaStateService._varis_dogrula(record)
+            if record.state != ArizaStates.PERSONEL_ONAY:
+                # Varış doğrulaması (stock_picking.button_validate) kaydı zaten ilerletti
+                return
         record.state = ArizaStates.KABUL_EDILDI
         record.message_post(
             body=f"Arıza kaydı kabul edildi. Kabul eden: {current_user.name}",
@@ -139,6 +149,43 @@ class ArizaStateService:
             message_type='notification'
         )
         _logger.info(f"Arıza kaydı kabul edildi: {record.name} - Kullanıcı: {current_user.login}")
+
+    @staticmethod
+    def _varis_dogrula(record):
+        """Yolda akışı: teknik servise varış transferini doğrular."""
+        varis = record.gidis_in_id
+        if not varis:
+            raise UserError(_('Varış transferi bulunamadı. Lütfen yöneticinize bildirin.'))
+        if varis.state == 'done':
+            return
+        if varis.state == 'cancel':
+            raise UserError(_('Varış transferi (%s) iptal edilmiş.') % varis.name)
+        if not record.transfer_id or record.transfer_id.state != 'done':
+            raise UserError(_(
+                'Ürün henüz yola çıkmamış: çıkış transferi (%s) doğrulanmadan '
+                'kabul edilemez.'
+            ) % (record.transfer_id.name or '-'))
+        varis = varis.sudo()
+        varis.action_assign()
+        satirlar = varis.move_line_ids
+        if not satirlar:
+            raise UserError(_(
+                'Varış transferinde (%s) teslim alınacak ürün görünmüyor. '
+                'Yolda konumunu kontrol edin.'
+            ) % varis.name)
+        for satir in satirlar:
+            satir.qty_done = satir.product_uom_qty
+        varis.with_context(
+            skip_backorder=True,
+            picking_ids_not_to_backorder=varis.ids,
+            from_ariza_onarim=True,
+        ).button_validate()
+        if varis.state != 'done':
+            raise UserError(_(
+                'Varış transferi (%s) otomatik doğrulanamadı; lütfen transferi '
+                'açıp elle doğrulayın.'
+            ) % varis.name)
+        _logger.info("[YOLDA] Varış doğrulandı: %s (%s)", varis.name, record.name)
 
     @staticmethod
     def teknik_onarim_baslat(record):
@@ -202,6 +249,13 @@ class ArizaStateService:
         """Herhangi -> IPTAL"""
         if record.transfer_id and record.transfer_id.state == 'done':
             raise UserError(_('Transferi bitene dönen arıza kayıtları iptal edilemez!'))
+        if record.yolda_akisi:
+            # Çıkış iptali varışı genelde de iptal eder (Faz 0); kural bunu
+            # yapmazsa ya da çıkış önceden iptal edildiyse varış ayrıca iptal edilir.
+            if record.transfer_id and record.transfer_id.state not in ('done', 'cancel'):
+                record.transfer_id.sudo().action_cancel()
+            if record.gidis_in_id and record.gidis_in_id.state not in ('done', 'cancel'):
+                record.gidis_in_id.sudo().action_cancel()
         record.state = ArizaStates.IPTAL
         record.message_post(
             body=_('Arıza kaydı iptal edildi.'),

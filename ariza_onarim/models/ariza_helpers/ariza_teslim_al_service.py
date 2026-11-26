@@ -28,15 +28,26 @@ class ArizaTeslimAlService:
         if ariza.state != ArizaStates.YONETICI_TAMAMLANDI:
             raise UserError('Bu işlem sadece yönetici tamamlandı durumundaki kayıtlar için kullanılabilir!')
 
-        ilk_transfer = ariza.env['stock.picking'].search([
-            ('origin', '=', ariza.name),
-            ('state', '=', 'done')
-        ], order='create_date asc', limit=1)
-        if not ilk_transfer:
-            raise UserError('İlk transfer bulunamadı! Lütfen önce ilk transferin tamamlandığından emin olun.')
+        if ariza.yolda_akisi:
+            # Yolda akışı: "ilk done transfer" mağaza → transit çıkışıdır; tersini
+            # almak ürünü transit'ten çıkarmaya çalışır. Ürün servis stoğundadır
+            # (varışın hedefi), mağazadaki ilk konumuna döner.
+            varis = ariza.gidis_in_id
+            if not varis or varis.state != 'done':
+                raise UserError('Ürünün teknik servise varışı doğrulanmamış! Önce varış transferi doğrulanmalı.')
+            ilk_transfer = ariza.transfer_id
+            kaynak_konum = varis.location_dest_id
+            hedef_konum = ilk_transfer.location_id
+        else:
+            ilk_transfer = ariza.env['stock.picking'].search([
+                ('origin', '=', ariza.name),
+                ('state', '=', 'done')
+            ], order='create_date asc', limit=1)
+            if not ilk_transfer:
+                raise UserError('İlk transfer bulunamadı! Lütfen önce ilk transferin tamamlandığından emin olun.')
 
-        kaynak_konum = ilk_transfer.location_dest_id
-        hedef_konum = ilk_transfer.location_id
+            kaynak_konum = ilk_transfer.location_dest_id
+            hedef_konum = ilk_transfer.location_id
         if not kaynak_konum or not hedef_konum:
             raise UserError('İlk transferin konum bilgileri eksik! Lütfen ilk transferi kontrol edin.')
 
