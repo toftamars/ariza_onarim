@@ -118,11 +118,54 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             _logger.exception("[YOLDA] %s dönüş transferi kurulamadı", ariza.name)
             neden = 'beklenmeyen hata (sistem kayıtlarına bakın)'
         else:
+            self._yolda_donus_cikis_dogrula(ariza)
             return
         ariza.message_post(
             body=(
                 "Uyarı: Dönüş yolda transferi kurulamadı; ürün \"Teslim Al\" ile "
                 f"tek adımda dönecek. Neden: {neden}"
+            ),
+            message_type='notification',
+        )
+
+    def _yolda_donus_cikis_dogrula(self, ariza):
+        """Yolda akışı: servis onarımı tamamlayınca dönüş çıkışı otomatik
+        doğrulanır (ürün yola çıkar). Doğrulanamazsa onarım kaydı engellenmez;
+        çıkış açık kalır ve servis elle doğrular."""
+        picking = ariza.sudo().yolda_donus_out_id
+        if not picking or picking.state in ('done', 'cancel'):
+            return
+        try:
+            with self.env.cr.savepoint():
+                if picking.state == 'draft':
+                    picking.action_confirm()
+                if picking.state != 'assigned':
+                    picking.action_assign()
+                if picking.state != 'assigned' or not picking.move_line_ids:
+                    raise UserError(_('Ürün servis stoğunda ayrılamadı (stok yok ya da başka işe ayrılmış).'))
+                for satir in picking.move_line_ids:
+                    satir.qty_done = satir.product_uom_qty
+                picking.with_context(
+                    skip_immediate=True, skip_backorder=True, skip_sms=True,
+                ).button_validate()
+                if picking.state != 'done':
+                    raise UserError(_('Çıkış transferi doğrulanamadı.'))
+        except UserError as e:
+            _logger.warning("[YOLDA] %s dönüş çıkışı otomatik doğrulanamadı: %s", ariza.name, e)
+            neden = e.args[0] if e.args else ''
+        except Exception:
+            _logger.exception("[YOLDA] %s dönüş çıkışı otomatik doğrulanamadı", ariza.name)
+            neden = 'beklenmeyen hata (sistem kayıtlarına bakın)'
+        else:
+            ariza.message_post(
+                body=f"Dönüş çıkışı {picking.name} otomatik doğrulandı; ürün mağazaya yola çıktı.",
+                message_type='notification',
+            )
+            return
+        ariza.message_post(
+            body=(
+                f"Uyarı: Dönüş çıkışı {picking.name} otomatik doğrulanamadı; "
+                f"servis transferi elle doğrulamalı. Neden: {neden}"
             ),
             message_type='notification',
         )
@@ -256,7 +299,9 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.message_post(
                 body=(
                     "Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. "
-                    + ("Servis ürünü yola çıkarınca mağaza 'Teslim Al' ile teslim alır."
+                    + ("Ürün mağazaya yola çıktı; mağaza 'Teslim Al' ile teslim alır."
+                       if ariza.yolda_donus_out_id.state == 'done' else
+                       "Servis ürünü yola çıkarınca mağaza 'Teslim Al' ile teslim alır."
                        if ariza.yolda_donus_out_id else
                        "Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.")
                 ),
@@ -269,5 +314,15 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 subject="Onarım Tamamlandı",
                 message_type='notification'
             )
-        
-        return {'type': 'ir.actions.act_window_close'} 
+
+        donus_out = ariza.sudo().yolda_donus_out_id
+        if ariza.ariza_tipi == 'magaza' and donus_out and donus_out.state not in ('done', 'cancel'):
+            # Yolda dönüşü: servis çıkışı doğrulasın diye dönüş çıkışı açılır
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'stock.picking',
+                'res_id': donus_out.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        return {'type': 'ir.actions.act_window_close'}
