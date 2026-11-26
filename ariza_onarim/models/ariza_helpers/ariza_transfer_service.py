@@ -263,10 +263,16 @@ class ArizaTransferService:
                 message_type='notification',
             )
             return False
-        magaza_partner = ariza.analitik_hesap_id.partner_id
+        # Alıcı: önce mağaza deposunun iş ortağı (örn. "Akasya Mağaza"),
+        # yoksa analitik hesabın iş ortağı.
+        magaza_partner = (
+            magaza_konum.warehouse_id.partner_id
+            or ariza.analitik_hesap_id.partner_id
+        )
         if not magaza_partner:
             raise UserError(_(
-                "Dönüş transferi kurulamadı: mağazanın (analitik hesap) iş ortağı tanımlı değil."
+                "Dönüş transferi kurulamadı: mağaza deposunun ve analitik hesabın "
+                "iş ortağı tanımlı değil."
             ))
         picking_vals = ArizaTransferService.build_picking_vals(
             ariza, kaynak, transit, picking_type, 'ikinci'
