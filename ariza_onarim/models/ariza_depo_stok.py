@@ -42,7 +42,10 @@ class ArizaStokNotu(models.Model):
             ('product_id', '=', product.id),
             ('company_id', '=', company.id),
         ], limit=1)
-        if kayit:
+        if kayit and not metin:
+            # Not silindi: satırda yazan/tarih de boşalsın
+            kayit.unlink()
+        elif kayit:
             kayit.write({'not_metni': metin})
         elif metin:
             self.sudo().create({

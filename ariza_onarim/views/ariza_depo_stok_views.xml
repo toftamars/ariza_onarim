@@ -6,8 +6,8 @@
         <field name="arch" type="xml">
             <tree string="Arıza Deposu Stoğu" editable="top" create="0" delete="0">
                 <field name="product_id" readonly="1"/>
-                <field name="miktar" readonly="1" sum="Toplam"/>
-                <field name="not_metni" placeholder="Örn: sapı kırık, onarıldı, %15 indirimle satılabilir"/>
+                <field name="miktar" readonly="1"/>
+                <field name="not_metni" width="420px" placeholder="Örn: sapı kırık, onarıldı, %15 indirimle satılabilir"/>
                 <field name="not_yazan_id" readonly="1" optional="show"/>
                 <field name="not_tarihi" readonly="1" optional="show"/>
                 <field name="company_id" readonly="1" groups="base.group_multi_company" optional="hide"/>
