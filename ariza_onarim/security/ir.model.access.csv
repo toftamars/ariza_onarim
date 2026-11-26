@@ -13,3 +13,5 @@ access_stock_picking_type_all,stock.picking.type.all,stock.model_stock_picking_t
 access_stock_location_all,stock.location.all,stock.model_stock_location,base.group_user,1,1,1,1
 access_stock_warehouse_all,stock.warehouse.all,stock.model_stock_warehouse,base.group_user,1,1,1,1
 access_kullanim_talimatlari_all,ariza.kullanim.talimatlari.all,model_ariza_kullanim_talimatlari,base.group_user,1,0,0,0
+access_ariza_stok_notu_manager,ariza.stok.notu.manager,model_ariza_stok_notu,ariza_onarim.group_ariza_manager,1,1,1,0
+access_ariza_depo_stok_manager,ariza.depo.stok.manager,model_ariza_depo_stok,ariza_onarim.group_ariza_manager,1,1,0,0

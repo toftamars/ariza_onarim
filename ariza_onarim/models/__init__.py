@@ -6,3 +6,4 @@ from . import stock_move_line
 from . import hr_employee
 from . import account_move_line
 from . import ariza_helpers 
+from . import ariza_depo_stok
