@@ -66,8 +66,16 @@ class ArizaKayit(models.Model):
     # gidis_in_id = varış (transit → servis). Eski kayıtlar False kalır.
     yolda_akisi = fields.Boolean(string='Yolda Akışı', readonly=True, copy=False)
     gidis_in_id = fields.Many2one(
-        'stock.picking', string='Servise Varış Transferi', readonly=True, copy=False,
+        'stock.picking', string='Servise Varış Transferi', readonly=True, copy=False, index=True,
         help='Yolda akışında ürün teknik servise ulaşınca doğrulanan varış transferi.'
+    )
+    yolda_donus_out_id = fields.Many2one(
+        'stock.picking', string='Servisten Dönüş Çıkışı', readonly=True, copy=False, index=True,
+        help='Yolda akışında servis ürünü mağazaya yola çıkarınca doğrulanan çıkış transferi.'
+    )
+    yolda_donus_in_id = fields.Many2one(
+        'stock.picking', string='Mağazaya Varış Transferi', readonly=True, copy=False, index=True,
+        help='Yolda akışında mağaza ürünü teslim alınca ("Teslim Al") doğrulanan varış transferi.'
     )
     iade_transfer_id = fields.Many2one(
         'stock.picking', string='İade Kargo Transferi', readonly=True, copy=False, tracking=True,
@@ -326,7 +334,7 @@ class ArizaKayit(models.Model):
         for rec in self:
             rec.is_manager = ariza_computed_helper.ArizaComputedHelper.compute_is_manager(self.env)
 
-    @api.depends('ariza_tipi', 'state')
+    @api.depends('ariza_tipi', 'state', 'yolda_donus_out_id.state', 'yolda_donus_in_id.state')
     def _compute_teslim_al_visible(self):
         for rec in self:
             rec.teslim_al_visible = ariza_computed_helper.ArizaComputedHelper.compute_teslim_al_visible(rec)

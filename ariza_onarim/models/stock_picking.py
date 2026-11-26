@@ -193,6 +193,9 @@ class StockPicking(models.Model):
         kayıt "Kabul Edildi"ye geçer.
         """
         self.ensure_one()
+        if self == ariza.yolda_donus_in_id and ariza.state == ArizaStates.YONETICI_TAMAMLANDI:
+            self._yolda_donus_varis_isle(ariza)
+            return
         if self != ariza.gidis_in_id or ariza.state != ArizaStates.PERSONEL_ONAY:
             return
         ariza.sudo().state = ArizaStates.KABUL_EDILDI
@@ -205,6 +208,26 @@ class StockPicking(models.Model):
             message_type='notification',
         )
         _logger.info("[YOLDA] Varış ile kabul: %s (%s)", ariza.name, self.name)
+
+    def _yolda_donus_varis_isle(self, ariza):
+        """Yolda dönüşü: mağazaya varış doğrulanınca kayıt Tamamlandı olur
+        ("Teslim Al" ya da transfer ekranından)."""
+        self.ensure_one()
+        simdi = fields.Datetime.context_timestamp(self, fields.Datetime.now()).strftime('%d.%m.%Y %H:%M')
+        ariza.sudo().write({
+            'state': ArizaStates.TAMAMLANDI,
+            'teslim_alan': self.env.user.name,
+            'teslim_notu': f"Ürün {simdi} tarihinde mağazaya teslim alındı ({self.name}).",
+        })
+        ariza.message_post(
+            body=(
+                f"Ürün mağazaya ulaştı: {self.name} doğrulandı "
+                f"({self.location_dest_id.display_name}). Teslim alan: {self.env.user.name}"
+            ),
+            subject="Mağaza Ürünü Teslim Alındı (Yolda Dönüş)",
+            message_type='notification',
+        )
+        _logger.info("[YOLDA] Dönüş varışı ile tamamlandı: %s (%s)", ariza.name, self.name)
 
     def button_validate(self):
         """
@@ -226,13 +249,17 @@ class StockPicking(models.Model):
             if not picking.origin or 'ARZ' not in picking.origin.upper():
                 continue
             ariza = self.env['ariza.kayit'].sudo().search([
-                ('gidis_in_id', '=', picking.id), ('yolda_akisi', '=', True)
+                ('yolda_akisi', '=', True),
+                '|', ('gidis_in_id', '=', picking.id), ('yolda_donus_in_id', '=', picking.id),
             ], limit=1)
-            if ariza and (not ariza.transfer_id or ariza.transfer_id.state != 'done'):
+            if not ariza:
+                continue
+            cikis = ariza.transfer_id if ariza.gidis_in_id == picking else ariza.yolda_donus_out_id
+            if not cikis or cikis.state != 'done':
                 raise UserError(_(
                     "%(varis)s doğrulanamaz: ürün henüz yola çıkmamış. Önce çıkış "
                     "transferi (%(cikis)s) doğrulanmalı."
-                ) % {'varis': picking.name, 'cikis': ariza.transfer_id.name or '-'})
+                ) % {'varis': picking.name, 'cikis': cikis.name or '-'})
 
         # Execute standard validation
         result = super().button_validate()
@@ -242,7 +269,14 @@ class StockPicking(models.Model):
             if picking.origin and picking.state == 'done':
                 # Search for related repair record
                 ariza = self.env['ariza.kayit'].search([('name', '=', picking.origin)], limit=1)
-                if ariza and ariza.yolda_akisi:
+                yolda_ariza = self.env['ariza.kayit'].sudo().search([
+                    ('yolda_akisi', '=', True),
+                    '|', ('gidis_in_id', '=', picking.id), ('yolda_donus_in_id', '=', picking.id),
+                ], limit=1)
+                if yolda_ariza:
+                    # Kullanıcının şirket seçimi kaydı kapsamasa da varış işlenir
+                    picking._yolda_varis_isle(yolda_ariza)
+                elif ariza and ariza.yolda_akisi:
                     # Yolda akışı: sayaç eski "Tamamla" mantığına ait, artırılmaz.
                     # Servise varış doğrulandıysa kayıt "Kabul Edildi"ye geçer.
                     picking._yolda_varis_isle(ariza)

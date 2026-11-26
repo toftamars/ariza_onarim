@@ -8,6 +8,7 @@ import logging
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from ..models.ariza_constants import SMSTemplates, TeslimAlan, EmailAddresses, GarantiKapsam
+from ..models.ariza_helpers import ariza_transfer_service
 
 _logger = logging.getLogger(__name__)
 
@@ -104,6 +105,28 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             return temiz_adi
         return magaza_adi
 
+    def _yolda_donus_kur(self, ariza):
+        """Yolda akışı: servisten mağazaya dönüş çıkışını açar. Hata onarım
+        kaydını engellemez; kurulamazsa "Teslim Al" tek adımlı dönüşe düşer."""
+        try:
+            with self.env.cr.savepoint():
+                ariza_transfer_service.ArizaTransferService.create_donus_yolda(ariza)
+        except UserError as e:
+            _logger.warning("[YOLDA] %s dönüş transferi kurulamadı: %s", ariza.name, e)
+            neden = e.args[0] if e.args else ''
+        except Exception:
+            _logger.exception("[YOLDA] %s dönüş transferi kurulamadı", ariza.name)
+            neden = 'beklenmeyen hata (sistem kayıtlarına bakın)'
+        else:
+            return
+        ariza.message_post(
+            body=(
+                "Uyarı: Dönüş yolda transferi kurulamadı; ürün \"Teslim Al\" ile "
+                f"tek adımda dönecek. Neden: {neden}"
+            ),
+            message_type='notification',
+        )
+
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
         ariza = self.ariza_id
@@ -164,6 +187,8 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Durumu güncelle - Mağaza ürünü için yönetici tamamlandı, müşteri ürünü için normal akış
         if self.ariza_tipi == 'magaza':
             ariza.state = 'yonetici_tamamlandi'
+            if ariza.yolda_akisi:
+                self._yolda_donus_kur(ariza)
         elif self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.state = 'teslim_edildi'
             # Adrese gönderim için teslim bilgilerini güncelle
@@ -229,7 +254,12 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             )
         elif ariza.ariza_tipi == 'magaza':
             ariza.message_post(
-                body=f"Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.",
+                body=(
+                    "Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. "
+                    + ("Servis ürünü yola çıkarınca mağaza 'Teslim Al' ile teslim alır."
+                       if ariza.yolda_donus_out_id else
+                       "Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.")
+                ),
                 subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor",
                 message_type='notification'
             )

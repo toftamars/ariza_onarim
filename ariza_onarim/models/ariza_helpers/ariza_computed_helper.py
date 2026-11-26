@@ -214,10 +214,17 @@ class ArizaComputedHelper:
     def compute_teslim_al_visible(record):
         """Mağaza ürünü + yönetici tamamlandı durumunda True"""
         from ..ariza_constants import ArizaStates, ArizaTipi
-        return (
+        gorunur = (
             record.ariza_tipi == ArizaTipi.MAGAZA
             and record.state == ArizaStates.YONETICI_TAMAMLANDI
         )
+        donus_out = record.sudo().yolda_donus_out_id
+        if gorunur and donus_out and donus_out.state != 'cancel':
+            # Yolda dönüşü: servis ürünü yola çıkarmadan teslim alınamaz.
+            # (Çıkış iptal edildiyse tek adımlı yedek için buton açık kalır;
+            # varış iptal/doğrulanmış ama kayıt ilerlememişse Teslim Al açıklar/kurtarır.)
+            gorunur = donus_out.state == 'done'
+        return gorunur
 
     @staticmethod
     def compute_analitik_hesap_bilgileri(record):

@@ -47,6 +47,8 @@
                             <field name="hedef_konum_id" readonly="1" options='{"no_open": true, "no_create": true}' attrs="{'invisible': [('ariza_tipi', '!=', 'magaza')]}"/>
                             <field name="yolda_akisi" invisible="1"/>
                             <field name="gidis_in_id" readonly="1" attrs="{'invisible': [('yolda_akisi', '=', False)]}"/>
+                            <field name="yolda_donus_out_id" readonly="1" attrs="{'invisible': [('yolda_donus_out_id', '=', False)]}"/>
+                            <field name="yolda_donus_in_id" readonly="1" attrs="{'invisible': [('yolda_donus_in_id', '=', False)]}"/>
                         </group>
                     </group>
                     
@@ -209,7 +211,7 @@
                     <!-- Teslim Et butonu - Yöneticiler ve kullanıcılar için görünür -->
                     <button name="action_kullanici_tamamla" string="Teslim Et" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'tamamlandi'), ('ariza_tipi', '!=', 'musteri'), ('teslim_alan', '=', 'Adrese Gönderim')]}" options='{"no_open": true}'/>
                     <!-- Mağaza ürünü için Teslim Al butonu - Sadece kullanıcılar için (yönetici hariç) -->
-                    <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('state', '!=', 'yonetici_tamamlandi'), ('teslim_al_visible', '=', False)]}" confirm="Mağaza ürününü teslim almak istediğinizden emin misiniz? Bu işlem Tamir Alımlar transferi oluşturacaktır."/>
+                    <button name="action_teslim_al" string="Teslim Al" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('ariza_tipi', '!=', 'magaza'), ('state', '!=', 'yonetici_tamamlandi'), ('teslim_al_visible', '=', False)]}" confirm="Mağaza ürününü teslim almak istediğinizden emin misiniz? Ürün mağaza stoğuna alınacaktır."/>
                     <!-- Bilgileri Düzelt: onarım akışı bittikten sonra yanlış girilen
                          garanti/onarım bilgisinin geriye dönük düzeltilmesi (sadece yönetici) -->
                     <button name="action_duzelt" string="Bilgileri Düzelt" type="object" class="btn-secondary" attrs="{'invisible': [('state', 'not in', ['onaylandi', 'yonetici_tamamlandi', 'tamamlandi', 'teslim_edildi', 'onarim_disi'])]}" groups="ariza_onarim.group_ariza_manager"/>
@@ -260,6 +262,8 @@
                         <field name="kaynak_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')]}" options='{"no_open": true, "no_create": true}'/>
                         <field name="hedef_konum_id" attrs="{'required': [('ariza_tipi', '=', 'magaza')], 'readonly': [('hedef_konum_otomatik', '=', True)]}" options='{"no_open": true, "no_create": true}'/>
                         <field name="gidis_in_id" readonly="1" attrs="{'invisible': [('yolda_akisi', '=', False)]}"/>
+                        <field name="yolda_donus_out_id" readonly="1" attrs="{'invisible': [('yolda_donus_out_id', '=', False)]}"/>
+                        <field name="yolda_donus_in_id" readonly="1" attrs="{'invisible': [('yolda_donus_in_id', '=', False)]}"/>
                         <field name="contact_id" attrs="{'invisible': [('teknik_servis', '!=', 'TEDARİKÇİ')], 'required': [('teknik_servis', '=', 'TEDARİKÇİ')]}" options='{"no_open": true, "no_create": true}'/>
                     </group>
                     <group attrs="{'invisible': ['|', ('teknik_servis', '!=', 'TEDARİKÇİ'), ('marka_id', '=', False)]}">

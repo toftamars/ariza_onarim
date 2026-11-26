@@ -153,18 +153,23 @@ class ArizaStateService:
     @staticmethod
     def _varis_dogrula(record):
         """Yolda akışı: teknik servise varış transferini doğrular."""
-        varis = record.gidis_in_id
+        ArizaStateService.yolda_varis_dogrula(record, record.gidis_in_id, record.transfer_id)
+
+    @staticmethod
+    def yolda_varis_dogrula(record, varis, cikis):
+        """Yolda akışında bir varış transferini (gidiş ya da dönüş) doğrular.
+        Çıkış doğrulanmadan varış doğrulanmaz (ürün henüz yola çıkmamıştır)."""
         if not varis:
             raise UserError(_('Varış transferi bulunamadı. Lütfen yöneticinize bildirin.'))
         if varis.state == 'done':
             return
         if varis.state == 'cancel':
             raise UserError(_('Varış transferi (%s) iptal edilmiş.') % varis.name)
-        if not record.transfer_id or record.transfer_id.state != 'done':
+        if not cikis or cikis.state != 'done':
             raise UserError(_(
                 'Ürün henüz yola çıkmamış: çıkış transferi (%s) doğrulanmadan '
-                'kabul edilemez.'
-            ) % (record.transfer_id.name or '-'))
+                'varış doğrulanamaz.'
+            ) % (cikis.name or '-'))
         varis = varis.sudo()
         varis.action_assign()
         satirlar = varis.move_line_ids

@@ -10,6 +10,7 @@ from odoo import _, fields
 from odoo.exceptions import UserError
 
 from ..ariza_constants import ArizaStates, ArizaTipi, MagicNumbers, PartnerNames, TeknikServis
+from . import ariza_state_service
 
 _logger = logging.getLogger(__name__)
 
@@ -28,8 +29,31 @@ class ArizaTeslimAlService:
         if ariza.state != ArizaStates.YONETICI_TAMAMLANDI:
             raise UserError('Bu işlem sadece yönetici tamamlandı durumundaki kayıtlar için kullanılabilir!')
 
+        donus_out = ariza.sudo().yolda_donus_out_id
+        donus_in = ariza.sudo().yolda_donus_in_id
+        if ariza.yolda_akisi and donus_out and donus_out.state == 'done' and donus_in.state == 'cancel':
+            raise UserError(_(
+                'Ürün mağazaya yola çıkmış ama varış transferi (%s) iptal edilmiş. '
+                'Ürün yolda konumunda; lütfen yöneticinize bildirin.'
+            ) % donus_in.name)
+        if ariza.yolda_akisi and donus_in and donus_out.state != 'cancel':
+            # Yolda dönüşü: servis ürünü yola çıkarmış olmalı; mağazaya varış
+            # doğrulanır, kayıt Tamamlandı olur (stock_picking._yolda_donus_varis_isle).
+            ariza_state_service.ArizaStateService.yolda_varis_dogrula(ariza, donus_in, donus_out)
+            if ariza.state == ArizaStates.YONETICI_TAMAMLANDI and donus_in.state == 'done':
+                # Varış daha önce (başka ekrandan) doğrulanmış ama kayıt ilerlememiş
+                donus_in._yolda_donus_varis_isle(ariza)
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'ariza.kayit',
+                'res_id': ariza.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+
         if ariza.yolda_akisi:
-            # Yolda akışı: "ilk done transfer" mağaza → transit çıkışıdır; tersini
+            # Yolda dönüşü kurulamamış ya da dönüş çıkışı iptal edilmiş: ürün
+            # servis stoğunda, tek adımlı yedek dönüş. "İlk done transfer" mağaza → transit çıkışıdır; tersini
             # almak ürünü transit'ten çıkarmaya çalışır. Ürün servis stoğundadır
             # (varışın hedefi), mağazadaki ilk konumuna döner.
             varis = ariza.gidis_in_id

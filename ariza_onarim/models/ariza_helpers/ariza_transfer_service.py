@@ -198,6 +198,125 @@ class ArizaTransferService:
     @staticmethod
     def _yolda_baglat(ariza, picking, group):
         """Çıkışı onaylar (itme kuralı varış transferini doğurur) ve varışı kayda bağlar."""
+        varis = ArizaTransferService._yolda_varis_bul(ariza, picking, group)
+        ariza.sudo().write({'yolda_akisi': True, 'gidis_in_id': varis.id})
+        hedef_notu = ''
+        if ariza.hedef_konum_id and ariza.hedef_konum_id != varis.location_dest_id:
+            hedef_notu = (
+                f"<br/>Not: Varış hedefi ({varis.location_dest_id.display_name}) kayıttaki "
+                f"hedef konumdan ({ariza.hedef_konum_id.display_name}) farklı."
+            )
+        ariza.message_post(
+            body=(
+                f"<b>Yolda (iki adımlı) transfer kuruldu.</b><br/>"
+                f"Çıkış: {picking.name} — ürün yola çıkınca doğrulanır.<br/>"
+                f"Varış: {varis.name} — teknik servis ürünü teslim alınca "
+                f"\"Kabul Et\" ile doğrulanır.{hedef_notu}"
+            ),
+            message_type='notification',
+        )
+
+    @staticmethod
+    def create_donus_yolda(ariza):
+        """
+        Yolda akışı dönüşü: servis stoğu → "Servis > Mağaza Transferi" (transit)
+        çıkışını açar; itme kuralı mağazaya varış transferini doğurur.
+
+        Kurulamazsa chatter'a tanı yazar ve False döner; bu durumda "Teslim Al"
+        eski tek adımlı dönüşle çalışır. Returns: çıkış picking veya False.
+        """
+        if not ariza.yolda_akisi or ariza.yolda_donus_out_id:
+            return ariza.yolda_donus_out_id or False
+        varis = ariza.gidis_in_id
+        if not varis or varis.state != 'done' or not ariza.transfer_id:
+            ariza.message_post(
+                body=(
+                    "Uyarı: Dönüş yolda transferi kurulamadı: servise varış doğrulanmamış. "
+                    "Ürün \"Teslim Al\" ile tek adımda dönecek."
+                ),
+                message_type='notification',
+            )
+            return False
+        kaynak = varis.location_dest_id
+        magaza_konum = ariza.transfer_id.location_id
+        env = ariza.env
+        route = transit_helper.TransitHelper.get_route(env, ariza.company_id)
+        transit, _nihai = transit_helper.TransitHelper.find_transit(env, route, kaynak, magaza_konum)
+        if not route or not transit:
+            tani = transit_helper.TransitHelper.tani(env, route, kaynak, magaza_konum)
+            _logger.warning("[YOLDA] %s dönüş kurulamadı: %s", ariza.name, tani)
+            ariza.message_post(
+                body=(
+                    "Uyarı: Dönüş yolda transferi kurulamadı; ürün \"Teslim Al\" ile "
+                    f"tek adımda dönecek.<br/>Tanı: {tani}"
+                ),
+                message_type='notification',
+            )
+            return False
+        picking_type = ArizaTransferService._servis_cikis_tipi(env, kaynak.warehouse_id)
+        if not picking_type:
+            ariza.message_post(
+                body=(
+                    "Uyarı: Dönüş yolda transferi kurulamadı: "
+                    f"{kaynak.warehouse_id.display_name} deposunda çıkış operasyon tipi yok."
+                ),
+                message_type='notification',
+            )
+            return False
+        magaza_partner = ariza.analitik_hesap_id.partner_id
+        if not magaza_partner:
+            raise UserError(_(
+                "Dönüş transferi kurulamadı: mağazanın (analitik hesap) iş ortağı tanımlı değil."
+            ))
+        picking_vals = ArizaTransferService.build_picking_vals(
+            ariza, kaynak, transit, picking_type, 'ikinci'
+        )
+        # Servis deposunun çıkışı: alıcı mağaza; mağazanın e-irsaliye serisi kullanılmaz
+        picking_vals['partner_id'] = magaza_partner.id
+        picking_vals.pop('edespatch_number_sequence', None)
+        group = env['procurement.group'].sudo().create({'name': ariza.name})
+        picking_vals['group_id'] = group.id
+        picking = env['stock.picking'].with_context(from_ariza_onarim=True).sudo().create(picking_vals)
+        ArizaTransferService.create_move(ariza, picking, kaynak, transit, route=route, group=group)
+        donus_varis = ArizaTransferService._yolda_varis_bul(ariza, picking, group)
+        if donus_varis.location_dest_id.warehouse_id != magaza_konum.warehouse_id:
+            # Kural ürünü başka mağazaya götürüyor: kurmayı reddet (çağıran
+            # savepoint'i geri alır, tek adımlı dönüş kullanılır).
+            raise UserError(_(
+                "Dönüş varışı yanlış depoya gidiyor (%s); beklenen %s."
+            ) % (donus_varis.location_dest_id.display_name, magaza_konum.warehouse_id.display_name))
+        ariza.sudo().write({
+            'yolda_donus_out_id': picking.id,
+            'yolda_donus_in_id': donus_varis.id,
+        })
+        ariza.message_post(
+            body=(
+                f"<b>Dönüş yolda transferi kuruldu.</b><br/>"
+                f"Çıkış: {picking.name} ({kaynak.display_name} → {transit.display_name}) — "
+                f"servis ürünü yola çıkarınca doğrulanır.<br/>"
+                f"Varış: {donus_varis.name} ({donus_varis.location_dest_id.display_name}) — "
+                f"mağaza ürünü teslim alınca \"Teslim Al\" ile doğrulanır."
+            ),
+            message_type='notification',
+        )
+        return picking
+
+    @staticmethod
+    def _servis_cikis_tipi(env, warehouse):
+        """Servis deposunun çıkış tipi: önce o depodaki "Tamir Teslimatları",
+        yoksa deponun varsayılan çıkış tipi (başka depoya ait tipe düşmez)."""
+        if not warehouse:
+            return False
+        PickingType = env['stock.picking.type'].sudo()
+        tip = PickingType.search([
+            ('name', '=', 'Tamir Teslimatları'),
+            ('warehouse_id', '=', warehouse.id),
+        ], limit=1)
+        return tip or warehouse.sudo().out_type_id
+
+    @staticmethod
+    def _yolda_varis_bul(ariza, picking, group):
+        """Çıkışı onaylar ve itme kuralıyla doğan varış transferini döner."""
         picking.sudo().action_confirm()
         varis = picking.move_ids_without_package.move_dest_ids.picking_id[:1]
         if not varis:
@@ -219,19 +338,4 @@ class ArizaTransferService:
                 "Yolda transferi kurulamadı: varış transferi (%s) başka "
                 "hareketler içeriyor. Lütfen yöneticinize bildirin."
             ) % varis.name)
-        ariza.sudo().write({'yolda_akisi': True, 'gidis_in_id': varis.id})
-        hedef_notu = ''
-        if ariza.hedef_konum_id and ariza.hedef_konum_id != varis.location_dest_id:
-            hedef_notu = (
-                f"<br/>Not: Varış hedefi ({varis.location_dest_id.display_name}) kayıttaki "
-                f"hedef konumdan ({ariza.hedef_konum_id.display_name}) farklı."
-            )
-        ariza.message_post(
-            body=(
-                f"<b>Yolda (iki adımlı) transfer kuruldu.</b><br/>"
-                f"Çıkış: {picking.name} — ürün yola çıkınca doğrulanır.<br/>"
-                f"Varış: {varis.name} — teknik servis ürünü teslim alınca "
-                f"\"Kabul Et\" ile doğrulanır.{hedef_notu}"
-            ),
-            message_type='notification',
-        )
+        return varis
