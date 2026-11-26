@@ -273,13 +273,21 @@ class StockPicking(models.Model):
                     ('yolda_akisi', '=', True),
                     '|', ('gidis_in_id', '=', picking.id), ('yolda_donus_in_id', '=', picking.id),
                 ], limit=1)
-                if yolda_ariza:
-                    # Kullanıcının şirket seçimi kaydı kapsamasa da varış işlenir
-                    picking._yolda_varis_isle(yolda_ariza)
-                elif ariza and ariza.yolda_akisi:
+                if yolda_ariza or (ariza and ariza.yolda_akisi):
                     # Yolda akışı: sayaç eski "Tamamla" mantığına ait, artırılmaz.
-                    # Servise varış doğrulandıysa kayıt "Kabul Edildi"ye geçer.
-                    picking._yolda_varis_isle(ariza)
+                    # Varış doğrulandıysa kayıt ilerler (kullanıcının şirket
+                    # seçimi kaydı kapsamasa da).
+                    hedef = yolda_ariza or ariza
+                    picking._yolda_varis_isle(hedef)
+                    if len(self) == 1:
+                        # Doğrulayan kişi arıza kaydına geri döner
+                        return {
+                            'type': 'ir.actions.act_window',
+                            'res_model': 'ariza.kayit',
+                            'res_id': hedef.id,
+                            'view_mode': 'form',
+                            'target': 'current',
+                        }
                 elif ariza:
                     # Increment transfer counter
                     ariza.transfer_sayisi += 1
