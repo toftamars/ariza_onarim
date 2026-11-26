@@ -36,9 +36,15 @@ class TransitHelper:
         return str(deger).strip().lower() in ('1', 'true', 'evet', 'yes')
 
     @staticmethod
-    def get_route(env):
-        """Yolda akışında kullanılacak rotayı döner (parametre, yoksa isimle)."""
+    def get_route(env, company=None):
+        """Yolda akışında kullanılacak rotayı döner (parametre, yoksa isimle).
+
+        İsimle aramada yalnız kaydın şirketine ait (ya da şirketsiz) rotalar
+        alınır: diğer şirketlerde benzer adlı rotalar var (ör. "C-Mağazalar
+        Arası Transfer (MAT)" Çağdaş'a ait) ve sudo hepsini görür.
+        """
         Route = env['stock.location.route'].sudo()
+        company = company or env.company
         route_id = env['ir.config_parameter'].sudo().get_param(PARAM_ROUTE_ID)
         if route_id:
             try:
@@ -48,7 +54,10 @@ class TransitHelper:
             if route:
                 return route
             _logger.warning("[YOLDA] %s parametresindeki rota bulunamadı: %s", PARAM_ROUTE_ID, route_id)
-        routes = Route.search([('name', 'ilike', VARSAYILAN_ROTA_ADI)])
+        routes = Route.search([
+            ('name', 'ilike', VARSAYILAN_ROTA_ADI),
+            ('company_id', 'in', [company.id, False]),
+        ])
         if len(routes) > 1:
             _logger.warning(
                 "[YOLDA] '%s' adıyla %s rota bulundu; ilki kullanılıyor. "
@@ -144,7 +153,7 @@ class TransitHelper:
         env = ariza.env
         if not TransitHelper.is_aktif(env) or not TransitHelper.kapsamda_mi(ariza):
             return None
-        route = TransitHelper.get_route(env)
+        route = TransitHelper.get_route(env, ariza.company_id)
         transit, nihai = TransitHelper.find_transit(env, route, kaynak_konum, hedef_konum)
         if not route or not transit:
             tani = TransitHelper.tani(env, route, kaynak_konum, hedef_konum)
