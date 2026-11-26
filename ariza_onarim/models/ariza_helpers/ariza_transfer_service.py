@@ -268,6 +268,11 @@ class ArizaTransferService:
             raise UserError(_(
                 "Dönüş varışı yanlış depoya gidiyor (%s); beklenen %s."
             ) % (donus_varis.location_dest_id.display_name, magaza_konum.warehouse_id.display_name))
+        if donus_varis.location_dest_id != magaza_konum:
+            # Rota kuralı varışı deponun sabit konumuna (örn. X/Mağaza) indirir;
+            # ürün çıktığı konuma (X/Stok, X/Arızalı …) geri dönmeli.
+            donus_varis.write({'location_dest_id': magaza_konum.id})
+            donus_varis.move_lines.write({'location_dest_id': magaza_konum.id})
         ariza.sudo().write({
             'yolda_donus_out_id': picking.id,
             'yolda_donus_in_id': donus_varis.id,
