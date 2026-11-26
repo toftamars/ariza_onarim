@@ -109,6 +109,32 @@ class TransitHelper:
         return False, False
 
     @staticmethod
+    def tani(env, route, kaynak_konum, hedef_konum):
+        """find_transit'in hangi adımda elendiğini anlatan kısa metin."""
+        parcalar = [f"rota={route.display_name if route else 'YOK'}"]
+        kaynak_wh = kaynak_konum.warehouse_id if kaynak_konum else False
+        hedef_wh = hedef_konum.warehouse_id if hedef_konum else False
+        parcalar.append(f"kaynak depo={kaynak_wh.name if kaynak_wh else 'YOK'}")
+        parcalar.append(f"hedef depo={hedef_wh.name if hedef_wh else 'YOK'}")
+        if route and kaynak_wh and hedef_wh:
+            Rule = env['stock.rule'].sudo()
+            push_rules = Rule.search([
+                ('route_id', '=', route.id),
+                ('action', 'in', ('push', 'pull_push')),
+                ('location_src_id.usage', '=', 'transit'),
+            ])
+            hedefe = push_rules.filtered(lambda r: r.location_id.warehouse_id == hedef_wh)
+            parcalar.append(f"itme kuralı={len(push_rules)}, hedef depoya={len(hedefe)}")
+            pulls = Rule.search([
+                ('route_id', '=', route.id),
+                ('action', 'in', ('pull', 'pull_push')),
+                ('location_id', 'in', hedefe.mapped('location_src_id').ids),
+            ])
+            kaynaktan = pulls.filtered(lambda p: p.location_src_id.warehouse_id == kaynak_wh)
+            parcalar.append(f"çekme kuralı={len(pulls)}, kaynak depodan={len(kaynaktan)}")
+        return ', '.join(parcalar)
+
+    @staticmethod
     def hazirla(ariza, kaynak_konum, hedef_konum):
         """
         Kayıt için yolda akışı uygulanabiliyorsa (route, transit, nihai_hedef)
@@ -121,12 +147,15 @@ class TransitHelper:
         route = TransitHelper.get_route(env)
         transit, nihai = TransitHelper.find_transit(env, route, kaynak_konum, hedef_konum)
         if not route or not transit:
+            tani = TransitHelper.tani(env, route, kaynak_konum, hedef_konum)
+            _logger.warning("[YOLDA] %s kurulamadı: %s", ariza.name, tani)
             ariza.message_post(
                 body=(
                     "Uyarı: Yolda (iki adımlı) transfer kurulamadı: "
                     f"{kaynak_konum.display_name if kaynak_konum else '-'} → "
                     f"{hedef_konum.display_name if hedef_konum else '-'} için "
                     "rota/yolda konumu bulunamadı. Tek adımlı transfer oluşturulacak."
+                    f"<br/>Tanı: {tani}"
                 ),
                 message_type='notification',
             )
