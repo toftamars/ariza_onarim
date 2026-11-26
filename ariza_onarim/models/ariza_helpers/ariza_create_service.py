@@ -56,9 +56,4 @@ class ArizaCreateService:
                 record.barcode = record.env['ir.sequence'].next_by_code('ariza.kayit.barcode') or False
                 if record.barcode:
                     _logger.info(f"Müşteri ürünü barkod oluşturuldu: {record.name} - Barkod: {record.barcode}")
-        for record in records:
-            try:
-                ariza_tanimi = record.ariza_tanimi or "Arıza tanımı belirtilmemiş"
-                record.message_post(body=f"Arıza Tanımı: {ariza_tanimi}", message_type='notification')
-            except Exception as e:
-                _logger.error(f"Chatter mesajı eklenemedi: {record.name} - {str(e)}")
+        # Arıza tanımı formda görünür; ayrıca chatter'a yazılmaz.

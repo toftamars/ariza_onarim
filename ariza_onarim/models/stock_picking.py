@@ -17,6 +17,7 @@ from odoo.exceptions import UserError
 import logging
 
 from .ariza_constants import ArizaStates
+from .ariza_helpers.chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -196,17 +197,16 @@ class StockPicking(models.Model):
         if self == ariza.yolda_donus_in_id and ariza.state == ArizaStates.YONETICI_TAMAMLANDI:
             self._yolda_donus_varis_isle(ariza)
             return
+        if self in (ariza.transfer_id, ariza.yolda_donus_out_id) and not self.env.context.get('ariza_otomatik'):
+            # Çıkış elle doğrulandı: ürün yola çıktı (otomatik doğrulamada
+            # mesajı onarım sihirbazı yazar)
+            yon = 'servise' if self == ariza.transfer_id else 'mağazaya'
+            Chatter.yaz(ariza, f"Ürün {yon} yola çıktı: {Chatter.link(self)} · {Chatter.metin(self.env.user.name)}")
+            return
         if self != ariza.gidis_in_id or ariza.state != ArizaStates.PERSONEL_ONAY:
             return
         ariza.sudo().state = ArizaStates.KABUL_EDILDI
-        ariza.message_post(
-            body=(
-                f"Ürün teknik servise ulaştı: {self.name} doğrulandı. "
-                f"Kayıt kabul edildi. Doğrulayan: {self.env.user.name}"
-            ),
-            subject="Arıza Kaydı Kabul Edildi (Varış)",
-            message_type='notification',
-        )
+        Chatter.yaz(ariza, f"Ürün servise ulaştı: {Chatter.link(self)} · {Chatter.metin(self.env.user.name)}")
         _logger.info("[YOLDA] Varış ile kabul: %s (%s)", ariza.name, self.name)
 
     def _yolda_donus_varis_isle(self, ariza):
@@ -219,14 +219,7 @@ class StockPicking(models.Model):
             'teslim_alan': self.env.user.name,
             'teslim_notu': f"Ürün {simdi} tarihinde mağazaya teslim alındı ({self.name}).",
         })
-        ariza.message_post(
-            body=(
-                f"Ürün mağazaya ulaştı: {self.name} doğrulandı "
-                f"({self.location_dest_id.display_name}). Teslim alan: {self.env.user.name}"
-            ),
-            subject="Mağaza Ürünü Teslim Alındı (Yolda Dönüş)",
-            message_type='notification',
-        )
+        Chatter.yaz(ariza, f"Mağaza ürünü teslim aldı: {Chatter.link(self)} · {Chatter.metin(self.env.user.name)}")
         _logger.info("[YOLDA] Dönüş varışı ile tamamlandı: %s (%s)", ariza.name, self.name)
 
     def button_validate(self):

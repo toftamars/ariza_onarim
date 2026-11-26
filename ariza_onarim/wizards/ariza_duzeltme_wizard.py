@@ -12,6 +12,7 @@ import logging
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..models.ariza_helpers.chatter_helper import ChatterHelper as Chatter
 
 from ..models.ariza_constants import ArizaStates, ArizaTipi, GarantiKapsam
 
@@ -154,25 +155,17 @@ class ArizaDuzeltmeWizard(models.TransientModel):
             )
             for _alan, etiket, eski, yeni, selection in degisiklikler
         )
-        ariza.message_post(
-            body=(
-                'Kayıt bilgileri düzeltildi.<ul>%s</ul>'
-                'Düzeltme nedeni: %s<br/>Düzelten: %s'
-            ) % (satirlar, self.duzeltme_nedeni, self.env.user.name),
-            subject='Bilgi Düzeltme',
-            message_type='notification'
-        )
+        Chatter.yaz(ariza, (
+            'Bilgiler düzeltildi · Neden: %s<ul>%s</ul>'
+        ) % (Chatter.metin(self.duzeltme_nedeni), satirlar))
 
         # Ürün Değişimi'ne düzeltilirse bildirim e-postası otomatik gitmez:
         # düzeltme bir iş akışı adımı değildir, yan etki (e-posta/SMS) tetiklemez.
         if (self.garanti_kapsaminda_mi == GarantiKapsam.URUN_DEGISIMI
                 and ariza.ariza_tipi == ArizaTipi.MUSTERI):
-            ariza.message_post(
-                body=('Uyarı: Garanti kapsamı "Ürün Değişimi" olarak düzeltildi. '
-                      'Ürün Değişimi bildirim e-postası bu düzeltmeyle otomatik gönderilmez; '
-                      'gerekiyorsa ilgili birime elle bilgi veriniz.'),
-                message_type='notification'
-            )
+            Chatter.uyari(ariza, (
+                'Ürün Değişimi e-postası düzeltmeyle otomatik gitmez; gerekiyorsa ilgili birime elle bildirin.'
+            ))
 
         _logger.info(
             "Arıza kaydı düzeltildi: %s - Alanlar: %s - Kullanıcı: %s",

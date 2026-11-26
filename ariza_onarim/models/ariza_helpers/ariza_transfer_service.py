@@ -13,6 +13,7 @@ from ..ariza_constants import ArizaTipi, IslemTipi, TeknikServis, TransferMetodu
 from . import partner_helper
 from . import transfer_helper
 from . import transit_helper
+from .chatter_helper import ChatterHelper as Chatter
 from . import ariza_musteri_iade_service
 
 _logger = logging.getLogger(__name__)
@@ -127,21 +128,11 @@ class ArizaTransferService:
 
     @staticmethod
     def post_transfer_message(ariza, picking, kaynak, hedef):
-        """Ariza chatter'a transfer mesajı ekler."""
-        transfer_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        transfer_no_html = f'<a href="{transfer_url}">{picking.name}</a>'
-        durum = dict(ariza._fields['state'].selection).get(ariza.state, ariza.state)
-        sms_bilgi = 'Aktif' if ariza.sms_gonderildi else 'Deaktif'
-        ariza.message_post(
-            body=f"<b>Yeni transfer oluşturuldu!</b><br/>"
-                 f"Transfer No: {transfer_no_html}<br/>"
-                 f"Kaynak: {kaynak.display_name}<br/>"
-                 f"Hedef: {hedef.display_name}<br/>"
-                 f"Tarih: {fields.Date.today()}<br/>"
-                 f"Durum: {durum}<br/>"
-                 f"SMS Gönderildi: {sms_bilgi}",
-            message_type='notification'
-        )
+        """Ariza chatter'a tek satırlık transfer mesajı ekler."""
+        Chatter.yaz(ariza, (
+            f"Transfer oluşturuldu: {Chatter.link(picking)} "
+            f"({Chatter.metin(kaynak.display_name)} → {Chatter.metin(hedef.display_name)})"
+        ))
 
     @staticmethod
     def create_stock_transfer(ariza, kaynak_konum=None, hedef_konum=None, transfer_tipi=None):
@@ -190,9 +181,11 @@ class ArizaTransferService:
             except Exception as e2:
                 raise UserError(_(f"Transfer oluşturulamadı: Güvenlik kısıtlaması! Hata: {str(e2)}"))
         ArizaTransferService.create_move(ariza, picking, kaynak, hedef, route=route, group=group)
-        ArizaTransferService.post_transfer_message(ariza, picking, kaynak, hedef)
         if yolda:
+            # Yolda akışı tek mesaj yazar (çıkış + varış), genel mesaj yazılmaz
             ArizaTransferService._yolda_baglat(ariza, picking, group)
+        else:
+            ArizaTransferService.post_transfer_message(ariza, picking, kaynak, hedef)
         return picking
 
     @staticmethod
@@ -200,21 +193,14 @@ class ArizaTransferService:
         """Çıkışı onaylar (itme kuralı varış transferini doğurur) ve varışı kayda bağlar."""
         varis = ArizaTransferService._yolda_varis_bul(ariza, picking, group)
         ariza.sudo().write({'yolda_akisi': True, 'gidis_in_id': varis.id})
-        hedef_notu = ''
+        Chatter.yaz(ariza, (
+            f"Servise gönderim: çıkış {Chatter.link(picking)} → servise varış {Chatter.link(varis)}"
+        ))
         if ariza.hedef_konum_id and ariza.hedef_konum_id != varis.location_dest_id:
-            hedef_notu = (
-                f"<br/>Not: Varış hedefi ({varis.location_dest_id.display_name}) kayıttaki "
-                f"hedef konumdan ({ariza.hedef_konum_id.display_name}) farklı."
-            )
-        ariza.message_post(
-            body=(
-                f"<b>Yolda (iki adımlı) transfer kuruldu.</b><br/>"
-                f"Çıkış: {picking.name} — ürün yola çıkınca doğrulanır.<br/>"
-                f"Varış: {varis.name} — teknik servis ürünü teslim alınca "
-                f"\"Kabul Et\" ile doğrulanır.{hedef_notu}"
-            ),
-            message_type='notification',
-        )
+            Chatter.uyari(ariza, (
+                f"Varış konumu ({Chatter.metin(varis.location_dest_id.display_name)}) kayıttaki "
+                f"hedef konumdan ({Chatter.metin(ariza.hedef_konum_id.display_name)}) farklı."
+            ))
 
     @staticmethod
     def create_donus_yolda(ariza):
@@ -229,13 +215,10 @@ class ArizaTransferService:
             return ariza.yolda_donus_out_id or False
         varis = ariza.gidis_in_id
         if not varis or varis.state != 'done' or not ariza.transfer_id:
-            ariza.message_post(
-                body=(
-                    "Uyarı: Dönüş yolda transferi kurulamadı: servise varış doğrulanmamış. "
-                    "Ürün \"Teslim Al\" ile tek adımda dönecek."
-                ),
-                message_type='notification',
-            )
+            Chatter.uyari(ariza, (
+                "Dönüş transferi kurulamadı (servise varış doğrulanmamış); "
+                "ürün \"Teslim Al\" ile tek adımda dönecek."
+            ))
             return False
         kaynak = varis.location_dest_id
         magaza_konum = ariza.transfer_id.location_id
@@ -245,23 +228,17 @@ class ArizaTransferService:
         if not route or not transit:
             tani = transit_helper.TransitHelper.tani(env, route, kaynak, magaza_konum)
             _logger.warning("[YOLDA] %s dönüş kurulamadı: %s", ariza.name, tani)
-            ariza.message_post(
-                body=(
-                    "Uyarı: Dönüş yolda transferi kurulamadı; ürün \"Teslim Al\" ile "
-                    f"tek adımda dönecek.<br/>Tanı: {tani}"
-                ),
-                message_type='notification',
-            )
+            Chatter.uyari(ariza, (
+                "Dönüş transferi kurulamadı (rota bulunamadı); "
+                "ürün \"Teslim Al\" ile tek adımda dönecek."
+            ))
             return False
         picking_type = ArizaTransferService._servis_cikis_tipi(env, kaynak.warehouse_id)
         if not picking_type:
-            ariza.message_post(
-                body=(
-                    "Uyarı: Dönüş yolda transferi kurulamadı: "
-                    f"{kaynak.warehouse_id.display_name} deposunda çıkış operasyon tipi yok."
-                ),
-                message_type='notification',
-            )
+            Chatter.uyari(ariza, (
+                f"Dönüş transferi kurulamadı ({Chatter.metin(kaynak.warehouse_id.display_name)} "
+                "deposunda çıkış operasyon tipi yok); ürün \"Teslim Al\" ile tek adımda dönecek."
+            ))
             return False
         # Alıcı: önce mağaza deposunun iş ortağı (örn. "Akasya Mağaza"),
         # yoksa analitik hesabın iş ortağı.
@@ -295,16 +272,7 @@ class ArizaTransferService:
             'yolda_donus_out_id': picking.id,
             'yolda_donus_in_id': donus_varis.id,
         })
-        ariza.message_post(
-            body=(
-                f"<b>Dönüş yolda transferi kuruldu.</b><br/>"
-                f"Çıkış: {picking.name} ({kaynak.display_name} → {transit.display_name}) — "
-                f"servis ürünü yola çıkarınca doğrulanır.<br/>"
-                f"Varış: {donus_varis.name} ({donus_varis.location_dest_id.display_name}) — "
-                f"mağaza ürünü teslim alınca \"Teslim Al\" ile doğrulanır."
-            ),
-            message_type='notification',
-        )
+        # Chatter mesajını onarım sihirbazı yazar (onarım + dönüş tek satır)
         return picking
 
     @staticmethod

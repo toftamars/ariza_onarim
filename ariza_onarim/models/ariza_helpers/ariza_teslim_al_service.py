@@ -11,6 +11,7 @@ from odoo.exceptions import UserError
 
 from ..ariza_constants import ArizaStates, ArizaTipi, MagicNumbers, PartnerNames, TeknikServis
 from . import ariza_state_service
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -92,20 +93,10 @@ class ArizaTeslimAlService:
         ariza.teslim_alan = ariza.env.user.name
         ariza.teslim_notu = f"Ürün {fields.Datetime.now().strftime('%d.%m.%Y %H:%M')} tarihinde teslim alındı. Tamir Alımlar transferi oluşturuldu."
 
-        transfer_bilgisi = f"""
-        <p><strong>Yeni transfer oluşturuldu!</strong></p>
-        <p><strong>Transfer No:</strong> <a href="/web#id={tamir_alim_transfer.id}&model=stock.picking&view_type=form">{tamir_alim_transfer.name}</a></p>
-        <p><strong>Kaynak:</strong> {kaynak_konum.name}</p>
-        <p><strong>Hedef:</strong> {hedef_konum.name}</p>
-        <p><strong>Tarih:</strong> {fields.Datetime.now().strftime('%Y-%m-%d')}</p>
-        <p><strong>Durum:</strong> {tamir_alim_transfer.state}</p>
-        <p><strong>SMS Gönderildi:</strong> Deaktif</p>
-        """
-        ariza.message_post(
-            body=transfer_bilgisi,
-            subject="Mağaza Ürünü Teslim Alındı - Tamir Alımlar Transferi Oluşturuldu",
-            message_type='notification'
-        )
+        Chatter.yaz(ariza, (
+            f"Mağaza ürünü teslim aldı: {Chatter.link(tamir_alim_transfer)} · "
+            f"{Chatter.metin(ariza.env.user.name)}"
+        ))
 
         return {
             'type': 'ir.actions.act_window',

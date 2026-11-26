@@ -8,6 +8,7 @@ Arıza tipi ve teknik servis seçimine göre hedef stok konumunu döner.
 import logging
 from ..ariza_constants import ArizaTipi, TeknikServis, LocationNames
 from . import location_helper
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -157,19 +158,12 @@ class HedefKonumHelper:
         )
         record.hedef_konum_id = konum
         if record.ariza_tipi == ArizaTipi.MAGAZA and record.teknik_servis != TeknikServis.MAGAZA:
-            try:
-                if konum:
-                    record.message_post(
-                        body=f"✅ Hedef Konum otomatik atandı: <b>{konum.display_name}</b> (Teknik Servis: {record.teknik_servis})",
-                        message_type='notification'
-                    )
-                else:
-                    record.message_post(
-                        body="⚠️ Hedef konum bulunamadı! Lütfen hedef konumu manuel seçin.",
-                        message_type='notification'
-                    )
-            except Exception:
-                pass
+            # Atanan konum formda görünür; yalnız bulunamazsa uyarı yazılır
+            if not konum:
+                try:
+                    Chatter.uyari(record, "Hedef konum bulunamadı; lütfen elle seçin.")
+                except Exception:
+                    pass
 
     @staticmethod
     def hedef_konum_otomatik_mi(ariza_tipi, teknik_servis, tedarikci_id=None):

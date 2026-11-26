@@ -19,6 +19,7 @@ License: LGPL-3
 import logging
 from odoo import _
 from odoo.exceptions import UserError
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -279,8 +280,5 @@ class SMSHelper:
         )
         if sms_sent[0]:
             record.sms_gonderildi = True
-            record.message_post(
-                body=f"SMS başarıyla gönderildi: {message}",
-                message_type='notification'
-            )
+            Chatter.yaz(record, f"📱 SMS gönderildi: <i>{Chatter.metin(message)}</i>")
         return sms_sent[0]

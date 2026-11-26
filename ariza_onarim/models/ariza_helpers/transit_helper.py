@@ -13,6 +13,7 @@ Transit konumu isimden değil, rotanın stok kurallarından bulunur (isimler dü
 import logging
 
 from ..ariza_constants import ArizaTipi, TeknikServis
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -158,15 +159,6 @@ class TransitHelper:
         if not route or not transit:
             tani = TransitHelper.tani(env, route, kaynak_konum, hedef_konum)
             _logger.warning("[YOLDA] %s kurulamadı: %s", ariza.name, tani)
-            ariza.message_post(
-                body=(
-                    "Uyarı: Yolda (iki adımlı) transfer kurulamadı: "
-                    f"{kaynak_konum.display_name if kaynak_konum else '-'} → "
-                    f"{hedef_konum.display_name if hedef_konum else '-'} için "
-                    "rota/yolda konumu bulunamadı. Tek adımlı transfer oluşturulacak."
-                    f"<br/>Tanı: {tani}"
-                ),
-                message_type='notification',
-            )
+            Chatter.uyari(ariza, "Yolda transfer kurulamadı (rota bulunamadı); tek adımlı transfer oluşturuldu.")
             return None
         return route, transit, nihai

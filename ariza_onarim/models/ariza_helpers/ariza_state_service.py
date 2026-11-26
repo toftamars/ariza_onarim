@@ -13,6 +13,7 @@ from odoo.exceptions import UserError
 from ..ariza_constants import ArizaStates, ArizaTipi, IslemTipi, SMSTemplates, TeknikServis, GarantiKapsam, TransferMetodu
 from . import ariza_computed_helper
 from . import ariza_musteri_iade_service
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -142,12 +143,8 @@ class ArizaStateService:
             if record.state != ArizaStates.PERSONEL_ONAY:
                 # Varış doğrulaması (stock_picking.button_validate) kaydı zaten ilerletti
                 return
+        # Durum takip satırı kabulü ve kabul edeni (yazar) zaten gösterir
         record.state = ArizaStates.KABUL_EDILDI
-        record.message_post(
-            body=f"Arıza kaydı kabul edildi. Kabul eden: {current_user.name}",
-            subject="Arıza Kaydı Kabul Edildi",
-            message_type='notification'
-        )
         _logger.info(f"Arıza kaydı kabul edildi: {record.name} - Kullanıcı: {current_user.login}")
 
     @staticmethod
@@ -197,11 +194,7 @@ class ArizaStateService:
         """KABUL_EDILDI -> TEKNIK_ONARIM"""
         if record.state == ArizaStates.KABUL_EDILDI:
             record.state = ArizaStates.TEKNIK_ONARIM
-            record.message_post(
-                body=f"Teknik onarım süreci başlatıldı. Sorumlu: {record.sorumlu_id.name}",
-                subject="Teknik Onarım Başlatıldı",
-                message_type='notification'
-            )
+            Chatter.yaz(record, f"Onarım başladı · Sorumlu: {Chatter.metin(record.sorumlu_id.name)}")
         elif record.state == ArizaStates.PERSONEL_ONAY:
             raise UserError(_('Önce "Kabul Et" butonuna basmanız gerekiyor.'))
         else:
@@ -261,12 +254,8 @@ class ArizaStateService:
                 record.transfer_id.sudo().action_cancel()
             if record.gidis_in_id and record.gidis_in_id.state not in ('done', 'cancel'):
                 record.gidis_in_id.sudo().action_cancel()
+        # Durum takip satırı iptali zaten gösterir
         record.state = ArizaStates.IPTAL
-        record.message_post(
-            body=_('Arıza kaydı iptal edildi.'),
-            subject="Arıza Kaydı İptal Edildi",
-            message_type='notification'
-        )
         _logger.info(f"Arıza kaydı iptal edildi: {record.name} - Kullanıcı: {record.env.user.login}")
         return True
 
@@ -314,12 +303,8 @@ class ArizaStateService:
                 kayit_no=record.name or ''
             )
             record._send_sms_to_customer(message)
+            # SMS mesajını _send_sms_to_customer yazar
             record.ikinci_sms_gonderildi = True
-            record.message_post(
-                body=f"Teslim Al butonuna basıldı. Müşteriye 2. SMS gönderildi: {message}",
-                subject="Teslim Al - 2. SMS Gönderildi",
-                message_type='notification'
-            )
         elif record.ikinci_sms_gonderildi:
             raise UserError(_('2. SMS zaten gönderilmiş. Tekrar gönderilemez.'))
         else:
@@ -332,7 +317,6 @@ class ArizaStateService:
         if not current_user.has_group('ariza_onarim.group_ariza_manager'):
             raise UserError(_('Bu işlemi sadece yetkili kullanıcılar yapabilir.'))
         record.state = ArizaStates.ONAYLANDI
-        record.message_post(body=_('Arıza kaydı onaylandı ve onarım süreci aktif hale getirildi.'), message_type='notification')
         _logger.info(f"Arıza kaydı onaylandı: {record.name} - Kullanıcı: {current_user.login}")
 
     @staticmethod
@@ -346,7 +330,6 @@ class ArizaStateService:
         from odoo import fields
         record.onarim_baslangic_tarihi = fields.Date.today()
         record.onarim_durumu = 'devam_ediyor'
-        record.message_post(body=_('Onarım süreci başlatıldı.'), message_type='notification')
         _logger.info(f"Onarım süreci başlatıldı: {record.name} - Kullanıcı: {current_user.login}")
 
     @staticmethod

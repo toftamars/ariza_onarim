@@ -9,6 +9,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from ..models.ariza_constants import SMSTemplates, TeslimAlan, EmailAddresses, GarantiKapsam
 from ..models.ariza_helpers import ariza_transfer_service
+from ..models.ariza_helpers.chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -81,21 +82,12 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
 
         try:
             template.send_mail(ariza.id, force_send=True, email_values={'email_to': ','.join(recipients)})
-            ariza.message_post(
-                body=f"Ürün Değişimi bildirimi gönderildi: {', '.join(recipients)}",
-                message_type='notification'
-            )
+            Chatter.yaz(ariza, f"Ürün Değişimi e-postası gönderildi: {Chatter.metin(', '.join(recipients))}")
             if not ariza.analitik_hesap_email:
-                ariza.message_post(
-                    body="Uyarı: mağazanın e-posta adresi tanımlı olmadığından bildirim yalnızca destek birimine gönderildi.",
-                    message_type='notification'
-                )
+                Chatter.uyari(ariza, "Mağazanın e-posta adresi tanımlı değil; bildirim yalnızca destek birimine gitti.")
         except Exception:
             _logger.exception("Ürün Değişimi e-postası gönderilemedi (kayıt: %s)", ariza.name)
-            ariza.message_post(
-                body="Ürün Değişimi e-postası gönderilemedi. Giden e-posta sunucusu ayarlarını kontrol edin.",
-                message_type='notification'
-            )
+            Chatter.uyari(ariza, "Ürün Değişimi e-postası gönderilemedi (giden e-posta sunucusunu kontrol edin).")
 
     def _temizle_magaza_adi(self, magaza_adi):
         """Mağaza adından 'Perakende' ifadesini kaldır"""
@@ -106,8 +98,9 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         return magaza_adi
 
     def _yolda_donus_kur(self, ariza):
-        """Yolda akışı: servisten mağazaya dönüş çıkışını açar. Hata onarım
-        kaydını engellemez; kurulamazsa "Teslim Al" tek adımlı dönüşe düşer."""
+        """Yolda akışı: servisten mağazaya dönüş çıkışını açar ve otomatik
+        doğrular. Hata onarım kaydını engellemez. Returns: uyarı metni veya None
+        (chatter'a çağıran yazar ki onarım mesajından sonra gelsin)."""
         try:
             with self.env.cr.savepoint():
                 ariza_transfer_service.ArizaTransferService.create_donus_yolda(ariza)
@@ -116,25 +109,21 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             neden = e.args[0] if e.args else ''
         except Exception:
             _logger.exception("[YOLDA] %s dönüş transferi kurulamadı", ariza.name)
-            neden = 'beklenmeyen hata (sistem kayıtlarına bakın)'
+            neden = 'beklenmeyen hata'
         else:
-            self._yolda_donus_cikis_dogrula(ariza)
-            return
-        ariza.message_post(
-            body=(
-                "Uyarı: Dönüş yolda transferi kurulamadı; ürün \"Teslim Al\" ile "
-                f"tek adımda dönecek. Neden: {neden}"
-            ),
-            message_type='notification',
+            return self._yolda_donus_cikis_dogrula(ariza)
+        return (
+            f"Dönüş transferi kurulamadı ({Chatter.metin(neden)}); "
+            "ürün \"Teslim Al\" ile tek adımda dönecek."
         )
 
     def _yolda_donus_cikis_dogrula(self, ariza):
         """Yolda akışı: servis onarımı tamamlayınca dönüş çıkışı otomatik
         doğrulanır (ürün yola çıkar). Doğrulanamazsa onarım kaydı engellenmez;
-        çıkış açık kalır ve servis elle doğrular."""
+        çıkış açık kalır ve servis elle doğrular. Returns: uyarı metni veya None."""
         picking = ariza.sudo().yolda_donus_out_id
         if not picking or picking.state in ('done', 'cancel'):
-            return
+            return None
         try:
             with self.env.cr.savepoint():
                 if picking.state == 'draft':
@@ -142,33 +131,47 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 if picking.state != 'assigned':
                     picking.action_assign()
                 if picking.state != 'assigned' or not picking.move_line_ids:
-                    raise UserError(_('Ürün servis stoğunda ayrılamadı (stok yok ya da başka işe ayrılmış).'))
+                    raise UserError(_('ürün servis stoğunda ayrılamadı'))
                 for satir in picking.move_line_ids:
                     satir.qty_done = satir.product_uom_qty
                 picking.with_context(
                     skip_immediate=True, skip_backorder=True, skip_sms=True,
+                    ariza_otomatik=True,
                 ).button_validate()
                 if picking.state != 'done':
-                    raise UserError(_('Çıkış transferi doğrulanamadı.'))
+                    raise UserError(_('transfer doğrulanamadı'))
         except UserError as e:
             _logger.warning("[YOLDA] %s dönüş çıkışı otomatik doğrulanamadı: %s", ariza.name, e)
             neden = e.args[0] if e.args else ''
         except Exception:
             _logger.exception("[YOLDA] %s dönüş çıkışı otomatik doğrulanamadı", ariza.name)
-            neden = 'beklenmeyen hata (sistem kayıtlarına bakın)'
+            neden = 'beklenmeyen hata'
         else:
-            ariza.message_post(
-                body=f"Dönüş çıkışı {picking.name} otomatik doğrulandı; ürün mağazaya yola çıktı.",
-                message_type='notification',
-            )
-            return
-        ariza.message_post(
-            body=(
-                f"Uyarı: Dönüş çıkışı {picking.name} otomatik doğrulanamadı; "
-                f"servis transferi elle doğrulamalı. Neden: {neden}"
-            ),
-            message_type='notification',
+            return None
+        return (
+            f"Dönüş çıkışı {Chatter.link(picking)} otomatik doğrulanamadı "
+            f"({Chatter.metin(neden)}); servis transferi açıp doğrulamalı."
         )
+
+    def _onarim_mesaji_magaza(self, ariza, uyari):
+        """Mağaza ürünü: onarım + dönüş tek satır; varsa uyarı ayrı satır."""
+        donus_out = ariza.sudo().yolda_donus_out_id
+        donus_in = ariza.sudo().yolda_donus_in_id
+        if donus_out and donus_out.state == 'done':
+            metin = (
+                f"Onarım tamamlandı. Ürün mağazaya yola çıktı: {Chatter.link(donus_out)} "
+                f"→ mağazaya varış {Chatter.link(donus_in)} (\"Teslim Al\" ile)"
+            )
+        elif donus_out:
+            metin = (
+                f"Onarım tamamlandı. Dönüş çıkışı {Chatter.link(donus_out)} servisin "
+                f"doğrulamasını bekliyor → mağazaya varış {Chatter.link(donus_in)}"
+            )
+        else:
+            metin = "Onarım tamamlandı. Mağaza \"Teslim Al\" ile ürünü teslim alır."
+        Chatter.yaz(ariza, metin)
+        if uyari:
+            Chatter.uyari(ariza, uyari)
 
     def action_onarim_bilgilerini_kaydet(self):
         """Onarım bilgilerini kaydet ve durumu güncelle"""
@@ -184,12 +187,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
             ariza.onarim_disi_aciklama = self.onarim_mumkun_degil_aciklama
             ariza.state = 'onarim_disi'
             
-            # Chatter'a mesaj ekle
-            ariza.message_post(
-                body=f"Onarım mümkün değil olarak işaretlendi. Açıklama: {self.onarim_mumkun_degil_aciklama}",
-                subject="Onarım Dışı",
-                message_type='notification'
-            )
+            Chatter.yaz(ariza, f"Onarım dışı: {Chatter.metin(self.onarim_mumkun_degil_aciklama)}")
 
             return {'type': 'ir.actions.act_window_close'}
         
@@ -230,14 +228,15 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         # Durumu güncelle - Mağaza ürünü için yönetici tamamlandı, müşteri ürünü için normal akış
         if self.ariza_tipi == 'magaza':
             ariza.state = 'yonetici_tamamlandi'
-            if ariza.yolda_akisi:
-                self._yolda_donus_kur(ariza)
+            uyari = self._yolda_donus_kur(ariza) if ariza.yolda_akisi else None
+            self._onarim_mesaji_magaza(ariza, uyari)
         elif self.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
             ariza.state = 'teslim_edildi'
             # Adrese gönderim için teslim bilgilerini güncelle
             ariza.teslim_alan = TeslimAlan.ADRESE_GONDERIM
             ariza.contact_id = self.musteri_adresi_id.id  # Teslimat adresini contact_id'ye kaydet
             ariza.teslim_adresi = self.musteri_adresi_id.street or ''
+            Chatter.yaz(ariza, "Onarım tamamlandı. Ürün müşteri adresine gönderilecek.")
 
             # Aras iade kargo transferi oluştur (barkod kaynağı; validate'te barkod oluşur)
             ariza.create_musteri_iade_transfer()
@@ -265,6 +264,7 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 ariza.ucuncu_sms_gonderildi = True
         else:
             ariza.state = 'tamamlandi'
+            Chatter.yaz(ariza, "Onarım tamamlandı.")
             # Mağazadan teslim + kargo metodu: teknik servisten mağazaya DÖNÜŞ
             # kargosu (gidişin tam tersi transfer, YENİ Aras barkodu — gidiş
             # barkodu tekrar kullanılırsa kargoda karışıklık olur)
@@ -273,13 +273,10 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
                 try:
                     ariza.create_donus_kargo_transfer()
                 except Exception as e:
-                    ariza.message_post(
-                        body=(
-                            f"⚠️ Dönüş kargo transferi oluşturulamadı: {str(e)}<br/>"
-                            f"Kayıt üzerinden tekrar deneyebilir veya transferi elle oluşturabilirsiniz."
-                        ),
-                        message_type='notification'
-                    )
+                    Chatter.uyari(ariza, (
+                        f"Dönüş kargo transferi oluşturulamadı ({Chatter.metin(str(e))}); "
+                        "transferi elle oluşturun."
+                    ))
 
         # SMS gönderimi - Müşteri ürünü için 2. SMS kaldırıldı (Yönetici Onarımı Tamamla ve SMS Gönder butonu için)
         # Diğer SMS akışları (ilk SMS, üçüncü SMS) korunuyor
@@ -288,33 +285,6 @@ class ArizaOnarimBilgiWizard(models.TransientModel):
         
         # Mağaza ürünü işlemleri için 2. transfer artık kullanıcı "Teslim AL" butonuna bastığında oluşacak
         
-        # Mesaj gönder (mail gönderilmesin)
-        if ariza.ariza_tipi == 'musteri' and self.adresime_gonderilsin and self.musteri_adresi_id:
-            ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Adrese gönderim seçildi. Durum otomatik olarak 'Teslim Edildi' olarak güncellendi.",
-                subject="Onarım Tamamlandı - Adrese Gönderim",
-                message_type='notification'
-            )
-        elif ariza.ariza_tipi == 'magaza':
-            ariza.message_post(
-                body=(
-                    "Yönetici onarım sürecini tamamladı. Onarım bilgileri kaydedildi. "
-                    + ("Ürün mağazaya yola çıktı; mağaza 'Teslim Al' ile teslim alır."
-                       if ariza.yolda_donus_out_id.state == 'done' else
-                       "Servis ürünü yola çıkarınca mağaza 'Teslim Al' ile teslim alır."
-                       if ariza.yolda_donus_out_id else
-                       "Kullanıcı 'Teslim AL' butonuna basarak Tamir Alımlar transferini oluşturabilir.")
-                ),
-                subject="Yönetici Onarım Tamamlandı - Kullanıcı Teslim AL Bekleniyor",
-                message_type='notification'
-            )
-        else:
-            ariza.message_post(
-                body=f"Onarım süreci tamamlandı. Onarım bilgileri kaydedildi. Kullanıcı Teslim Et butonuna basarak geri gönderim transferini oluşturabilir.",
-                subject="Onarım Tamamlandı",
-                message_type='notification'
-            )
-
         donus_out = ariza.sudo().yolda_donus_out_id
         if ariza.ariza_tipi == 'magaza' and donus_out and donus_out.state not in ('done', 'cancel'):
             # Yolda dönüşü: servis çıkışı doğrulasın diye dönüş çıkışı açılır

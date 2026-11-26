@@ -28,6 +28,7 @@ from odoo.exceptions import UserError
 from ..ariza_constants import ArizaTipi, TeknikServis
 from . import partner_helper
 from . import transfer_helper
+from .chatter_helper import ChatterHelper as Chatter
 
 _logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class ArizaMusteriIadeService:
         return picking
 
     @staticmethod
-    def _auto_validate_picking(ariza, picking):
+    def _auto_validate_picking(ariza, picking, baslik='Kargo transferi doğrulandı'):
         """
         Kargo picking'ini otomatik doğrular (validate) — Aras booking ve
         barkod (carrier_tracking_ref) bu anda oluşur.
@@ -201,24 +202,22 @@ class ArizaMusteriIadeService:
             picking.sudo().with_context(
                 skip_immediate=True, skip_backorder=True
             ).button_validate()
-            if picking.carrier_tracking_ref:
-                ariza.message_post(
-                    body=(
-                        f"<b>Aras barkodu oluştu:</b> {picking.carrier_tracking_ref}<br/>"
-                        f"Transfer {picking.name} otomatik doğrulandı."
-                    ),
-                    message_type='notification'
+            if picking.state != 'done':
+                Chatter.uyari(ariza, (
+                    f"Kargo transferi {Chatter.link(picking)} doğrulanmadı; transferi açıp elle doğrulayın."
+                ))
+            elif baslik:
+                barkod = (
+                    f" · Aras barkodu {Chatter.metin(picking.carrier_tracking_ref)}"
+                    if picking.carrier_tracking_ref else ''
                 )
+                Chatter.yaz(ariza, f"{baslik}: {Chatter.link(picking)}{barkod}")
         except Exception as e:
             _logger.warning(f"[ARIZA KARGO] {picking.name} otomatik doğrulanamadı: {e}")
-            ariza.message_post(
-                body=(
-                    f"⚠️ <b>Kargo transferi otomatik doğrulanamadı:</b> {str(e)}<br/>"
-                    f"Transfer {picking.name} 'Hazır' durumda bekliyor — lütfen "
-                    f"transferi açıp elle doğrulayın (Aras barkodu o anda oluşur)."
-                ),
-                message_type='notification'
-            )
+            Chatter.uyari(ariza, (
+                f"Kargo transferi {Chatter.link(picking)} otomatik doğrulanamadı "
+                f"({Chatter.metin(str(e))}); transferi açıp elle doğrulayın."
+            ))
 
     @staticmethod
     def create_gidis_picking(ariza):
@@ -247,15 +246,10 @@ class ArizaMusteriIadeService:
                 f"[MUSTERI GIDIS] Teknik servis rehber kartı yok, gidiş kargosu atlandı: "
                 f"{ariza.teknik_servis} (Arıza: {ariza.name})"
             )
-            ariza.message_post(
-                body=(
-                    f"⚠️ <b>Gidiş kargo transferi oluşturulamadı:</b> "
-                    f"'{ariza.teknik_servis or '-'}' için rehberde kart bulunamadı.<br/>"
-                    f"Rehber kartı açıldıktan sonra kargo transferini elle oluşturabilirsiniz; "
-                    f"kayıt akışı bu durumdan etkilenmez."
-                ),
-                message_type='notification'
-            )
+            Chatter.uyari(ariza, (
+                f"Gidiş kargo transferi oluşturulamadı ('{Chatter.metin(ariza.teknik_servis or '-')}' "
+                "için rehber kartı yok); kart açılınca transferi elle oluşturun."
+            ))
             return False
 
         note = (
@@ -268,18 +262,10 @@ class ArizaMusteriIadeService:
 
         ariza.transfer_id = picking.id
 
-        picking_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        ariza.message_post(
-            body=(
-                f"<b>Teknik servise gidiş kargo transferi oluşturuldu!</b><br/>"
-                f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
-                f"Alıcı: {alici.display_name}<br/>"
-                f"Taşıyıcı: Aras Kargo"
-            ),
-            message_type='notification'
-        )
         _logger.info(f"[MUSTERI GIDIS] Gidiş picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
-        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
+        ArizaMusteriIadeService._auto_validate_picking(
+            ariza, picking, baslik=f"Servise kargo ({Chatter.metin(alici.display_name)})"
+        )
         return picking
 
     @staticmethod
@@ -299,7 +285,7 @@ class ArizaMusteriIadeService:
             raise UserError(_('Dönüş kargo transferi sadece müşteri ürünleri için oluşturulabilir.'))
 
         if ariza.donus_transfer_id and ariza.donus_transfer_id.state != 'cancel':
-            ArizaMusteriIadeService._auto_validate_picking(ariza, ariza.donus_transfer_id)
+            ArizaMusteriIadeService._auto_validate_picking(ariza, ariza.donus_transfer_id, baslik=None)
             ArizaMusteriIadeService._donus_send_to_shipper(ariza, ariza.donus_transfer_id)
             return ariza.donus_transfer_id
 
@@ -374,19 +360,9 @@ class ArizaMusteriIadeService:
 
         ariza.donus_transfer_id = picking.id
 
-        picking_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        ariza.message_post(
-            body=(
-                f"<b>Mağazaya dönüş kargo transferi oluşturuldu!</b><br/>"
-                f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
-                f"Gönderen: {ariza.teknik_servis or ''}<br/>"
-                f"Alıcı: {alici.display_name}<br/>"
-                f"Taşıyıcı: Aras Kargo (YENİ barkod)"
-            ),
-            message_type='notification'
-        )
         _logger.info(f"[MUSTERI DONUS] Dönüş picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
-        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
+        # Barkod send_to_shipper'da oluşur; mesajı _donus_send_to_shipper yazar
+        ArizaMusteriIadeService._auto_validate_picking(ariza, picking, baslik=None)
         ArizaMusteriIadeService._donus_send_to_shipper(ariza, picking)
         return picking
 
@@ -402,24 +378,17 @@ class ArizaMusteriIadeService:
             return
         try:
             picking.sudo().send_to_shipper()
-            if picking.carrier_tracking_ref:
-                ariza.message_post(
-                    body=(
-                        f"<b>Dönüş için YENİ Aras barkodu oluştu:</b> "
-                        f"{picking.carrier_tracking_ref}<br/>"
-                        f"Transfer: {picking.name}"
-                    ),
-                    message_type='notification'
-                )
+            barkod = (
+                f" · Aras barkodu {Chatter.metin(picking.carrier_tracking_ref)}"
+                if picking.carrier_tracking_ref else ''
+            )
+            Chatter.yaz(ariza, f"Mağazaya dönüş kargosu: {Chatter.link(picking)}{barkod}")
         except Exception as e:
             _logger.warning(f"[MUSTERI DONUS] {picking.name} Aras booking hatası: {e}")
-            ariza.message_post(
-                body=(
-                    f"⚠️ <b>Dönüş kargosu için Aras barkodu alınamadı:</b> {str(e)}<br/>"
-                    f"Transfer {picking.name} üzerinden 'Send to Shipper' ile tekrar deneyebilirsiniz."
-                ),
-                message_type='notification'
-            )
+            Chatter.uyari(ariza, (
+                f"Dönüş kargosu {Chatter.link(picking)} için Aras barkodu alınamadı "
+                f"({Chatter.metin(str(e))}); transferde 'Send to Shipper' ile tekrar deneyin."
+            ))
 
     @staticmethod
     def create_iade_picking(ariza):
@@ -456,16 +425,8 @@ class ArizaMusteriIadeService:
 
         ariza.iade_transfer_id = picking.id
 
-        picking_url = f"/web#id={picking.id}&model=stock.picking&view_type=form"
-        ariza.message_post(
-            body=(
-                f"<b>İade kargo transferi oluşturuldu!</b><br/>"
-                f"Transfer No: <a href='{picking_url}'>{picking.name}</a><br/>"
-                f"Alıcı: {alici.display_name}<br/>"
-                f"Taşıyıcı: Aras Kargo"
-            ),
-            message_type='notification'
-        )
         _logger.info(f"[MUSTERI IADE] İade picking oluşturuldu: {picking.name} (Arıza: {ariza.name})")
-        ArizaMusteriIadeService._auto_validate_picking(ariza, picking)
+        ArizaMusteriIadeService._auto_validate_picking(
+            ariza, picking, baslik=f"Müşteriye kargo ({Chatter.metin(alici.display_name)})"
+        )
         return picking

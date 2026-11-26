@@ -5,6 +5,7 @@ Teslim Wizard - Ürün teslim işlemi için wizard
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..models.ariza_helpers.chatter_helper import ChatterHelper as Chatter
 from ..models.ariza_constants import SMSTemplates, TeslimAlan, GarantiKapsam
 from ..models.ariza_helpers import ariza_computed_helper
 
@@ -132,18 +133,10 @@ class ArizaTeslimWizard(models.TransientModel):
             ariza._send_sms_to_customer(message)
             ariza.ucuncu_sms_gonderildi = True
         
-        # Chatter'a mesaj ekle (mail gönderilmesin)
+        # SMS mesajını _send_sms_to_customer ayrıca yazar
         if self.adresime_gonderilsin and self.musteri_adresi_id:
-            ariza.message_post(
-                body=f"Ürün teslim edildi. Adrese gönderim seçildi. Teslimat adresi: {self.musteri_adresi_id.street or ''}. SMS gönderildi.",
-                subject="Ürün Teslim Edildi - Adrese Gönderim",
-                message_type='notification'
-            )
+            Chatter.yaz(ariza, f"Ürün adrese gönderildi: {Chatter.metin(self.musteri_adresi_id.street)}")
         else:
-            ariza.message_post(
-                body=f"Ürün teslim edildi. Teslim alan: {self.teslim_alan}. SMS gönderildi.",
-                subject="Ürün Teslim Edildi",
-                message_type='notification'
-            )
+            Chatter.yaz(ariza, f"Ürün teslim edildi · Teslim alan: {Chatter.metin(self.teslim_alan)}")
         
         return {'type': 'ir.actions.act_window_close'} 
