@@ -97,9 +97,11 @@ class ArizaBStokKart(models.AbstractModel):
         if 'pos.config' not in self.env:
             return ''
         PosConfig = self.env['pos.config'].sudo()
-        if 'promo_program_ids' not in PosConfig._fields:
+        # program_ids kayıtlı alan; promo_program_ids saklanmayan bir türev,
+        # onunla arama her kasayı döndürür (staging'de doğrulandı)
+        if 'program_ids' not in PosConfig._fields:
             return ''
-        domain = [('promo_program_ids', 'in', programlar.ids)]
+        domain = [('program_ids', 'in', programlar.ids)]
         if 'use_coupon_programs' in PosConfig._fields:
             domain.append(('use_coupon_programs', '=', True))
         if PosConfig.search_count(domain):
