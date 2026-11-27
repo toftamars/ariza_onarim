@@ -18,3 +18,6 @@ access_ariza_depo_stok_manager,ariza.depo.stok.manager,model_ariza_depo_stok,ari
 access_ariza_depo_stok_user,ariza.depo.stok.user,model_ariza_depo_stok,base.group_user,1,0,0,0
 access_ariza_b_stok_donusum_manager,ariza.b.stok.donusum.manager,model_ariza_b_stok_donusum,ariza_onarim.group_ariza_manager,1,0,0,0
 access_ariza_b_stok_cevir_wizard_manager,ariza.b.stok.cevir.wizard.manager,model_ariza_b_stok_cevir_wizard,ariza_onarim.group_ariza_manager,1,1,1,0
+access_ariza_b_stok_bagla_wizard_manager,ariza.b.stok.bagla.wizard.manager,model_ariza_b_stok_bagla_wizard,ariza_onarim.group_ariza_manager,1,1,1,0
+access_ariza_b_stok_bagla_satir_manager,ariza.b.stok.bagla.satir.manager,model_ariza_b_stok_bagla_satir,ariza_onarim.group_ariza_manager,1,1,1,1
+access_ariza_b_stok_satis_manager,ariza.b.stok.satis.manager,model_ariza_b_stok_satis,ariza_onarim.group_ariza_manager,1,0,0,0

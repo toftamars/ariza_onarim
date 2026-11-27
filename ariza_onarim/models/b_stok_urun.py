@@ -13,6 +13,7 @@ alt çizgiyle başlar, RPC ile çağrılamaz.
 
 import logging
 import random
+import re
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -26,6 +27,8 @@ B_BARKOD_ONEKI = '29'
 B_KOD_EKI = '-BSTOK'
 # B-STOK promosyonlarını tanıma: ad ya da kod bu ifadeleri içerir
 B_PROMOSYON_ADLARI = ('B-STOK', 'BSTOK')
+# Eski elle açılan kartların kod eki: "KOD (B-STOK)", "KOD B-STOK"
+ESKI_KOD_EKI = re.compile(r'[\s-]*\(?\s*B\s*-?\s*STOK\s*\)?\s*$', re.IGNORECASE)
 
 
 def oran_metni(oran):
@@ -42,6 +45,59 @@ class ProductProduct(models.Model):
     b_indirim_orani = fields.Float(
         string='B Stok İndirim Oranı (%)', copy=False,
         help='Bu B Stok kartının bağlı olduğu B-STOK promosyon oranı.')
+    b_stok_adedi = fields.Float(
+        string='Stok (Tüm Konumlar)', compute='_compute_b_stok_adedi',
+        search='_search_b_stok_adedi', digits='Product Unit of Measure',
+        help='Şirketin tüm iç (stok) konumlarındaki toplam adet.')
+    b_mevcut_oranlar = fields.Char(
+        string='Bulunduğu B-STOK Listeleri', compute='_compute_b_mevcut_oranlar')
+
+    def _compute_b_stok_adedi(self):
+        gruplar = self.env['stock.quant'].sudo().read_group([
+            ('product_id', 'in', self.ids),
+            ('location_id.usage', '=', 'internal'),
+            ('company_id', 'in', self.env.companies.ids),
+        ], ['product_id', 'quantity'], ['product_id'])
+        adetler = {g['product_id'][0]: g['quantity'] for g in gruplar}
+        for urun in self:
+            urun.b_stok_adedi = adetler.get(urun.id, 0.0)
+
+    def _search_b_stok_adedi(self, operator, value):
+        """Yalnız "stoklu" (> 0) ve "stoksuz" (= 0) filtreleri için."""
+        if operator not in ('>', '=') or value not in (0, 0.0, False):
+            raise UserError(_('Bu alanda yalnız "> 0" ve "= 0" araması yapılabilir.'))
+        self.env['stock.quant'].flush(['product_id', 'location_id', 'quantity', 'company_id'])
+        self.env.cr.execute("""
+            SELECT q.product_id FROM stock_quant q
+            JOIN stock_location l ON l.id = q.location_id AND l.usage = 'internal'
+            WHERE q.company_id = ANY(%s)
+            GROUP BY q.product_id HAVING SUM(q.quantity) > 0
+        """, (self.env.companies.ids,))
+        stoklu = [satir[0] for satir in self.env.cr.fetchall()]
+        return [('id', 'in' if operator == '>' else 'not in', stoklu)]
+
+    def _compute_b_mevcut_oranlar(self):
+        oranlar = {urun.id: [] for urun in self}
+        programlar = self.env['ariza.b.stok.kart']._b_promosyonlari(self.env.company)
+        for program in programlar:
+            for urun in program.discount_specific_product_ids & self:
+                oranlar[urun.id].append(program.discount_percentage)
+        for urun in self:
+            urun.b_mevcut_oranlar = ', '.join(
+                '%%%s' % oran_metni(o) for o in sorted(set(oranlar[urun.id]))) or False
+
+    def action_b_kart_bagla(self):
+        """Seçili eski B kartları için bağlama sihirbazını açar (yalnız yönetici)."""
+        self.env['ariza.b.stok.donusum']._yonetici_mi()
+        sihirbaz = self.env['ariza.b.stok.bagla.wizard'].olustur(self)
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Ana Ürüne Bağla'),
+            'res_model': 'ariza.b.stok.bagla.wizard',
+            'res_id': sihirbaz.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
 
 class ArizaBStokKart(models.AbstractModel):
@@ -168,6 +224,7 @@ class ArizaBStokKart(models.AbstractModel):
                 kart.write({'active': True})
             if kart.b_kaynak_urun_id != ana_urun or kart.b_indirim_orani != oran:
                 kart.write({'b_kaynak_urun_id': ana_urun.id, 'b_indirim_orani': oran})
+            self._fiyat_esitle(kart)
             return kart, False
         return self._kart_ac(ana_urun, oran), True
 
@@ -189,6 +246,104 @@ class ArizaBStokKart(models.AbstractModel):
         _logger.info('B Stok kartı açıldı: %s (ana ürün %s, %%%s)',
                      kart.default_code, ana_urun.id, oran_metni(oran))
         return kart
+
+    # ---------------------------------------------------------------- eski kartlar
+    @api.model
+    def _ana_urun_tahmini(self, kart):
+        """Eski "KOD (B-STOK)" kartının ana ürünü: eki atılmış kodla tek eşleşme."""
+        Urun = self.env['product.product']
+        kod = (kart.default_code or '').strip()
+        ana_kod = ESKI_KOD_EKI.sub('', kod).strip()
+        if not ana_kod or ana_kod == kod:
+            return Urun
+        adaylar = Urun.search([
+            ('default_code', '=', ana_kod), ('b_kaynak_urun_id', '=', False),
+            ('id', '!=', kart.id),
+        ], limit=2)
+        return adaylar if len(adaylar) == 1 else Urun
+
+    @api.model
+    def _ana_urun_mu(self, urun):
+        """B kartı olmayan, kodu B eki taşımayan ürün."""
+        metin = ('%s %s' % (urun.default_code or '', urun.name or '')).upper().replace('-', '')
+        return bool(urun) and not urun.b_kaynak_urun_id and 'BSTOK' not in metin
+
+    @api.model
+    def _baglama_sorunu(self, kart, ana_urun, oran, company):
+        """Eski kartı (ana ürün, oran)'a bağlamaya engel varsa metni, yoksa ''."""
+        if not ana_urun:
+            return _('ana ürün seçilmedi')
+        if not oran:
+            return _('oran seçilmedi')
+        if self._ana_urun_mu(kart):
+            return _('kart bir B Stok kartı değil (kodunda/adında B-STOK yok)')
+        if kart.b_kaynak_urun_id:
+            # Bağlı kartın oranı/ana ürünü değişirse kodu ve eski dönüşümlerin
+            # geri alınması bozulur
+            return _('kart zaten %s ürününe bağlı') % (
+                kart.b_kaynak_urun_id.default_code or kart.b_kaynak_urun_id.display_name)
+        if ana_urun == kart:
+            return _('kart kendisine bağlanamaz')
+        if not self._ana_urun_mu(ana_urun):
+            return _('seçilen ana ürün (%s) bir B Stok kartı') % ana_urun.display_name
+        baska = self.env['product.product'].with_context(active_test=False).search([
+            ('b_kaynak_urun_id', '=', ana_urun.id), ('b_indirim_orani', '=', oran),
+            ('id', '!=', kart.id),
+        ], limit=1)
+        if baska:
+            return _('%(ana)s için %%%(oran)s kartı zaten var: %(kart)s') % {
+                'ana': ana_urun.default_code or ana_urun.display_name,
+                'oran': oran_metni(oran), 'kart': baska.default_code or baska.display_name}
+        try:
+            self._kart_uygun_mu(kart, ana_urun, company)
+        except UserError as hata:
+            return hata.args[0] if hata.args else _('kart uygun değil')
+        return ''
+
+    @api.model
+    def _eski_karti_bagla(self, kart, ana_urun, oran, company):
+        """Eski kartı ana ürüne ve orana bağlar, fiyatını eşitler, kartı o oranın
+        promosyonuna taşır. Kart kodu ve stoğu değişmez. Döner: kasa uyarısı."""
+        self.env['ariza.b.stok.donusum']._yonetici_mi()
+        sorun = self._baglama_sorunu(kart, ana_urun, oran, company)
+        if sorun:
+            raise UserError(_('%(kart)s bağlanamadı: %(sorun)s.') % {
+                'kart': kart.default_code or kart.display_name, 'sorun': sorun})
+        kart.sudo().write({'b_kaynak_urun_id': ana_urun.id, 'b_indirim_orani': oran})
+        self._fiyat_esitle(kart)
+        _programlar, uyari = self._promosyona_bagla(kart, oran, company)
+        _logger.info('Eski B kart bağlandı: %s -> ana ürün %s, %%%s',
+                     kart.id, ana_urun.id, oran_metni(oran))
+        return uyari
+
+    # ---------------------------------------------------------------- fiyat
+    @api.model
+    def _fiyat_esitle(self, kartlar):
+        """B kartın satış fiyatını ana ürünün satış fiyatına eşitler.
+        Ana ürün fiyatı 0 ise dokunmaz. Döner: fiyatı değişen kartlar."""
+        hassasiyet = self.env['decimal.precision'].precision_get('Product Price')
+        degisen = self.env['product.product']
+        for kart in kartlar.sudo():
+            ana = kart.b_kaynak_urun_id
+            if not ana:
+                continue
+            hedef = ana.lst_price - kart.price_extra
+            if float_compare(hedef, 0.0, precision_digits=hassasiyet) <= 0:
+                continue
+            sablon = kart.product_tmpl_id
+            if float_compare(sablon.list_price, hedef, precision_digits=hassasiyet):
+                sablon.write({'list_price': hedef})
+                degisen |= kart
+        return degisen
+
+    @api.model
+    def _cron_fiyat_esitle(self):
+        """Gece görevi: tüm bağlı B kartların fiyatını ana ürünle eşitler."""
+        kartlar = self.env['product.product'].sudo().search([('b_kaynak_urun_id', '!=', False)])
+        degisen = self._fiyat_esitle(kartlar)
+        _logger.info('B Stok fiyat eşitleme: %s kart kontrol edildi, %s kartın fiyatı güncellendi.',
+                     len(kartlar), len(degisen))
+        return True
 
     @api.model
     def _yeni_barkod(self):

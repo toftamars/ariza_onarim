@@ -243,6 +243,25 @@ class ArizaBStokDonusum(models.Model):
             _logger.info('B Stok dönüşümü geri alındı: %s', kayit.name)
         return True
 
+    def action_etiket_yazdir(self):
+        """B kartın barkod etiketini Odoo'nun etiket ekranıyla basar
+        (adet: dönüşüm adedi)."""
+        self.ensure_one()
+        if 'product.label.layout' not in self.env:
+            raise UserError(_('Etiket ekranı bu sistemde yok; ürün kartından yazdırın.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Etiket Yazdır'),
+            'res_model': 'product.label.layout',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_product_ids': [self.b_urun_id.id],
+                'default_custom_quantity': max(1, int(round(self.miktar))),
+                'default_picking_quantity': 'custom',
+            },
+        }
+
     def action_hareketleri_ac(self):
         self.ensure_one()
         return {

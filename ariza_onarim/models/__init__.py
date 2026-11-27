@@ -9,3 +9,4 @@ from . import ariza_helpers
 from . import ariza_depo_stok
 from . import b_stok_urun
 from . import b_stok_donusum
+from . import b_stok_satis

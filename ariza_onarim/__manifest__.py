@@ -1,6 +1,6 @@
 {
     'name': 'Arıza Onarım',
-    'version': '1.0.39',
+    'version': '1.0.40',
     'category': 'Services',
     'summary': 'Arıza kayıt ve onarım takibi',
     'description': """
@@ -33,6 +33,8 @@
         'product',
         'product_brand',
         'coupon',
+        'point_of_sale',
+        'sale',
         'delivery',
         'sms',
         'analytic',
@@ -43,6 +45,7 @@
         'data/sequence.xml',
         'data/b_stok_sequence.xml',
         'data/cron.xml',
+        'data/b_stok_cron.xml',
         'data/mail_template.xml',
         'data/iade_kargo_product.xml',
         'security/ir.model.access.csv',
@@ -51,6 +54,8 @@
         'views/ariza_views.xml',
         'views/ariza_depo_stok_views.xml',
         'views/b_stok_views.xml',
+        'views/b_stok_kart_views.xml',
+        'views/b_stok_satis_views.xml',
         'reports/report_ariza_kayit.xml',
         'reports/report_kargo_ciktisi.xml',
         'wizards/ariza_kayit_tamamla_wizard_views.xml',

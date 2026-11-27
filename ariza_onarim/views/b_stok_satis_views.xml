@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_ariza_b_stok_satis_sirket" model="ir.rule">
+        <field name="name">B Stok Satış Raporu: şirket bazlı erişim</field>
+        <field name="model_id" ref="model_ariza_b_stok_satis"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="view_ariza_b_stok_satis_tree" model="ir.ui.view">
+        <field name="name">ariza.b.stok.satis.tree</field>
+        <field name="model">ariza.b.stok.satis</field>
+        <field name="arch" type="xml">
+            <tree string="B Stok Satışları" create="0" edit="0" delete="0">
+                <field name="tarih"/>
+                <field name="kanal" optional="show"/>
+                <field name="magaza"/>
+                <field name="belge" optional="show"/>
+                <field name="b_urun_id"/>
+                <field name="ana_urun_id" optional="show"/>
+                <field name="marka_id" optional="hide"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="musteri_id" optional="hide"/>
+                <field name="satici_id" optional="hide"/>
+                <field name="oran"/>
+                <field name="miktar" sum="Toplam"/>
+                <field name="tutar" sum="Toplam"/>
+                <field name="tutar_haric" sum="Toplam" optional="hide"/>
+                <field name="indirim" sum="Toplam"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ariza_b_stok_satis_pivot" model="ir.ui.view">
+        <field name="name">ariza.b.stok.satis.pivot</field>
+        <field name="model">ariza.b.stok.satis</field>
+        <field name="arch" type="xml">
+            <pivot string="B Stok Satışları">
+                <field name="magaza" type="row"/>
+                <field name="tarih" interval="month" type="col"/>
+                <field name="miktar" type="measure"/>
+                <field name="tutar" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_ariza_b_stok_satis_graph" model="ir.ui.view">
+        <field name="name">ariza.b.stok.satis.graph</field>
+        <field name="model">ariza.b.stok.satis</field>
+        <field name="arch" type="xml">
+            <graph string="B Stok Satışları" type="bar">
+                <field name="tarih" interval="month"/>
+                <field name="tutar" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_ariza_b_stok_satis_search" model="ir.ui.view">
+        <field name="name">ariza.b.stok.satis.search</field>
+        <field name="model">ariza.b.stok.satis</field>
+        <field name="arch" type="xml">
+            <search string="B Stok Satışları">
+                <field name="b_urun_id"/>
+                <field name="ana_urun_id"/>
+                <field name="magaza"/>
+                <field name="belge"/>
+                <field name="marka_id"/>
+                <field name="categ_id" operator="child_of"/>
+                <filter name="kasa" string="Mağaza Kasası" domain="[('kanal', '=', 'kasa')]"/>
+                <filter name="siparis" string="Satış Siparişi" domain="[('kanal', '=', 'siparis')]"/>
+                <separator/>
+                <filter name="iade" string="İadeler" domain="[('miktar', '&lt;', 0)]"/>
+                <filter name="oransiz" string="Oranı Olmayan (Bağlanmamış Kart)" domain="[('oran', '=', 0)]"/>
+                <separator/>
+                <filter name="tarih" string="Tarih" date="tarih"/>
+                <group expand="0" string="Grupla">
+                    <filter name="grup_magaza" string="Kasa / Satış Ekibi" context="{'group_by': 'magaza'}"/>
+                    <filter name="grup_kanal" string="Kanal" context="{'group_by': 'kanal'}"/>
+                    <filter name="grup_oran" string="Oran" context="{'group_by': 'oran'}"/>
+                    <filter name="grup_marka" string="Marka" context="{'group_by': 'marka_id'}"/>
+                    <filter name="grup_kategori" string="Kategori" context="{'group_by': 'categ_id'}"/>
+                    <filter name="grup_urun" string="B Stok Kartı" context="{'group_by': 'b_urun_id'}"/>
+                    <filter name="grup_satici" string="Satan" context="{'group_by': 'satici_id'}"/>
+                    <filter name="grup_ay" string="Ay" context="{'group_by': 'tarih:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ariza_b_stok_satis" model="ir.actions.act_window">
+        <field name="name">B Stok Satışları</field>
+        <field name="res_model">ariza.b.stok.satis</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="search_view_id" ref="view_ariza_b_stok_satis_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">B Stok kartı satışı yok.</p>
+            <p>Kasa ve satış siparişlerindeki B Stok kartı satışları burada listelenir.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_ariza_b_stok_satis"
+              name="B Stok Satışları"
+              parent="menu_ariza_root"
+              action="action_ariza_b_stok_satis"
+              sequence="19"
+              groups="ariza_onarim.group_ariza_manager"/>
+</odoo>
