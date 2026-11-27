@@ -65,3 +65,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/ 
+# Yerel araç dosyaları
+.agents/
+skills-lock.json
