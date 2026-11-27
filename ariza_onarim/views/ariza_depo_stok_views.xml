@@ -4,7 +4,8 @@
         <field name="name">ariza.depo.stok.tree</field>
         <field name="model">ariza.depo.stok</field>
         <field name="arch" type="xml">
-            <tree string="Arıza Deposu Stoğu" editable="top" create="0" delete="0">
+            <!-- Tüm personel görür (salt okunur); düzenleme yalnız yöneticide açılır, bkz. aşağıdaki görünüm -->
+            <tree string="Arıza Deposu Stoğu" create="0" delete="0">
                 <field name="product_id" readonly="1"/>
                 <field name="location_id" readonly="1" optional="show"/>
                 <field name="product_brand_id" readonly="1" optional="show"/>
@@ -15,6 +16,19 @@
                 <field name="not_tarihi" readonly="1" optional="show"/>
                 <field name="company_id" readonly="1" groups="base.group_multi_company" optional="hide"/>
             </tree>
+        </field>
+    </record>
+
+    <!-- Arıza yöneticisi: satır içi not düzenleme açık -->
+    <record id="view_ariza_depo_stok_tree_manager" model="ir.ui.view">
+        <field name="name">ariza.depo.stok.tree.manager</field>
+        <field name="model">ariza.depo.stok</field>
+        <field name="inherit_id" ref="view_ariza_depo_stok_tree"/>
+        <field name="groups_id" eval="[(4, ref('ariza_onarim.group_ariza_manager'))]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="editable">top</attribute>
+            </xpath>
         </field>
     </record>
 
@@ -63,5 +77,5 @@
               parent="menu_ariza_root"
               action="action_ariza_depo_stok"
               sequence="15"
-              groups="ariza_onarim.group_ariza_manager"/>
+              groups="base.group_user"/>
 </odoo>
