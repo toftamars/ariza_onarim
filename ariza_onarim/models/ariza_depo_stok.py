@@ -110,6 +110,22 @@ class ArizaDepoStok(models.Model):
             )
         """, (ARIZA_DEPO_KODU,))
 
+    def action_b_stok_cevir(self):
+        """Satırdaki ürünü B Stok'a çevirme sihirbazını açar (yalnız yönetici)."""
+        self.ensure_one()
+        self.env['ariza.b.stok.donusum']._yonetici_mi()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _("B Stok'a Çevir"),
+            'res_model': 'ariza.b.stok.cevir.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_urun_id': self.product_id.id,
+                'default_konum_id': self.location_id.id,
+            },
+        }
+
     def write(self, vals):
         """Bu ekranda yalnız not düzenlenir; not ayrı tabloya yazılır."""
         vals = dict(vals)

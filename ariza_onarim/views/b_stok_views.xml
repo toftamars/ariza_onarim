@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dönüşüm kayıtları: her kullanıcı yalnız kendi şirket(ler)inin kayıtlarını görür -->
+    <record id="rule_ariza_b_stok_donusum_sirket" model="ir.rule">
+        <field name="name">B Stok Dönüşümü: şirket bazlı erişim</field>
+        <field name="model_id" ref="model_ariza_b_stok_donusum"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Sihirbaz -->
+    <record id="view_ariza_b_stok_cevir_wizard_form" model="ir.ui.view">
+        <field name="name">ariza.b.stok.cevir.wizard.form</field>
+        <field name="model">ariza.b.stok.cevir.wizard</field>
+        <field name="arch" type="xml">
+            <form string="B Stok'a Çevir">
+                <group>
+                    <group>
+                        <field name="urun_id" options="{'no_open': True}" force_save="1"/>
+                        <field name="konum_id" options="{'no_open': True}" force_save="1"/>
+                        <field name="serbest_miktar"/>
+                    </group>
+                    <group>
+                        <field name="miktar"/>
+                        <field name="oran"/>
+                        <field name="durum"/>
+                    </group>
+                </group>
+                <group attrs="{'invisible': [('kart_kodu', '=', False)]}">
+                    <field name="kart_kodu"/>
+                    <field name="kart_durumu"/>
+                </group>
+                <field name="not_metni" placeholder="Örn: sapı kırık, onarıldı"/>
+                <div class="alert alert-info" role="alert">
+                    Ürün bu konumdan düşülür, B Stok kartı aynı konuma aynı maliyetle eklenir
+                    ve kart seçilen oranın B-STOK promosyonuna eklenir.
+                </div>
+                <footer>
+                    <button name="action_onayla" type="object" string="Çevir" class="btn-primary"
+                            confirm="Stok hareketi oluşturulacak. Devam edilsin mi?"/>
+                    <button string="Vazgeç" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Arıza Deposu Stoğu: satır butonu (yalnız yönetici) -->
+    <record id="view_ariza_depo_stok_tree_b_stok" model="ir.ui.view">
+        <field name="name">ariza.depo.stok.tree.b.stok</field>
+        <field name="model">ariza.depo.stok</field>
+        <field name="inherit_id" ref="view_ariza_depo_stok_tree"/>
+        <field name="groups_id" eval="[(4, ref('ariza_onarim.group_ariza_manager'))]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='miktar']" position="after">
+                <button name="action_b_stok_cevir" type="object" string="B Stok'a Çevir"
+                        icon="fa-tag" class="btn-link"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Dönüşüm kayıtları -->
+    <record id="view_ariza_b_stok_donusum_tree" model="ir.ui.view">
+        <field name="name">ariza.b.stok.donusum.tree</field>
+        <field name="model">ariza.b.stok.donusum</field>
+        <field name="arch" type="xml">
+            <tree string="B Stok Dönüşümleri" create="0" delete="0"
+                  decoration-muted="state == 'geri_alindi'">
+                <field name="name"/>
+                <field name="create_date" string="Tarih"/>
+                <field name="create_uid" string="Yapan"/>
+                <field name="urun_id"/>
+                <field name="b_urun_id"/>
+                <field name="konum_id"/>
+                <field name="miktar" sum="Toplam"/>
+                <field name="oran"/>
+                <field name="durum" optional="show"/>
+                <field name="uyari" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'tamam'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ariza_b_stok_donusum_form" model="ir.ui.view">
+        <field name="name">ariza.b.stok.donusum.form</field>
+        <field name="model">ariza.b.stok.donusum</field>
+        <field name="arch" type="xml">
+            <form string="B Stok Dönüşümü" create="0" delete="0" edit="0">
+                <header>
+                    <button name="action_geri_al" type="object" string="Geri Al"
+                            states="tamam" groups="ariza_onarim.group_ariza_manager"
+                            confirm="B kart stoğu ana ürüne geri aktarılacak. Devam edilsin mi?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_hareketleri_ac" type="object" class="oe_stat_button"
+                                icon="fa-exchange" string="Stok Hareketleri"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         attrs="{'invisible': [('uyari', '=', False)]}">
+                        <field name="uyari"/>
+                    </div>
+                    <h1><field name="name"/></h1>
+                    <group>
+                        <group>
+                            <field name="urun_id"/>
+                            <field name="b_urun_id"/>
+                            <field name="b_kart_yeni"/>
+                            <field name="konum_id"/>
+                        </group>
+                        <group>
+                            <field name="miktar"/>
+                            <field name="oran"/>
+                            <field name="durum"/>
+                            <field name="birim_maliyet"/>
+                            <field name="create_uid" string="Yapan"/>
+                            <field name="create_date" string="Tarih"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="not_metni"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ariza_b_stok_donusum_search" model="ir.ui.view">
+        <field name="name">ariza.b.stok.donusum.search</field>
+        <field name="model">ariza.b.stok.donusum</field>
+        <field name="arch" type="xml">
+            <search string="B Stok Dönüşümleri">
+                <field name="name"/>
+                <field name="urun_id"/>
+                <field name="b_urun_id"/>
+                <filter name="tamam" string="Tamamlanan" domain="[('state', '=', 'tamam')]"/>
+                <filter name="geri" string="Geri Alınan" domain="[('state', '=', 'geri_alindi')]"/>
+                <group expand="0" string="Grupla">
+                    <filter name="grup_oran" string="Oran" context="{'group_by': 'oran'}"/>
+                    <filter name="grup_konum" string="Konum" context="{'group_by': 'konum_id'}"/>
+                    <filter name="grup_yapan" string="Yapan" context="{'group_by': 'create_uid'}"/>
+                    <filter name="grup_ay" string="Ay" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ariza_b_stok_donusum" model="ir.actions.act_window">
+        <field name="name">B Stok Dönüşümleri</field>
+        <field name="res_model">ariza.b.stok.donusum</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ariza_b_stok_donusum_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Henüz B Stok dönüşümü yok.</p>
+            <p>Arıza Deposu Stoğu ekranında satırdaki "B Stok'a Çevir" ile başlayın.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_ariza_b_stok_donusum"
+              name="B Stok Dönüşümleri"
+              parent="menu_ariza_root"
+              action="action_ariza_b_stok_donusum"
+              sequence="16"
+              groups="ariza_onarim.group_ariza_manager"/>
+</odoo>
