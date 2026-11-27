@@ -110,29 +110,30 @@ class ArizaBStokDonusum(models.Model):
                 'konum': konum.complete_name, 'serbest': serbest, 'miktar': miktar})
 
     def _envanter_hareketi(self, urun, miktar, kaynak, hedef, birim_fiyat=None):
-        """Envanter Düzenlemesi türünde tek hareket oluşturup bitirir
-        (stock.quant._apply_inventory ile aynı yapı)."""
+        """Envanter Düzenlemesi türünde tek hareket oluşturup bitirir.
+
+        Hareket değerleri, elle yapılan envanter düzeltmesinin kullandığı
+        stock.quant._get_inventory_move_values ile üretilir; böylece özel
+        modüllerin eklediği alanlar (ör. "Inventory In/Out" operasyon türü ve
+        ona bağlı muhasebe hesabı) elle düzeltmedekiyle aynı olur.
+        (Staging 2026-11-27: operasyon türü olmayan hareket çıkışı 621'e yazdı,
+        elle düzeltme 159'a.)"""
         self.ensure_one()
-        degerler = {
+        cikis_mi = kaynak.usage == 'internal'
+        quant = self.env['stock.quant'].new({
+            'product_id': urun.id,
+            'location_id': (kaynak if cikis_mi else hedef).id,
+            'company_id': self.company_id.id,
+        })
+        degerler = quant._get_inventory_move_values(miktar, kaynak, hedef, out=cikis_mi)
+        if not degerler.get('picking_type_id'):
+            tur = self._envanter_operasyon_turu(cikis_mi)
+            if tur:
+                degerler['picking_type_id'] = tur.id
+        degerler.update({
             'name': _('B-STOK dönüşümü · %s') % self.name,
             'origin': self.name,
-            'product_id': urun.id,
-            'product_uom': urun.uom_id.id,
-            'product_uom_qty': miktar,
-            'company_id': self.company_id.id,
-            'state': 'confirmed',
-            'location_id': kaynak.id,
-            'location_dest_id': hedef.id,
-            'is_inventory': True,
-            'move_line_ids': [(0, 0, {
-                'product_id': urun.id,
-                'product_uom_id': urun.uom_id.id,
-                'qty_done': miktar,
-                'location_id': kaynak.id,
-                'location_dest_id': hedef.id,
-                'company_id': self.company_id.id,
-            })],
-        }
+        })
         if birim_fiyat is not None:
             degerler['price_unit'] = birim_fiyat
         hareket = self.env['stock.move'].with_context(inventory_mode=False).create(degerler)
@@ -141,6 +142,23 @@ class ArizaBStokDonusum(models.Model):
             raise UserError(_('Stok hareketi tamamlanamadı (%s).') % urun.display_name)
         self.sudo().write({'move_ids': [(4, hareket.id)]})
         return hareket
+
+    def _envanter_operasyon_turu(self, cikis_mi):
+        """Elle envanter düzeltmelerinin taşıdığı operasyon türü (ör. "Inventory
+        Out" / "Inventory In"); muhasebe hesabı kategori + bu türe göre seçiliyor
+        (stock_accounting_valuation_advanced). Şirketin son elle düzeltmesinden
+        okunur; bulunamazsa tür boş kalır."""
+        self.ensure_one()
+        alan = 'location_dest_id.usage' if cikis_mi else 'location_id.usage'
+        son = self.env['stock.move'].sudo().search([
+            ('is_inventory', '=', True),
+            ('state', '=', 'done'),
+            ('company_id', '=', self.company_id.id),
+            ('picking_type_id', '!=', False),
+            (alan, '=', 'inventory'),
+            ('origin', 'not like', 'BSD/'),
+        ], order='id desc', limit=1)
+        return son.picking_type_id
 
     def _aktar(self, cikan, giren, miktar):
         """cikan ürünü konumdan çıkarır, giren ürünü aynı değerle konuma sokar.
