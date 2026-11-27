@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-B Stok dönüşümü: tamirli ürünü ARIZA konumunda B Stok kartına çevirir.
+B Stok dönüşümü: ürünü bulunduğu iç konumda (ARIZA ya da mağaza stoğu)
+B Stok kartına çevirir. Yalnız Arıza Onarım yöneticileri yapar.
 
 Elle yapılan işin aynısı: ana ürün o konumdan Envanter Düzenlemesi'ne çıkar,
 B kart aynı konuma Envanter Düzenlemesi'nden girer; giriş, çıkışın değerleme
@@ -18,7 +19,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare, float_is_zero
 
-from .ariza_depo_stok import ARIZA_DEPO_KODU
 from .b_stok_urun import oran_metni
 
 _logger = logging.getLogger(__name__)
@@ -62,12 +62,11 @@ class ArizaBStokDonusum(models.Model):
             raise AccessError(_('B Stok dönüşümünü yalnızca Arıza Onarım yöneticileri yapabilir.'))
 
     @api.model
-    def _ariza_konumu_mu(self, konum):
-        """Konum ARIZA deposunun altında bir iç konum mu?"""
-        depo = self.env['stock.warehouse'].sudo().search([
-            ('code', '=', ARIZA_DEPO_KODU), ('company_id', '=', konum.company_id.id)], limit=1)
-        return bool(depo and konum.usage == 'internal'
-                    and (konum.parent_path or '').startswith(depo.view_location_id.parent_path))
+    def _konum_uygun_mu(self, konum):
+        """Dönüşüm yapılabilecek konum: şirketin bir iç (stok) konumu.
+        Yolda/transit, sanal, müşteri ve tedarikçi konumları hariç."""
+        return bool(konum and konum.usage == 'internal' and konum.company_id
+                    and konum.active)
 
     @api.model
     def _serbest_miktar(self, urun, konum):
@@ -98,8 +97,9 @@ class ArizaBStokDonusum(models.Model):
         if urun.with_company(company).cost_method != 'average':
             raise UserError(_('Yalnız ortalama maliyetli ürünler B Stok\'a çevrilebilir '
                               '(ürün kategorisini kontrol edin).'))
-        if not self._ariza_konumu_mu(konum):
-            raise UserError(_('B Stok dönüşümü yalnızca ARIZA deposu konumlarında yapılabilir.'))
+        if not self._konum_uygun_mu(konum):
+            raise UserError(_('B Stok dönüşümü yalnızca stok (iç) konumlarında yapılabilir; '
+                              '%s uygun değil.') % konum.display_name)
         yuvarlama = urun.uom_id.rounding
         if float_compare(miktar, 0, precision_rounding=yuvarlama) <= 0:
             raise UserError(_('Adet sıfırdan büyük olmalı.'))
@@ -228,7 +228,7 @@ class ArizaBStokDonusum(models.Model):
             kayit.invalidate_cache()
             if kayit.state != 'tamam':
                 raise UserError(_('%s zaten geri alınmış.') % kayit.name)
-            if (not self._ariza_konumu_mu(kayit.konum_id)
+            if (not self._konum_uygun_mu(kayit.konum_id)
                     or kayit.b_urun_id.b_kaynak_urun_id != kayit.urun_id):
                 raise UserError(_('%s kaydı tutarsız; geri alınamaz.') % kayit.name)
             self._quant_kilitle(kayit.b_urun_id, kayit.konum_id)

@@ -123,6 +123,7 @@ class ArizaDepoStok(models.Model):
             'context': {
                 'default_urun_id': self.product_id.id,
                 'default_konum_id': self.location_id.id,
+                'default_sabit': True,
             },
         }
 

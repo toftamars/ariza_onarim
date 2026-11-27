@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""B Stok'a Çevir sihirbazı: Arıza Deposu Stoğu satırından açılır (yalnız yönetici)."""
+"""B Stok'a Çevir sihirbazı (yalnız yönetici).
+
+İki giriş: Arıza Deposu Stoğu satırından (ürün ve konum sabit gelir) ya da
+"B Stok'a Çevir" menüsünden (konum ve ürün seçilir; mağaza stokları dahil).
+"""
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -11,8 +15,17 @@ class ArizaBStokCevirWizard(models.TransientModel):
     _name = 'ariza.b.stok.cevir.wizard'
     _description = "B Stok'a Çevir"
 
-    urun_id = fields.Many2one('product.product', string='Ürün', required=True, readonly=True)
-    konum_id = fields.Many2one('stock.location', string='Konum', required=True, readonly=True)
+    sabit = fields.Boolean(string='Satırdan Açıldı', default=False,
+                           help='Arıza Deposu Stoğu satırından açıldıysa ürün ve konum değiştirilemez.')
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    konum_id = fields.Many2one(
+        'stock.location', string='Konum', required=True,
+        domain="[('usage', '=', 'internal'), ('company_id', '=', company_id)]")
+    urun_id = fields.Many2one(
+        'product.product', string='Ürün', required=True,
+        domain="[('type', '=', 'product'), ('tracking', '=', 'none'), "
+               "('b_kaynak_urun_id', '=', False), "
+               "('stock_quant_ids.location_id', '=', konum_id)]")
     serbest_miktar = fields.Float(string='Çevrilebilir Adet', compute='_compute_bilgi',
                                   digits='Product Unit of Measure')
     miktar = fields.Float(string='Çevrilecek Adet', required=True, default=1.0,
@@ -26,6 +39,11 @@ class ArizaBStokCevirWizard(models.TransientModel):
     @api.model
     def _oran_secenekleri(self):
         return self.env['ariza.b.stok.kart']._oran_secenekleri(self.env.company)
+
+    @api.onchange('konum_id')
+    def _onchange_konum_id(self):
+        if not self.sabit:
+            self.urun_id = False
 
     @api.depends('urun_id', 'konum_id', 'oran')
     def _compute_bilgi(self):

@@ -15,8 +15,12 @@
             <form string="B Stok'a Çevir">
                 <group>
                     <group>
-                        <field name="urun_id" options="{'no_open': True}" force_save="1"/>
-                        <field name="konum_id" options="{'no_open': True}" force_save="1"/>
+                        <field name="sabit" invisible="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="konum_id" options="{'no_open': True, 'no_create': True}" force_save="1"
+                               attrs="{'readonly': [('sabit', '=', True)]}"/>
+                        <field name="urun_id" options="{'no_open': True, 'no_create': True}" force_save="1"
+                               attrs="{'readonly': [('sabit', '=', True)]}"/>
                         <field name="serbest_miktar"/>
                     </group>
                     <group>
@@ -31,7 +35,7 @@
                 </group>
                 <field name="not_metni" placeholder="Örn: sapı kırık, onarıldı"/>
                 <div class="alert alert-info" role="alert">
-                    Ürün bu konumdan düşülür, B Stok kartı aynı konuma aynı maliyetle eklenir
+                    Ürün seçilen konumdan düşülür, B Stok kartı aynı konuma aynı maliyetle eklenir
                     ve kart seçilen oranın B-STOK promosyonuna eklenir.
                 </div>
                 <footer>
@@ -150,9 +154,24 @@
         <field name="search_view_id" ref="view_ariza_b_stok_donusum_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Henüz B Stok dönüşümü yok.</p>
-            <p>Arıza Deposu Stoğu ekranında satırdaki "B Stok'a Çevir" ile başlayın.</p>
+            <p>"B Stok'a Çevir" menüsünden ya da Arıza Deposu Stoğu satırındaki butondan başlayın.</p>
         </field>
     </record>
+
+    <!-- Menüden: konum + ürün seçilerek (mağaza stokları dahil) -->
+    <record id="action_ariza_b_stok_cevir_wizard" model="ir.actions.act_window">
+        <field name="name">B Stok'a Çevir</field>
+        <field name="res_model">ariza.b.stok.cevir.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_ariza_b_stok_cevir"
+              name="B Stok'a Çevir"
+              parent="menu_ariza_root"
+              action="action_ariza_b_stok_cevir_wizard"
+              sequence="17"
+              groups="ariza_onarim.group_ariza_manager"/>
 
     <menuitem id="menu_ariza_b_stok_donusum"
               name="B Stok Dönüşümleri"
