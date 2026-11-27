@@ -6,7 +6,10 @@
         <field name="arch" type="xml">
             <tree string="Arıza Deposu Stoğu" editable="top" create="0" delete="0">
                 <field name="product_id" readonly="1"/>
-                <field name="miktar" readonly="1"/>
+                <field name="location_id" readonly="1" optional="show"/>
+                <field name="product_brand_id" readonly="1" optional="show"/>
+                <field name="categ_id" readonly="1" optional="hide"/>
+                <field name="miktar" readonly="1" sum="Toplam"/>
                 <field name="not_metni" width="420px" placeholder="Örn: sapı kırık, onarıldı, %15 indirimle satılabilir"/>
                 <field name="not_yazan_id" readonly="1" optional="show"/>
                 <field name="not_tarihi" readonly="1" optional="show"/>
@@ -21,9 +24,26 @@
         <field name="arch" type="xml">
             <search string="Arıza Deposu Stoğu">
                 <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="product_brand_id"/>
+                <field name="categ_id" filter_domain="[('categ_id', 'child_of', raw_value)]"/>
                 <field name="not_metni"/>
                 <filter name="notlu" string="Notu Olanlar" domain="[('not_metni', '!=', False)]"/>
                 <filter name="notsuz" string="Notu Olmayanlar" domain="[('not_metni', '=', False)]"/>
+                <separator/>
+                <filter name="ana_stok" string="ARIZA/Stok" domain="[('location_id.complete_name', '=', 'ARIZA/Stok')]"/>
+                <filter name="diger_konum" string="Diğer ARIZA Konumları" domain="[('location_id.complete_name', '!=', 'ARIZA/Stok')]"/>
+                <separator/>
+                <filter name="birden_fazla" string="Adet 1'den Fazla" domain="[('miktar', '>', 1)]"/>
+                <filter name="markasiz" string="Markası Olmayanlar" domain="[('product_brand_id', '=', False)]"/>
+                <group expand="0" string="Grupla">
+                    <filter name="grup_konum" string="Konum" context="{'group_by': 'location_id'}"/>
+                    <filter name="grup_marka" string="Marka" context="{'group_by': 'product_brand_id'}"/>
+                    <filter name="grup_kategori" string="Kategori" context="{'group_by': 'categ_id'}"/>
+                    <filter name="grup_urun" string="Ürün" context="{'group_by': 'product_id'}"/>
+                    <filter name="grup_not_yazan" string="Notu Yazan" context="{'group_by': 'not_yazan_id'}"/>
+                    <filter name="grup_not_tarihi" string="Not Tarihi" context="{'group_by': 'not_tarihi:month'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -34,7 +54,7 @@
         <field name="view_mode">tree</field>
         <field name="search_view_id" ref="view_ariza_depo_stok_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">ARIZA/Stok konumunda ürün yok.</p>
+            <p class="o_view_nocontent_smiling_face">ARIZA deposu konumlarında ürün yok.</p>
         </field>
     </record>
 

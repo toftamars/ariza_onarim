@@ -2,10 +2,12 @@
 """
 Arıza deposu stoğu ve ürün notları.
 
-Arıza yöneticileri ARIZA deposunun stok konumundaki (ARIZA/Stok) ürünleri
-ürün başına tek satır görür ve her ürüne not yazar (örn. "sapı kırık,
-onarıldı, %15 indirimle satılabilir"). Adetler stoktan okunur; bu ekran
-stok değiştirmez. Notlar ayrı tabloda tutulur, ürün stoktan çıksa da kalır.
+Arıza yöneticileri ARIZA deposunun tüm iç konumlarındaki (ARIZA/Stok,
+ARIZA/Evren, ARIZA/NGaudio ...) ürünleri ürün + konum başına tek satır görür
+ve her ürüne not yazar (örn. "sapı kırık, onarıldı, %15 indirimle
+satılabilir"). Not ürüne aittir: ürün birden çok konumdaysa her satırda aynı
+not görünür. Adetler stoktan okunur; bu ekran stok değiştirmez. Notlar ayrı
+tabloda tutulur, ürün stoktan çıksa da kalır.
 """
 
 from odoo import _, api, fields, models, tools
@@ -13,7 +15,8 @@ from odoo.exceptions import UserError
 
 # Arıza deposunun kodu (stock.warehouse.code)
 ARIZA_DEPO_KODU = 'ARIZA'
-# Görünüm satır kimliği: şirket * ÇARPAN + ürün (ürün id'si bunun altında kalır)
+# Görünüm satır kimliği: konum * ÇARPAN + ürün (ürün id'si bunun altında kalır).
+# Konum şirkete özgü olduğundan konum + ürün satırı tekil belirler.
 ID_CARPANI = 100000000
 
 
@@ -62,6 +65,9 @@ class ArizaDepoStok(models.Model):
     _order = 'product_id'
 
     product_id = fields.Many2one('product.product', string='Ürün', readonly=True)
+    location_id = fields.Many2one('stock.location', string='Konum', readonly=True)
+    product_brand_id = fields.Many2one('product.brand', string='Marka', readonly=True)
+    categ_id = fields.Many2one('product.category', string='Kategori', readonly=True)
     company_id = fields.Many2one('res.company', string='Şirket', readonly=True)
     miktar = fields.Float(string='Adet', readonly=True, digits='Product Unit of Measure')
     not_metni = fields.Text(string='Not')
@@ -69,25 +75,36 @@ class ArizaDepoStok(models.Model):
     not_tarihi = fields.Datetime(string='Not Tarihi', readonly=True)
 
     def init(self):
+        # ARIZA deposunun görünüm konumu altındaki tüm iç konumlar sayılır
+        # (parent_path öneki). Marka/kategori ürün şablonundan gelir.
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT
-                    s.company_id * {ID_CARPANI} + s.product_id AS id,
+                    s.location_id::bigint * {ID_CARPANI} + s.product_id AS id,
                     s.product_id,
+                    s.location_id,
+                    pt.product_brand_id,
+                    pt.categ_id,
                     s.company_id,
                     s.miktar,
                     n.not_metni,
                     n.write_uid AS not_yazan_id,
                     n.write_date AS not_tarihi
                 FROM (
-                    SELECT q.product_id, w.company_id, SUM(q.quantity) AS miktar
+                    SELECT q.product_id, q.location_id, w.company_id,
+                           SUM(q.quantity) AS miktar
                     FROM stock_quant q
-                    JOIN stock_warehouse w
-                      ON w.lot_stock_id = q.location_id AND w.code = %s
-                    GROUP BY q.product_id, w.company_id
+                    JOIN stock_location l
+                      ON l.id = q.location_id AND l.usage = 'internal'
+                    JOIN stock_warehouse w ON w.code = %s
+                    JOIN stock_location vl ON vl.id = w.view_location_id
+                    WHERE l.parent_path LIKE vl.parent_path || '%%'
+                    GROUP BY q.product_id, q.location_id, w.company_id
                     HAVING SUM(q.quantity) > 0
                 ) s
+                JOIN product_product pp ON pp.id = s.product_id
+                JOIN product_template pt ON pt.id = pp.product_tmpl_id
                 LEFT JOIN ariza_stok_notu n
                   ON n.product_id = s.product_id AND n.company_id = s.company_id
             )
